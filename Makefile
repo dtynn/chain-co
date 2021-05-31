@@ -51,3 +51,6 @@ dep-check: build-dep/.update-modules
 dist-clean:
 	git clean -xdff
 	git submodule deinit --all -f
+
+gen-proxy:
+	go run scripts/proxy-gen.go
