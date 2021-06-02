@@ -16,7 +16,7 @@ func main() {
 		panic(err)
 	}
 
-	if err := ioutil.WriteFile("./co/proxy/proxy.go", output, 0644); err != nil {
+	if err := ioutil.WriteFile("./proxy/proxy.go", output, 0644); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
