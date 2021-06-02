@@ -14,6 +14,7 @@ import (
 
 var _ Proxy = api.FullNode(nil)
 
+// Proxy is a subset of api.FullNode, which provides the required methods for a chain service
 type Proxy interface {
 	// ChainHead returns the current head of the chain.
 	ChainHead(context.Context) (*types.TipSet, error)
@@ -45,49 +46,15 @@ type Proxy interface {
 	// will be returned.
 	ChainGetTipSetByHeight(context.Context, abi.ChainEpoch, types.TipSetKey) (*types.TipSet, error)
 
-	// ChainReadObj reads ipld nodes referenced by the specified CID from chain
-	// blockstore and returns raw bytes.
-	ChainReadObj(context.Context, cid.Cid) ([]byte, error)
-
-	// ChainDeleteObj deletes node referenced by the given CID
-	ChainDeleteObj(context.Context, cid.Cid) error
-
-	// ChainHasObj checks if a given CID exists in the chain blockstore.
-	ChainHasObj(context.Context, cid.Cid) (bool, error)
-
-	// ChainStatObj returns statistics about the graph referenced by 'obj'.
-	// If 'base' is also specified, then the returned stat will be a diff
-	// between the two objects.
-	ChainStatObj(ctx context.Context, obj cid.Cid, base cid.Cid) (api.ObjStat, error)
-
-	// ChainSetHead forcefully sets current chain head. Use with caution.
-	ChainSetHead(context.Context, types.TipSetKey) error
-
 	// ChainGetGenesis returns the genesis tipset.
 	ChainGetGenesis(context.Context) (*types.TipSet, error)
 
 	// ChainTipSetWeight computes weight for the specified tipset.
 	ChainTipSetWeight(context.Context, types.TipSetKey) (types.BigInt, error)
-	ChainGetNode(ctx context.Context, p string) (*api.IpldObject, error)
 
 	// ChainGetMessage reads a message referenced by the specified CID from the
 	// chain blockstore.
 	ChainGetMessage(context.Context, cid.Cid) (*types.Message, error)
-
-	// ChainGetPath returns a set of revert/apply operations needed to get from
-	// one tipset to another, for example:
-	//```
-	//        to
-	//         ^
-	// from   tAA
-	//   ^     ^
-	// tBA    tAB
-	//  ^---*--^
-	//      ^
-	//     tRR
-	//```
-	// Would return `[revert(tBA), apply(tAB), apply(tAA)]`
-	ChainGetPath(ctx context.Context, from types.TipSetKey, to types.TipSetKey) ([]*api.HeadChange, error)
 
 	// MethodGroup: Beacon
 	// The Beacon method group contains methods for interacting with the random beacon (DRAND)

@@ -30,14 +30,6 @@ func (p *Proxy) BeaconGetEntry(in0 context.Context, in1 abi.ChainEpoch) (out0 *t
 	return cli.BeaconGetEntry(in0, in1)
 }
 
-func (p *Proxy) ChainDeleteObj(in0 context.Context, in1 cid.Cid) (err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.ChainDeleteObj(in0, in1)
-}
-
 func (p *Proxy) ChainGetBlock(in0 context.Context, in1 cid.Cid) (out0 *types.BlockHeader, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -70,14 +62,6 @@ func (p *Proxy) ChainGetMessage(in0 context.Context, in1 cid.Cid) (out0 *types.M
 	return cli.ChainGetMessage(in0, in1)
 }
 
-func (p *Proxy) ChainGetNode(in0 context.Context, in1 string) (out0 *api1.IpldObject, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.ChainGetNode(in0, in1)
-}
-
 func (p *Proxy) ChainGetParentMessages(in0 context.Context, in1 cid.Cid) (out0 []api1.Message, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -92,14 +76,6 @@ func (p *Proxy) ChainGetParentReceipts(in0 context.Context, in1 cid.Cid) (out0 [
 		return
 	}
 	return cli.ChainGetParentReceipts(in0, in1)
-}
-
-func (p *Proxy) ChainGetPath(in0 context.Context, in1 types.TipSetKey, in2 types.TipSetKey) (out0 []*api1.HeadChange, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.ChainGetPath(in0, in1, in2)
 }
 
 func (p *Proxy) ChainGetRandomnessFromBeacon(in0 context.Context, in1 types.TipSetKey, in2 crypto.DomainSeparationTag, in3 abi.ChainEpoch, in4 []uint8) (out0 abi.Randomness, err error) {
@@ -134,44 +110,12 @@ func (p *Proxy) ChainGetTipSetByHeight(in0 context.Context, in1 abi.ChainEpoch, 
 	return cli.ChainGetTipSetByHeight(in0, in1, in2)
 }
 
-func (p *Proxy) ChainHasObj(in0 context.Context, in1 cid.Cid) (out0 bool, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.ChainHasObj(in0, in1)
-}
-
 func (p *Proxy) ChainHead(in0 context.Context) (out0 *types.TipSet, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		return
 	}
 	return cli.ChainHead(in0)
-}
-
-func (p *Proxy) ChainReadObj(in0 context.Context, in1 cid.Cid) (out0 []uint8, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.ChainReadObj(in0, in1)
-}
-
-func (p *Proxy) ChainSetHead(in0 context.Context, in1 types.TipSetKey) (err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.ChainSetHead(in0, in1)
-}
-
-func (p *Proxy) ChainStatObj(in0 context.Context, in1 cid.Cid, in2 cid.Cid) (out0 api1.ObjStat, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.ChainStatObj(in0, in1, in2)
 }
 
 func (p *Proxy) ChainTipSetWeight(in0 context.Context, in1 types.TipSetKey) (out0 big.Int, err error) {
