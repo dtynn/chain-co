@@ -1,0 +1,24 @@
+package service
+
+import (
+	logging "github.com/ipfs/go-log/v2"
+	"go.uber.org/fx"
+
+	"github.com/dtynn/chain-co/co"
+	"github.com/dtynn/chain-co/proxy"
+)
+
+var log = logging.Logger("chain-ro-srv")
+
+type LocalChainService struct {
+	fx.In
+	*co.Coordinator
+}
+
+type Service struct {
+	fx.In
+
+	*proxy.Proxy
+	*proxy.Local
+	*proxy.UnSupport
+}

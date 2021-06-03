@@ -54,3 +54,12 @@ dist-clean:
 
 gen-proxy:
 	go run scripts/proxy-gen.go
+
+build-ro: $(BUILD_DEPS)
+	mkdir -p ./bin
+	rm -f ./bin/chain-ro
+	go build $(GOFLAGS) -o ./bin/chain-ro ./chain-ro/cmd
+	go run github.com/GeertJohan/go.rice/rice append --exec ./bin/chain-ro -i ./build
+
+.PHONY: lotus
+BINS+=lotus

@@ -5,6 +5,15 @@ import (
 	"sync"
 )
 
+func NewSelector() (*Selector, error) {
+	sel := &Selector{}
+	sel.prior.addrs = make([]string, 0, 64)
+	sel.all.addrs = make([]string, 0, 64)
+	sel.all.nodes = map[string]*Node{}
+
+	return sel, nil
+}
+
 // Selector is used to select a best chain node to route the requests to
 type Selector struct {
 	prior struct {
@@ -19,7 +28,7 @@ type Selector struct {
 	}
 }
 
-func (s *Selector) replaceNodes(add []*Node, removes map[string]bool, removesAll bool) {
+func (s *Selector) ReplaceNodes(add []*Node, removes map[string]bool, removesAll bool) {
 	s.all.Lock()
 
 	// reset
@@ -38,13 +47,13 @@ func (s *Selector) replaceNodes(add []*Node, removes map[string]bool, removesAll
 
 	for i := range add {
 		current := add[i]
-		if prev, has := s.all.nodes[current.info.Host]; has {
+		if prev, has := s.all.nodes[current.info.Addr]; has {
 			prev.Stop()
 		} else {
-			s.all.addrs = append(s.all.addrs, current.info.Host)
+			s.all.addrs = append(s.all.addrs, current.info.Addr)
 		}
 
-		s.all.nodes[current.info.Host] = current
+		s.all.nodes[current.info.Addr] = current
 		go current.Start()
 	}
 

@@ -24,102 +24,28 @@ const (
 	tipsetChangeTopic = "tschange"
 )
 
-// func New(mctx helpers.MetricsCtx, lc fx.Lifecycle, nodes MasterNodeAddresses) (*Masters, error) {
-//     if len(nodes) == 0 {
-//         return nil, fmt.Errorf("no master node addrs provided")
-//     }
-
-//     allDone := false
-//     clients := make(map[string]*Client)
-
-//     lifeCtx := helpers.LifecycleCtx(mctx, lc)
-//     runCtx, runCancel := context.WithCancel(lifeCtx)
-
-//     defer func() {
-//         if !allDone {
-//             runCancel()
-//             for _, cli := range clients {
-//                 cli.Close(lifeCtx)
-//             }
-//         }
-//     }()
-
-//     var heaviest *types.TipSet
-//     weight := types.NewInt(0)
-//     prior := make([]string, 0, len(nodes))
-//     all := make([]string, 0, len(nodes))
-
-//     for ni := range nodes {
-//         addr := nodes[ni]
-//         cli, err := NewClient(runCtx, addr)
-//         if err != nil {
-//             return nil, fmt.Errorf("open master client for %s: %w", addr, err)
-//         }
-
-//         all = append(all, addr)
-//         clients[addr] = cli
-
-//         head, err := cli.full.ChainHead(runCtx)
-//         if err != nil {
-//             return nil, fmt.Errorf("get head from %s: %w", addr, err)
-//         }
-
-//         if head == nil {
-//             cli.log.Warn("head not provided")
-//             continue
-//         }
-
-//         if heaviest != nil && heaviest.Equals(head) {
-//             prior = append(prior, addr)
-//             continue
-//         }
-
-//         hw, err := cli.full.ChainTipSetWeight(runCtx, head.Key())
-//         if err != nil {
-//             return nil, fmt.Errorf("get weight from %s: %w", addr, err)
-//         }
-
-//         if hw.GreaterThan(weight) {
-//             heaviest = head
-//             weight = hw
-//             prior = append(prior[:0], addr)
-//         }
-//     }
-
-//     if heaviest == nil {
-//         return nil, fmt.Errorf("unable to get heaviest chain head from masters")
-//     }
-
-//     allDone = true
-//     m := &Masters{
-//         ctx:    runCtx,
-//         cancel: runCancel,
-//     }
-
-//     m.prior.addrs = prior
-
-//     m.all.addrs = all
-//     m.all.clients = clients
-
-//     m.head.ch = make(chan HeadChange, 16)
-//     m.head.ts = heaviest
-//     m.head.weight = weight
-//     m.head.nodes = make([]string, len(prior))
-//     copy(m.head.nodes, prior)
-
-//     return m, nil
-// }
+func NewCoordinator(ctx *Ctx, head *types.TipSet, weight types.BigInt, sel *Selector) (*Coordinator, error) {
+	return &Coordinator{
+		ctx:    ctx,
+		head:   head,
+		weight: weight,
+		nodes:  make([]string, 0, 16),
+		sel:    sel,
+		tspub:  pubsub.New(256),
+	}, nil
+}
 
 // Coordinator tries to setup the best nodes based on their incoming chain head
 type Coordinator struct {
 	ctx *Ctx
 
-	mu     sync.Mutex
+	headMu sync.RWMutex
 	head   *types.TipSet
 	weight types.BigInt
 	nodes  []string
 
-	sel   *Selector
+	sel *Selector
+
 	tspub *pubsub.PubSub
 }
 
@@ -139,21 +65,29 @@ func (c *Coordinator) Start() {
 	}
 }
 
+func (c *Coordinator) Stop() error {
+	c.tspub.Shutdown()
+	return nil
+}
+
 func (c *Coordinator) handleCandidate(hc *headCandidate) {
 	clog := log.With("node", hc.node.info.Host, "h", hc.ts.Height(), "w", hc.weight, "drift", time.Now().Unix()-int64(hc.ts.MinTimestamp()))
+
+	c.headMu.Lock()
+
 	if c.head == nil || hc.weight.GreaterThan(c.weight) {
 		clog.Debug("head replaced")
 
-		c.mu.Lock()
 		prev := c.head
 		next := hc.ts
 
 		c.head = hc.ts
 		c.weight = hc.weight
-		c.nodes = append(c.nodes[:0], hc.node.info.Host)
-		c.mu.Unlock()
+		c.nodes = append(c.nodes[:0], hc.node.info.Addr)
+		c.sel.setPriors(hc.node.info.Addr)
 
-		c.sel.setPriors(hc.node.info.Host)
+		c.headMu.Unlock()
+
 		if err := c.applyTipSetChange(prev, next, hc.node); err != nil {
 			clog.Errorf("apply tipset change: %s", err)
 		}
@@ -164,22 +98,20 @@ func (c *Coordinator) handleCandidate(hc *headCandidate) {
 	if c.head.Equals(hc.ts) {
 		contains := false
 		for ni := range c.nodes {
-			if c.nodes[ni] == hc.node.info.Host {
+			if c.nodes[ni] == hc.node.info.Addr {
 				contains = true
 				break
 			}
 		}
 
 		if !contains {
-			c.mu.Lock()
-			c.nodes = append(c.nodes, hc.node.info.Host)
-			c.mu.Unlock()
-
+			c.nodes = append(c.nodes, hc.node.info.Addr)
 			c.sel.setPriors(c.nodes...)
 
 			clog.Debug("another node caught up")
 		}
 
+		c.headMu.Unlock()
 		return
 	}
 

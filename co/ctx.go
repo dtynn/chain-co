@@ -5,10 +5,26 @@ import (
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/ipfs/go-cid"
+	"go.uber.org/fx"
 
 	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/filecoin-project/lotus/node/modules/helpers"
 )
+
+func NewCtx(mctx helpers.MetricsCtx, lc fx.Lifecycle, nodeOpt NodeOption) (*Ctx, error) {
+	bcache, err := newBlockHeaderCache(1 << 20)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Ctx{
+		lc:      helpers.LifecycleCtx(mctx, lc),
+		bcache:  bcache,
+		headCh:  make(chan *headCandidate, 256),
+		nodeOpt: nodeOpt,
+	}, nil
+}
 
 // Ctx contains the shared components between different modules
 type Ctx struct {
@@ -22,6 +38,17 @@ type headCandidate struct {
 	node   *Node
 	ts     *types.TipSet
 	weight types.BigInt
+}
+
+func newBlockHeaderCache(size int) (*blockHeaderCache, error) {
+	cache, err := lru.New2Q(size)
+	if err != nil {
+		return nil, err
+	}
+
+	return &blockHeaderCache{
+		cache: cache,
+	}, nil
 }
 
 type blockHeaderCache struct {

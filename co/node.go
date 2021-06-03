@@ -2,7 +2,6 @@ package co
 
 import (
 	"context"
-	"net/http"
 	"time"
 
 	"github.com/filecoin-project/go-jsonrpc"
@@ -14,11 +13,18 @@ import (
 	"github.com/filecoin-project/lotus/api/client"
 	"github.com/filecoin-project/lotus/chain/store"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/filecoin-project/lotus/cli/util"
 )
 
-const (
-	rpcV0Endpoint = "/rpc/v0"
-)
+type NodeInfoList []NodeInfo
+
+func DefaultNodeOption() NodeOption {
+	return NodeOption{
+		ReListenMinInterval: 4 * time.Second,
+		ReListenMaxInterval: 32 * time.Second,
+		APITimeout:          10 * time.Second,
+	}
+}
 
 // NodeOption is for node configuration
 type NodeOption struct {
@@ -28,33 +34,38 @@ type NodeOption struct {
 	APITimeout time.Duration
 }
 
-// NodeInfo for connection
-type NodeInfo struct {
-	Host   string
-	Header http.Header
-	UseTLS bool
+type NodeInfo = cliutil.APIInfo
+
+var ParseNodeInfo = cliutil.ParseApiInfo
+
+func NewConnector(ctx *Ctx) (*Connector, error) {
+	return &Connector{
+		Ctx: ctx,
+	}, nil
 }
 
-func connect(sctx *Ctx, info NodeInfo) (*Node, error) {
-	scheme := "ws://"
-	if info.UseTLS {
-		scheme = "wss://"
-	}
+type Connector struct {
+	*Ctx
+}
 
-	addr := scheme + info.Host + rpcV0Endpoint
-
-	full, closer, err := client.NewFullNodeRPC(sctx.lc, addr, info.Header)
+func (c *Connector) Connect(info NodeInfo) (*Node, error) {
+	addr, err := info.DialArgs()
 	if err != nil {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithCancel(sctx.lc)
+	full, closer, err := client.NewFullNodeRPC(c.Ctx.lc, addr, info.AuthHeader())
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithCancel(c.Ctx.lc)
 	node := &Node{
-		opt:    sctx.nodeOpt,
+		opt:    c.Ctx.nodeOpt,
 		info:   info,
 		ctx:    ctx,
 		cancel: cancel,
-		sctx:   sctx,
+		sctx:   c.Ctx,
 		log:    log.With("remote", addr),
 	}
 
@@ -92,7 +103,9 @@ func (n *Node) Start() {
 	for {
 		ch, err := n.reListen()
 		if err != nil {
-			n.log.Errorf("failed to listen head change: %s", err)
+			if err != context.Canceled && err != context.DeadlineExceeded {
+				n.log.Errorf("failed to listen head change: %s", err)
+			}
 			return
 		}
 
@@ -123,6 +136,10 @@ func (n *Node) Stop() error {
 	n.cancel()
 	n.upstream.closer()
 	return nil
+}
+
+func (n *Node) FullNode() api.FullNode {
+	return n.upstream.full
 }
 
 func (n *Node) reListen() (<-chan []*api.HeadChange, error) {

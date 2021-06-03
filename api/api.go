@@ -25,7 +25,13 @@ import (
 	"github.com/filecoin-project/lotus/node/modules/dtypes"
 )
 
-var _ Proxy = api.FullNode(nil)
+var _ api.FullNode = combined(nil)
+
+type combined interface {
+	Proxy
+	Local
+	UnSupport
+}
 
 // Proxy is a subset of api.FullNode.
 // Requests involved will be proxied to the choosen remote node
