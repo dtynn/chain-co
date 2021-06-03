@@ -10,14 +10,44 @@ import (
 )
 
 func main() {
+	pkgName := "proxy"
+
 	var proxy api.Proxy
-	output, err := gen.Gen("proxy", "Proxy", &proxy)
-	if err != nil {
-		panic(err)
+	var local api.Local
+	var unsupport api.UnSupport
+
+	targets := []struct {
+		def        interface{}
+		structName string
+		outPath    string
+	}{
+		{
+			def:        &proxy,
+			structName: "Proxy",
+			outPath:    "./proxy/proxy.go",
+		},
+		{
+			def:        &local,
+			structName: "Local",
+			outPath:    "./proxy/local.go",
+		},
+		{
+			def:        &unsupport,
+			structName: "UnSupport",
+			outPath:    "./proxy/unsupport.go",
+		},
 	}
 
-	if err := ioutil.WriteFile("./proxy/proxy.go", output, 0644); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	for _, t := range targets {
+		code, err := gen.Gen(pkgName, t.structName, t.def)
+		if err != nil {
+			fmt.Println("ERR:", err)
+			os.Exit(1)
+		}
+
+		if err := ioutil.WriteFile(t.outPath, code, 0644); err != nil {
+			fmt.Println("ERR:", err)
+			os.Exit(1)
+		}
 	}
 }
