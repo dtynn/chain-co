@@ -56,6 +56,7 @@ func serveRPC(ctx context.Context, listen string, full api.FullNode, stop dix.St
 
 	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
 
+	log.Infow("start http server", "addr", listen)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return err
 	}

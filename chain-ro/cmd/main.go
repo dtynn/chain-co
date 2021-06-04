@@ -19,7 +19,9 @@ var log = logging.Logger(cliName)
 func main() {
 	lotuslog.SetupLogLevels()
 
-	local := []*cli.Command{}
+	local := []*cli.Command{
+		runCmd,
+	}
 
 	jaeger := tracing.SetupJaegerTracing(cliName)
 	defer func() {
