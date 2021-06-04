@@ -45,12 +45,12 @@ func (c *Coordinator) ChainNotify(ctx context.Context) (<-chan []*api.HeadChange
 			select {
 			case val, ok := <-subch:
 				if !ok {
-					log.Info("ChainNotfify: request done")
+					log.Info("ChainNotify: request done")
 					return
 				}
 
 				if len(out) > 0 {
-					log.Warnf("head change sub is slow, has %d buffered entries", len(out))
+					log.Warnf("ChainNotify: head change sub is slow, has %d buffered entries", len(out))
 				}
 
 				select {
@@ -60,7 +60,7 @@ func (c *Coordinator) ChainNotify(ctx context.Context) (<-chan []*api.HeadChange
 					return
 
 				case <-time.After(time.Minute):
-					log.Warn("ChainNotfify: stucked for 1min")
+					log.Warn("ChainNotify: stucked for 1min")
 					return
 				}
 
