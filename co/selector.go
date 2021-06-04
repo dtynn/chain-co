@@ -5,6 +5,7 @@ import (
 	"sync"
 )
 
+// NewSelector constructs a Selector instance
 func NewSelector() (*Selector, error) {
 	sel := &Selector{}
 	sel.prior.addrs = make([]string, 0, 64)
@@ -28,6 +29,7 @@ type Selector struct {
 	}
 }
 
+// ReplaceNodes adds and removes nodes
 func (s *Selector) ReplaceNodes(add []*Node, removes map[string]bool, removesAll bool) {
 	s.all.Lock()
 

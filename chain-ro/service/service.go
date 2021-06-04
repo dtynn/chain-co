@@ -10,11 +10,13 @@ import (
 
 var log = logging.Logger("chain-ro-srv")
 
+// LocalChainService impls proxy.Local
 type LocalChainService struct {
 	fx.In
 	*co.Coordinator
 }
 
+// Service impls api.FullNode
 type Service struct {
 	fx.In
 

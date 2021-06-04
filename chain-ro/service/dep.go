@@ -14,8 +14,9 @@ import (
 	"github.com/dtynn/chain-co/proxy"
 )
 
-const ExtractFullNodeAPIKey dix.Invoke = 1
+const extractFullNodeAPIKey dix.Invoke = 1
 
+// Build constructs the app with given di options
 func Build(ctx context.Context, overrides ...dix.Option) (dix.StopFunc, error) {
 	opts := []dix.Option{
 		dix.Override(new(co.NodeOption), co.DefaultNodeOption),
@@ -31,13 +32,15 @@ func Build(ctx context.Context, overrides ...dix.Option) (dix.StopFunc, error) {
 	return dix.New(ctx, opts...)
 }
 
+// FullNode extracts api.FullNode from inside di
 func FullNode(full *api.FullNode) dix.Option {
-	return dix.Override(ExtractFullNodeAPIKey, func(srv Service) error {
+	return dix.Override(extractFullNodeAPIKey, func(srv Service) error {
 		*full = &srv
 		return nil
 	})
 }
 
+// ParseNodeInfoList is provided to the higer-lvel
 func ParseNodeInfoList(raws []string) dix.Option {
 	return dix.Override(new(co.NodeInfoList), func() (co.NodeInfoList, error) {
 		list := make(co.NodeInfoList, 0, len(raws))

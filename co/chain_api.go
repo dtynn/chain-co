@@ -8,6 +8,7 @@ import (
 	"github.com/filecoin-project/lotus/chain/store"
 )
 
+// ChainNotify impls api.FullNode.ChainNotify
 func (c *Coordinator) ChainNotify(ctx context.Context) (<-chan []*api.HeadChange, error) {
 	subch := c.tspub.Sub(tipsetChangeTopic)
 

@@ -41,7 +41,7 @@ test: $(BUILD_DEPS)
 	go test -v -failfast ./...
 
 lint: $(BUILD_DEPS)
-	golint --set_exit_status `go list ./... | grep -v /extern/`
+	golint --set_exit_status `go list ./... | grep -v /extern/ | grep -v /proxy$$`
 
 deps: $(BUILD_DEPS)
 

@@ -24,6 +24,7 @@ const (
 	tipsetChangeTopic = "tschange"
 )
 
+// NewCoordinator constructs a Coordinator instance
 func NewCoordinator(ctx *Ctx, head *types.TipSet, weight types.BigInt, sel *Selector) (*Coordinator, error) {
 	return &Coordinator{
 		ctx:    ctx,
@@ -65,6 +66,7 @@ func (c *Coordinator) Start() {
 	}
 }
 
+// Stop shuts down the included components
 func (c *Coordinator) Stop() error {
 	c.tspub.Shutdown()
 	return nil

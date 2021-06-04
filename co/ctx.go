@@ -12,6 +12,7 @@ import (
 	"github.com/filecoin-project/lotus/node/modules/helpers"
 )
 
+// NewCtx constructs a Ctx instance
 func NewCtx(mctx helpers.MetricsCtx, lc fx.Lifecycle, nodeOpt NodeOption) (*Ctx, error) {
 	bcache, err := newBlockHeaderCache(1 << 20)
 	if err != nil {

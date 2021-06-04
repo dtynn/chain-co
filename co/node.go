@@ -16,8 +16,10 @@ import (
 	"github.com/filecoin-project/lotus/cli/util"
 )
 
+// NodeInfoList is a type def for dependency injection
 type NodeInfoList []NodeInfo
 
+// DefaultNodeOption returns default options
 func DefaultNodeOption() NodeOption {
 	return NodeOption{
 		ReListenMinInterval: 4 * time.Second,
@@ -34,20 +36,25 @@ type NodeOption struct {
 	APITimeout time.Duration
 }
 
+// NodeInfo is a type alias for cliutil.APIInfo
 type NodeInfo = cliutil.APIInfo
 
+// ParseNodeInfo is an alias to the cliutil.ParseApiInfo function
 var ParseNodeInfo = cliutil.ParseApiInfo
 
+// NewConnector constructs a Connector instance
 func NewConnector(ctx *Ctx) (*Connector, error) {
 	return &Connector{
 		Ctx: ctx,
 	}, nil
 }
 
+// Connector is a helper for connecting upstream nodes
 type Connector struct {
 	*Ctx
 }
 
+// Connect connects to the specified node with given info
 func (c *Connector) Connect(info NodeInfo) (*Node, error) {
 	addr, err := info.DialArgs()
 	if err != nil {
@@ -138,6 +145,7 @@ func (n *Node) Stop() error {
 	return nil
 }
 
+// FullNode returns the client to the upstream node
 func (n *Node) FullNode() api.FullNode {
 	return n.upstream.full
 }
