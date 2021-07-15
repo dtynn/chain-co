@@ -1,8 +1,8 @@
 FFI_PATH:=extern/filecoin-ffi/
-FFI_DEPS:=.install-filcrypto
+FFI_DEPS:=install-filcrypto
 FFI_DEPS:=$(addprefix $(FFI_PATH),$(FFI_DEPS))
 
-$(FFI_DEPS): build-dep/.filecoin-install ;
+$(FFI_DEPS): build-dep/filecoin-install ;
 
 MODULES:=
 
@@ -16,17 +16,13 @@ ifneq ($(strip $(LDFLAGS)),)
 
 GOFLAGS+=-ldflags="$(ldflags)"
 
-build-dep/.filecoin-install: $(FFI_PATH)
+build-dep/filecoin-install: $(FFI_PATH)
 	    $(MAKE) -C $(FFI_PATH) $(FFI_DEPS:$(FFI_PATH)%=%)
 		    @touch $@
 
 MODULES+=$(FFI_PATH)
 BUILD_DEPS+=build-dep/.filecoin-install
 CLEAN+=build-dep/.filecoin-install
-
-link-build-dir:
-	./scripts/link-build.sh
-BUILD_DEPS+=link-build-dir
 
 $(MODULES): build-dep/.update-modules ;
 
@@ -59,7 +55,6 @@ build-ro: $(BUILD_DEPS)
 	mkdir -p ./bin
 	rm -f ./bin/chain-ro
 	go build $(GOFLAGS) -o ./bin/chain-ro ./chain-ro/cmd
-	go run github.com/GeertJohan/go.rice/rice append --exec ./bin/chain-ro -i ./build
 
 .PHONY: lotus
 BINS+=lotus

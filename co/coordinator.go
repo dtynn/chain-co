@@ -77,7 +77,9 @@ func (c *Coordinator) handleCandidate(hc *headCandidate) {
 
 	c.headMu.Lock()
 
-	if c.head == nil || hc.weight.GreaterThan(c.weight) {
+	//1. more weight
+	//2. if equal weight. select more blocks
+	if c.head == nil || hc.weight.GreaterThan(c.weight)||(hc.weight.Equals(c.weight)&&len(hc.ts.Blocks()) > len(c.head.Blocks())) {
 		clog.Debug("head replaced")
 
 		prev := c.head
