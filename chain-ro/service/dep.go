@@ -46,7 +46,7 @@ func ParseNodeInfoList(raws []string) dix.Option {
 		list := make(co.NodeInfoList, 0, len(raws))
 		for _, str := range raws {
 			info := co.ParseNodeInfo(str)
-			if _, err := info.DialArgs(); err != nil {
+			if _, err := info.DialArgs("v1"); err != nil {
 				return nil, fmt.Errorf("invalid node info: %s", str)
 			}
 

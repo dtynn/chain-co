@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-
-	"github.com/filecoin-project/lotus/api"
+	"github.com/dtynn/chain-co/localwt"
+	"github.com/filecoin-project/lotus/api/v1api"
 	"github.com/urfave/cli/v2"
+	"io/ioutil"
 
 	"github.com/dtynn/chain-co/chain-ro/service"
 	"github.com/dtynn/chain-co/dep"
@@ -28,13 +29,34 @@ var runCmd = &cli.Command{
 			Name:  "node",
 			Usage: "node info",
 		},
+		&cli.StringFlag{
+			Name:  "auth-url",
+			Usage: "specify url for connect to venus-auth",
+			Value: "",
+		},
+		&cli.StringFlag{
+			Name:   "rate_limit_redis",
+			Usage:  "config redis to request api limit",
+			Hidden: true,
+		},
 	},
 	Action: func(cctx *cli.Context) error {
 		appCtx, appCancel := context.WithCancel(cctx.Context)
 		defer appCancel()
 
-		var full api.FullNode
-
+		var full v1api.FullNode
+		localJwt, err := localwt.NewLocalJwt()
+		if err != nil {
+			return err
+		}
+		token, err := localJwt.Token()
+		if err != nil {
+			return err
+		}
+		err = ioutil.WriteFile("./token", token, 0666)
+		if err != nil {
+			return err
+		}
 		stop, err := service.Build(
 			appCtx,
 
@@ -43,7 +65,6 @@ var runCmd = &cli.Command{
 			service.ParseNodeInfoList(cctx.StringSlice("node")),
 			service.FullNode(&full),
 		)
-
 		if err != nil {
 			return nil
 		}
@@ -52,7 +73,10 @@ var runCmd = &cli.Command{
 
 		return serveRPC(
 			appCtx,
+			cctx.String("auth-url"),
+			cctx.String("rate_limit_redis"),
 			cctx.String("listen"),
+			localJwt,
 			full,
 			func(ctx context.Context) error {
 				appCancel()

@@ -2,6 +2,7 @@ package co
 
 import (
 	"context"
+	"github.com/filecoin-project/lotus/api/v1api"
 	"time"
 
 	"github.com/filecoin-project/go-jsonrpc"
@@ -56,12 +57,12 @@ type Connector struct {
 
 // Connect connects to the specified node with given info
 func (c *Connector) Connect(info NodeInfo) (*Node, error) {
-	addr, err := info.DialArgs()
+	addr, err := info.DialArgs("v1")
 	if err != nil {
 		return nil, err
 	}
 
-	full, closer, err := client.NewFullNodeRPC(c.Ctx.lc, addr, info.AuthHeader())
+	full, closer, err := client.NewFullNodeRPCV1(c.Ctx.lc, addr, info.AuthHeader())
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +96,7 @@ type Node struct {
 	sctx *Ctx
 
 	upstream struct {
-		full   api.FullNode
+		full   v1api.FullNode
 		closer jsonrpc.ClientCloser
 	}
 
@@ -146,7 +147,7 @@ func (n *Node) Stop() error {
 }
 
 // FullNode returns the client to the upstream node
-func (n *Node) FullNode() api.FullNode {
+func (n *Node) FullNode() v1api.FullNode {
 	return n.upstream.full
 }
 

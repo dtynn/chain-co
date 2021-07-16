@@ -6,6 +6,7 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-bitfield"
 	"github.com/filecoin-project/go-data-transfer"
+	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/go-jsonrpc/auth"
 	"github.com/filecoin-project/go-multistore"
@@ -15,6 +16,7 @@ import (
 	"github.com/filecoin-project/go-state-types/dline"
 	network1 "github.com/filecoin-project/go-state-types/network"
 	api1 "github.com/filecoin-project/lotus/api"
+	"github.com/filecoin-project/lotus/api/types"
 	"github.com/filecoin-project/lotus/chain/actors/builtin/miner"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/lotus/markets/loggers"
@@ -134,6 +136,14 @@ func (p *UnSupport) ClientCancelDataTransfer(in0 context.Context, in1 datatransf
 		return
 	}
 	return cli.ClientCancelDataTransfer(in0, in1, in2, in3)
+}
+
+func (p *UnSupport) ClientCancelRetrievalDeal(in0 context.Context, in1 retrievalmarket.DealID) (err error) {
+	cli, err := p.Select()
+	if err != nil {
+		return
+	}
+	return cli.ClientCancelRetrievalDeal(in0, in1)
 }
 
 func (p *UnSupport) ClientDataTransferUpdates(in0 context.Context) (out0 <-chan api1.DataTransferChannel, err error) {
@@ -318,6 +328,14 @@ func (p *UnSupport) CreateBackup(in0 context.Context, in1 string) (err error) {
 		return
 	}
 	return cli.CreateBackup(in0, in1)
+}
+
+func (p *UnSupport) Discover(in0 context.Context) (out0 apitypes.OpenRPCDocument, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		return
+	}
+	return cli.Discover(in0)
 }
 
 func (p *UnSupport) GasEstimateFeeCap(in0 context.Context, in1 *types.Message, in2 int64, in3 types.TipSetKey) (out0 big.Int, err error) {
@@ -1224,12 +1242,12 @@ func (p *UnSupport) StateReplay(in0 context.Context, in1 types.TipSetKey, in2 ci
 	return cli.StateReplay(in0, in1, in2)
 }
 
-func (p *UnSupport) StateSearchMsg(in0 context.Context, in1 cid.Cid) (out0 *api1.MsgLookup, err error) {
+func (p *UnSupport) StateSearchMsg(in0 context.Context, in1 types.TipSetKey, in2 cid.Cid, in3 abi.ChainEpoch, in4 bool) (out0 *api1.MsgLookup, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		return
 	}
-	return cli.StateSearchMsg(in0, in1)
+	return cli.StateSearchMsg(in0, in1, in2, in3, in4)
 }
 
 func (p *UnSupport) StateSearchMsgLimited(in0 context.Context, in1 cid.Cid, in2 abi.ChainEpoch) (out0 *api1.MsgLookup, err error) {
@@ -1304,12 +1322,12 @@ func (p *UnSupport) StateVerifierStatus(in0 context.Context, in1 address.Address
 	return cli.StateVerifierStatus(in0, in1, in2)
 }
 
-func (p *UnSupport) StateWaitMsg(in0 context.Context, in1 cid.Cid, in2 uint64) (out0 *api1.MsgLookup, err error) {
+func (p *UnSupport) StateWaitMsg(in0 context.Context, in1 cid.Cid, in2 uint64, in3 abi.ChainEpoch, in4 bool) (out0 *api1.MsgLookup, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		return
 	}
-	return cli.StateWaitMsg(in0, in1, in2)
+	return cli.StateWaitMsg(in0, in1, in2, in3, in4)
 }
 
 func (p *UnSupport) StateWaitMsgLimited(in0 context.Context, in1 cid.Cid, in2 uint64, in3 abi.ChainEpoch) (out0 *api1.MsgLookup, err error) {
