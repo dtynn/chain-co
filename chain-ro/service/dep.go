@@ -3,15 +3,17 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/ipfs-force-community/chain-co/dep"
 	"time"
 
 	"github.com/dtynn/dix"
-	"github.com/filecoin-project/lotus/api"
-	"github.com/filecoin-project/lotus/chain/types"
 	"go.uber.org/fx"
 
-	"github.com/dtynn/chain-co/co"
-	"github.com/dtynn/chain-co/proxy"
+	"github.com/ipfs-force-community/chain-co/co"
+	"github.com/ipfs-force-community/chain-co/proxy"
+
+	"github.com/filecoin-project/lotus/api"
+	"github.com/filecoin-project/lotus/chain/types"
 )
 
 const extractFullNodeAPIKey dix.Invoke = 1
@@ -41,12 +43,12 @@ func FullNode(full *api.FullNode) dix.Option {
 }
 
 // ParseNodeInfoList is provided to the higer-lvel
-func ParseNodeInfoList(raws []string) dix.Option {
+func ParseNodeInfoList(raws []string, version string) dix.Option {
 	return dix.Override(new(co.NodeInfoList), func() (co.NodeInfoList, error) {
 		list := make(co.NodeInfoList, 0, len(raws))
 		for _, str := range raws {
 			info := co.ParseNodeInfo(str)
-			if _, err := info.DialArgs("v1"); err != nil {
+			if _, err := info.DialArgs(version); err != nil {
 				return nil, fmt.Errorf("invalid node info: %s", str)
 			}
 
@@ -57,7 +59,7 @@ func ParseNodeInfoList(raws []string) dix.Option {
 	})
 }
 
-func buildCoordinator(lc fx.Lifecycle, ctx *co.Ctx, connector *co.Connector, infos co.NodeInfoList, sel *co.Selector) (*co.Coordinator, error) {
+func buildCoordinator(lc fx.Lifecycle, ctx *co.Ctx, connector *co.Connector, infos co.NodeInfoList, version dep.APIVersion, sel *co.Selector) (*co.Coordinator, error) {
 	nodes := make([]*co.Node, 0, len(infos))
 	allDone := false
 	defer func() {
@@ -75,7 +77,7 @@ func buildCoordinator(lc fx.Lifecycle, ctx *co.Ctx, connector *co.Connector, inf
 		info := infos[i]
 		nlog := log.With("host", info.Host)
 
-		node, err := connector.Connect(info)
+		node, err := connector.Connect(info, string(version))
 		if err != nil {
 			nlog.Errorf("connect failed: %s", err)
 			continue

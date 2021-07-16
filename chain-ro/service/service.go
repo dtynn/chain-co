@@ -4,8 +4,8 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"go.uber.org/fx"
 
-	"github.com/dtynn/chain-co/co"
-	"github.com/dtynn/chain-co/proxy"
+	"github.com/ipfs-force-community/chain-co/co"
+	"github.com/ipfs-force-community/chain-co/proxy"
 )
 
 var log = logging.Logger("chain-ro-srv")

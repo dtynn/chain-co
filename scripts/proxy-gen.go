@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/dtynn/chain-co/api"
-	"github.com/dtynn/chain-co/proxy-gen"
+	"github.com/ipfs-force-community/chain-co/api"
+	"github.com/ipfs-force-community/chain-co/proxy-gen"
 )
 
 func main() {

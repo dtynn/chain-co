@@ -2,8 +2,8 @@ package proxy
 
 import (
 	"context"
-	"github.com/dtynn/chain-co/api"
 	api1 "github.com/filecoin-project/lotus/api"
+	"github.com/ipfs-force-community/chain-co/api"
 )
 
 var _ LocalAPI = (*Local)(nil)

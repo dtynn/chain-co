@@ -56,8 +56,8 @@ type Connector struct {
 }
 
 // Connect connects to the specified node with given info
-func (c *Connector) Connect(info NodeInfo) (*Node, error) {
-	addr, err := info.DialArgs("v1")
+func (c *Connector) Connect(info NodeInfo, version string) (*Node, error) {
+	addr, err := info.DialArgs(version)
 	if err != nil {
 		return nil, err
 	}

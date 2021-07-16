@@ -2,10 +2,6 @@ package main
 
 import (
 	"context"
-	"github.com/dtynn/chain-co/localwt"
-	"github.com/filecoin-project/venus-auth/cmd/jwtclient"
-	"github.com/ipfs-force-community/metrics/ratelimit"
-	logging "github.com/ipfs/go-log/v2"
 	"net"
 	"net/http"
 	_ "net/http/pprof"
@@ -13,9 +9,18 @@ import (
 	"os/signal"
 	"syscall"
 
+	logging "github.com/ipfs/go-log/v2"
+
 	"github.com/dtynn/dix"
+
 	"github.com/filecoin-project/go-jsonrpc"
+
 	"github.com/filecoin-project/lotus/api"
+
+	"github.com/filecoin-project/venus-auth/cmd/jwtclient"
+
+	"github.com/ipfs-force-community/chain-co/localwt"
+	"github.com/ipfs-force-community/metrics/ratelimit"
 )
 
 func serveRPC(ctx context.Context, authEndpoint, rate_limit_redis, listen string, jwt *localwt.LocalJwt, full api.FullNode, stop dix.StopFunc, maxRequestSize int64) error {
@@ -66,6 +71,7 @@ func serveRPC(ctx context.Context, authEndpoint, rate_limit_redis, listen string
 	pma := api.PermissionedFullAPI(limitWrapper)
 
 	serveRpc("/rpc/v0", pma)
+	serveRpc("/rpc/v1", pma)
 
 	server := http.Server{
 		Addr:    listen,
