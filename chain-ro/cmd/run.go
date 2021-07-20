@@ -2,13 +2,15 @@ package main
 
 import (
 	"context"
-	"github.com/dtynn/chain-co/localwt"
-	"github.com/filecoin-project/lotus/api/v1api"
-	"github.com/urfave/cli/v2"
 	"io/ioutil"
 
-	"github.com/dtynn/chain-co/chain-ro/service"
-	"github.com/dtynn/chain-co/dep"
+	"github.com/urfave/cli/v2"
+
+	"github.com/filecoin-project/lotus/api/v1api"
+
+	"github.com/ipfs-force-community/chain-co/chain-ro/service"
+	"github.com/ipfs-force-community/chain-co/dep"
+	"github.com/ipfs-force-community/chain-co/localwt"
 )
 
 var runCmd = &cli.Command{
@@ -39,6 +41,12 @@ var runCmd = &cli.Command{
 			Usage:  "config redis to request api limit",
 			Hidden: true,
 		},
+		&cli.StringFlag{
+			Name:        "version",
+			Usage:       "rpc api version",
+			Value:       "v1",
+			DefaultText: "v1",
+		},
 	},
 	Action: func(cctx *cli.Context) error {
 		appCtx, appCancel := context.WithCancel(cctx.Context)
@@ -62,7 +70,8 @@ var runCmd = &cli.Command{
 
 			dep.MetricsCtxOption(appCtx, cliName),
 
-			service.ParseNodeInfoList(cctx.StringSlice("node")),
+			dep.APIVersionOption(cctx.String("version")),
+			service.ParseNodeInfoList(cctx.StringSlice("node"), cctx.String("version")),
 			service.FullNode(&full),
 		)
 		if err != nil {

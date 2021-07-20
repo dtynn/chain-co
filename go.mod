@@ -1,6 +1,6 @@
-module github.com/dtynn/chain-co
+module github.com/ipfs-force-community/chain-co
 
-go 1.15
+go 1.16
 
 require (
 	github.com/dtynn/dix v0.1.0

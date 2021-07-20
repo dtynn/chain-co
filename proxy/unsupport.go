@@ -2,28 +2,23 @@ package proxy
 
 import (
 	"context"
-	"github.com/dtynn/chain-co/api"
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/go-bitfield"
 	"github.com/filecoin-project/go-data-transfer"
 	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
-	"github.com/filecoin-project/go-jsonrpc/auth"
 	"github.com/filecoin-project/go-multistore"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/go-state-types/big"
 	"github.com/filecoin-project/go-state-types/crypto"
-	"github.com/filecoin-project/go-state-types/dline"
-	network1 "github.com/filecoin-project/go-state-types/network"
 	api1 "github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/api/types"
 	"github.com/filecoin-project/lotus/chain/actors/builtin/miner"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/lotus/markets/loggers"
 	"github.com/filecoin-project/lotus/node/modules/dtypes"
-	miner1 "github.com/filecoin-project/specs-actors/actors/builtin/miner"
 	"github.com/filecoin-project/specs-actors/actors/builtin/paych"
 	"github.com/google/uuid"
+	"github.com/ipfs-force-community/chain-co/api"
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p-core/metrics"
 	"github.com/libp2p/go-libp2p-core/network"
@@ -42,7 +37,7 @@ type UnSupport struct {
 }
 
 // impl api.UnSupport
-func (p *UnSupport) AuthNew(in0 context.Context, in1 []auth.Permission) (out0 []uint8, err error) {
+func (p *UnSupport) AuthNew(in0 context.Context, in1 []string) (out0 []uint8, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		return
@@ -50,7 +45,7 @@ func (p *UnSupport) AuthNew(in0 context.Context, in1 []auth.Permission) (out0 []
 	return cli.AuthNew(in0, in1)
 }
 
-func (p *UnSupport) AuthVerify(in0 context.Context, in1 string) (out0 []auth.Permission, err error) {
+func (p *UnSupport) AuthVerify(in0 context.Context, in1 string) (out0 []string, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		return
@@ -88,14 +83,6 @@ func (p *UnSupport) ChainGetPath(in0 context.Context, in1 types.TipSetKey, in2 t
 		return
 	}
 	return cli.ChainGetPath(in0, in1, in2)
-}
-
-func (p *UnSupport) ChainHasObj(in0 context.Context, in1 cid.Cid) (out0 bool, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.ChainHasObj(in0, in1)
 }
 
 func (p *UnSupport) ChainReadObj(in0 context.Context, in1 cid.Cid) (out0 []uint8, err error) {
@@ -434,22 +421,6 @@ func (p *UnSupport) MarketWithdraw(in0 context.Context, in1 address.Address, in2
 	return cli.MarketWithdraw(in0, in1, in2, in3)
 }
 
-func (p *UnSupport) MinerCreateBlock(in0 context.Context, in1 *api1.BlockTemplate) (out0 *types.BlockMsg, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.MinerCreateBlock(in0, in1)
-}
-
-func (p *UnSupport) MinerGetBaseInfo(in0 context.Context, in1 address.Address, in2 abi.ChainEpoch, in3 types.TipSetKey) (out0 *api1.MiningBaseInfo, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.MinerGetBaseInfo(in0, in1, in2, in3)
-}
-
 func (p *UnSupport) MpoolBatchPush(in0 context.Context, in1 []*types.SignedMessage) (out0 []cid.Cid, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -514,28 +485,12 @@ func (p *UnSupport) MpoolPush(in0 context.Context, in1 *types.SignedMessage) (ou
 	return cli.MpoolPush(in0, in1)
 }
 
-func (p *UnSupport) MpoolPushMessage(in0 context.Context, in1 *types.Message, in2 *api1.MessageSendSpec) (out0 *types.SignedMessage, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.MpoolPushMessage(in0, in1, in2)
-}
-
 func (p *UnSupport) MpoolPushUntrusted(in0 context.Context, in1 *types.SignedMessage) (out0 cid.Cid, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		return
 	}
 	return cli.MpoolPushUntrusted(in0, in1)
-}
-
-func (p *UnSupport) MpoolSelect(in0 context.Context, in1 types.TipSetKey, in2 float64) (out0 []*types.SignedMessage, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.MpoolSelect(in0, in1, in2)
 }
 
 func (p *UnSupport) MpoolSetConfig(in0 context.Context, in1 *types.MpoolConfig) (err error) {
@@ -954,28 +909,12 @@ func (p *UnSupport) Shutdown(in0 context.Context) (err error) {
 	return cli.Shutdown(in0)
 }
 
-func (p *UnSupport) StateAccountKey(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 address.Address, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateAccountKey(in0, in1, in2)
-}
-
 func (p *UnSupport) StateAllMinerFaults(in0 context.Context, in1 abi.ChainEpoch, in2 types.TipSetKey) (out0 []*api1.Fault, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		return
 	}
 	return cli.StateAllMinerFaults(in0, in1, in2)
-}
-
-func (p *UnSupport) StateCall(in0 context.Context, in1 *types.Message, in2 types.TipSetKey) (out0 *api1.InvocResult, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateCall(in0, in1, in2)
 }
 
 func (p *UnSupport) StateChangedActors(in0 context.Context, in1 cid.Cid, in2 cid.Cid) (out0 map[string]types.Actor, err error) {
@@ -1018,22 +957,6 @@ func (p *UnSupport) StateDecodeParams(in0 context.Context, in1 address.Address, 
 	return cli.StateDecodeParams(in0, in1, in2, in3, in4)
 }
 
-func (p *UnSupport) StateGetActor(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *types.Actor, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateGetActor(in0, in1, in2)
-}
-
-func (p *UnSupport) StateGetReceipt(in0 context.Context, in1 cid.Cid, in2 types.TipSetKey) (out0 *types.MessageReceipt, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateGetReceipt(in0, in1, in2)
-}
-
 func (p *UnSupport) StateListActors(in0 context.Context, in1 types.TipSetKey) (out0 []address.Address, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -1056,14 +979,6 @@ func (p *UnSupport) StateListMiners(in0 context.Context, in1 types.TipSetKey) (o
 		return
 	}
 	return cli.StateListMiners(in0, in1)
-}
-
-func (p *UnSupport) StateLookupID(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 address.Address, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateLookupID(in0, in1, in2)
 }
 
 func (p *UnSupport) StateMarketBalance(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 api1.MarketBalance, err error) {
@@ -1090,14 +1005,6 @@ func (p *UnSupport) StateMarketParticipants(in0 context.Context, in1 types.TipSe
 	return cli.StateMarketParticipants(in0, in1)
 }
 
-func (p *UnSupport) StateMarketStorageDeal(in0 context.Context, in1 abi.DealID, in2 types.TipSetKey) (out0 *api1.MarketDeal, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateMarketStorageDeal(in0, in1, in2)
-}
-
 func (p *UnSupport) StateMinerActiveSectors(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 []*miner.SectorOnChainInfo, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -1114,84 +1021,12 @@ func (p *UnSupport) StateMinerAvailableBalance(in0 context.Context, in1 address.
 	return cli.StateMinerAvailableBalance(in0, in1, in2)
 }
 
-func (p *UnSupport) StateMinerDeadlines(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 []api1.Deadline, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateMinerDeadlines(in0, in1, in2)
-}
-
-func (p *UnSupport) StateMinerFaults(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 bitfield.BitField, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateMinerFaults(in0, in1, in2)
-}
-
-func (p *UnSupport) StateMinerInfo(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 miner.MinerInfo, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateMinerInfo(in0, in1, in2)
-}
-
-func (p *UnSupport) StateMinerInitialPledgeCollateral(in0 context.Context, in1 address.Address, in2 miner1.SectorPreCommitInfo, in3 types.TipSetKey) (out0 big.Int, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateMinerInitialPledgeCollateral(in0, in1, in2, in3)
-}
-
-func (p *UnSupport) StateMinerPartitions(in0 context.Context, in1 address.Address, in2 uint64, in3 types.TipSetKey) (out0 []api1.Partition, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateMinerPartitions(in0, in1, in2, in3)
-}
-
 func (p *UnSupport) StateMinerPower(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *api1.MinerPower, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		return
 	}
 	return cli.StateMinerPower(in0, in1, in2)
-}
-
-func (p *UnSupport) StateMinerPreCommitDepositForPower(in0 context.Context, in1 address.Address, in2 miner1.SectorPreCommitInfo, in3 types.TipSetKey) (out0 big.Int, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateMinerPreCommitDepositForPower(in0, in1, in2, in3)
-}
-
-func (p *UnSupport) StateMinerProvingDeadline(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *dline.Info, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateMinerProvingDeadline(in0, in1, in2)
-}
-
-func (p *UnSupport) StateMinerRecoveries(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 bitfield.BitField, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateMinerRecoveries(in0, in1, in2)
-}
-
-func (p *UnSupport) StateMinerSectorAllocated(in0 context.Context, in1 address.Address, in2 abi.SectorNumber, in3 types.TipSetKey) (out0 bool, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateMinerSectorAllocated(in0, in1, in2, in3)
 }
 
 func (p *UnSupport) StateMinerSectorCount(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 api1.MinerSectors, err error) {
@@ -1202,28 +1037,12 @@ func (p *UnSupport) StateMinerSectorCount(in0 context.Context, in1 address.Addre
 	return cli.StateMinerSectorCount(in0, in1, in2)
 }
 
-func (p *UnSupport) StateMinerSectors(in0 context.Context, in1 address.Address, in2 *bitfield.BitField, in3 types.TipSetKey) (out0 []*miner.SectorOnChainInfo, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateMinerSectors(in0, in1, in2, in3)
-}
-
 func (p *UnSupport) StateNetworkName(in0 context.Context) (out0 dtypes.NetworkName, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		return
 	}
 	return cli.StateNetworkName(in0)
-}
-
-func (p *UnSupport) StateNetworkVersion(in0 context.Context, in1 types.TipSetKey) (out0 network1.Version, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateNetworkVersion(in0, in1)
 }
 
 func (p *UnSupport) StateReadState(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *api1.ActorState, err error) {
@@ -1242,14 +1061,6 @@ func (p *UnSupport) StateReplay(in0 context.Context, in1 types.TipSetKey, in2 ci
 	return cli.StateReplay(in0, in1, in2)
 }
 
-func (p *UnSupport) StateSearchMsg(in0 context.Context, in1 types.TipSetKey, in2 cid.Cid, in3 abi.ChainEpoch, in4 bool) (out0 *api1.MsgLookup, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateSearchMsg(in0, in1, in2, in3, in4)
-}
-
 func (p *UnSupport) StateSearchMsgLimited(in0 context.Context, in1 cid.Cid, in2 abi.ChainEpoch) (out0 *api1.MsgLookup, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -1264,30 +1075,6 @@ func (p *UnSupport) StateSectorExpiration(in0 context.Context, in1 address.Addre
 		return
 	}
 	return cli.StateSectorExpiration(in0, in1, in2, in3)
-}
-
-func (p *UnSupport) StateSectorGetInfo(in0 context.Context, in1 address.Address, in2 abi.SectorNumber, in3 types.TipSetKey) (out0 *miner.SectorOnChainInfo, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateSectorGetInfo(in0, in1, in2, in3)
-}
-
-func (p *UnSupport) StateSectorPartition(in0 context.Context, in1 address.Address, in2 abi.SectorNumber, in3 types.TipSetKey) (out0 *miner.SectorLocation, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateSectorPartition(in0, in1, in2, in3)
-}
-
-func (p *UnSupport) StateSectorPreCommitInfo(in0 context.Context, in1 address.Address, in2 abi.SectorNumber, in3 types.TipSetKey) (out0 miner.SectorPreCommitOnChainInfo, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateSectorPreCommitInfo(in0, in1, in2, in3)
 }
 
 func (p *UnSupport) StateVMCirculatingSupplyInternal(in0 context.Context, in1 types.TipSetKey) (out0 api1.CirculatingSupply, err error) {
@@ -1320,14 +1107,6 @@ func (p *UnSupport) StateVerifierStatus(in0 context.Context, in1 address.Address
 		return
 	}
 	return cli.StateVerifierStatus(in0, in1, in2)
-}
-
-func (p *UnSupport) StateWaitMsg(in0 context.Context, in1 cid.Cid, in2 uint64, in3 abi.ChainEpoch, in4 bool) (out0 *api1.MsgLookup, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.StateWaitMsg(in0, in1, in2, in3, in4)
 }
 
 func (p *UnSupport) StateWaitMsgLimited(in0 context.Context, in1 cid.Cid, in2 uint64, in3 abi.ChainEpoch) (out0 *api1.MsgLookup, err error) {
@@ -1378,14 +1157,6 @@ func (p *UnSupport) SyncState(in0 context.Context) (out0 *api1.SyncState, err er
 	return cli.SyncState(in0)
 }
 
-func (p *UnSupport) SyncSubmitBlock(in0 context.Context, in1 *types.BlockMsg) (err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.SyncSubmitBlock(in0, in1)
-}
-
 func (p *UnSupport) SyncUnmarkAllBad(in0 context.Context) (err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -1418,14 +1189,6 @@ func (p *UnSupport) Version(in0 context.Context) (out0 api1.APIVersion, err erro
 	return cli.Version(in0)
 }
 
-func (p *UnSupport) WalletBalance(in0 context.Context, in1 address.Address) (out0 big.Int, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.WalletBalance(in0, in1)
-}
-
 func (p *UnSupport) WalletDefaultAddress(in0 context.Context) (out0 address.Address, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -1448,14 +1211,6 @@ func (p *UnSupport) WalletExport(in0 context.Context, in1 address.Address) (out0
 		return
 	}
 	return cli.WalletExport(in0, in1)
-}
-
-func (p *UnSupport) WalletHas(in0 context.Context, in1 address.Address) (out0 bool, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.WalletHas(in0, in1)
 }
 
 func (p *UnSupport) WalletImport(in0 context.Context, in1 *types.KeyInfo) (out0 address.Address, err error) {
@@ -1488,14 +1243,6 @@ func (p *UnSupport) WalletSetDefault(in0 context.Context, in1 address.Address) (
 		return
 	}
 	return cli.WalletSetDefault(in0, in1)
-}
-
-func (p *UnSupport) WalletSign(in0 context.Context, in1 address.Address, in2 []uint8) (out0 *crypto.Signature, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		return
-	}
-	return cli.WalletSign(in0, in1, in2)
 }
 
 func (p *UnSupport) WalletSignMessage(in0 context.Context, in1 address.Address, in2 *types.Message) (out0 *types.SignedMessage, err error) {
