@@ -75,7 +75,7 @@ func buildCoordinator(lc fx.Lifecycle, ctx *co.Ctx, connector *co.Connector, inf
 
 	for i := range infos {
 		info := infos[i]
-		nlog := log.With("host", info.Host)
+		nlog := log.With("host", info.Addr)
 
 		node, err := connector.Connect(info, string(version))
 		if err != nil {
@@ -96,6 +96,7 @@ func buildCoordinator(lc fx.Lifecycle, ctx *co.Ctx, connector *co.Connector, inf
 			weight = w
 		}
 
+		nlog.Infof("add new node %s", info.Addr)
 		nodes = append(nodes, node)
 	}
 

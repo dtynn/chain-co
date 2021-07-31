@@ -3,6 +3,7 @@ package co
 import (
 	"context"
 	"github.com/filecoin-project/lotus/api/v1api"
+	"github.com/ipfs-force-community/venus-common-utils/apiinfo"
 	"time"
 
 	"github.com/filecoin-project/go-jsonrpc"
@@ -14,7 +15,6 @@ import (
 	"github.com/filecoin-project/lotus/api/client"
 	"github.com/filecoin-project/lotus/chain/store"
 	"github.com/filecoin-project/lotus/chain/types"
-	"github.com/filecoin-project/lotus/cli/util"
 )
 
 // NodeInfoList is a type def for dependency injection
@@ -38,10 +38,10 @@ type NodeOption struct {
 }
 
 // NodeInfo is a type alias for cliutil.APIInfo
-type NodeInfo = cliutil.APIInfo
+type NodeInfo = apiinfo.APIInfo
 
 // ParseNodeInfo is an alias to the cliutil.ParseApiInfo function
-var ParseNodeInfo = cliutil.ParseApiInfo
+var ParseNodeInfo = apiinfo.ParseApiInfo
 
 // NewConnector constructs a Connector instance
 func NewConnector(ctx *Ctx) (*Connector, error) {

@@ -48,7 +48,7 @@ type Proxy interface {
 
 	// ChainGetBlock returns the block specified by the given CID.
 	ChainGetBlock(context.Context, cid.Cid) (*types.BlockHeader, error) //perm:read
-	
+
 	// ChainGetTipSet returns the tipset specified by the given TipSetKey.
 	ChainGetTipSet(context.Context, types.TipSetKey) (*types.TipSet, error) //perm:read
 
@@ -79,6 +79,8 @@ type Proxy interface {
 	// chain blockstore.
 	ChainGetMessage(context.Context, cid.Cid) (*types.Message, error) //perm:read
 
+	ChainGetMessagesInTipset(ctx context.Context, tsk types.TipSetKey) ([]api.Message, error) //perm:read
+
 	// ChainHasObj checks if a given CID exists in the chain blockstore.
 	ChainHasObj(context.Context, cid.Cid) (bool, error) //perm:read
 
@@ -89,7 +91,6 @@ type Proxy interface {
 	// the entry has not yet been produced, the call will block until the entry
 	// becomes available
 	BeaconGetEntry(ctx context.Context, epoch abi.ChainEpoch) (*types.BeaconEntry, error) //perm:read
-
 
 	// For winningPoSt & wdPoSt
 
@@ -216,6 +217,15 @@ type Proxy interface {
 	// When maxFee is set to 0, MpoolPushMessage will guess appropriate fee
 	// based on current chain conditions
 	MpoolPushMessage(ctx context.Context, msg *types.Message, spec *api.MessageSendSpec) (*types.SignedMessage, error) //perm:sign
+
+	//venus specify
+	GasBatchEstimateMessageGas(ctx context.Context, estimateMessages []*api.EstimateMessage, fromNonce uint64, tsk types.TipSetKey) ([]*api.EstimateResult, error) //perm:read
+
+	MpoolSelects(context.Context, types.TipSetKey, []float64) ([][]*types.SignedMessage, error) //perm:read
+
+	MpoolPublishMessage(ctx context.Context, smsg *types.SignedMessage) error //perm:write
+
+	MpoolPublishByAddr(context.Context, address.Address) error //perm:write
 }
 
 // Local is a subset of api.FullNode.
@@ -285,7 +295,6 @@ type UnSupport interface {
 
 	// GasEstimateMessageGas estimates gas values for unset message gas fields
 	GasEstimateMessageGas(context.Context, *types.Message, *api.MessageSendSpec, types.TipSetKey) (*types.Message, error) //perm:read
-
 
 	// MethodGroup: Sync
 	// The Sync method group contains methods for interacting with and

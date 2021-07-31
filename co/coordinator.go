@@ -73,28 +73,31 @@ func (c *Coordinator) Stop() error {
 }
 
 func (c *Coordinator) handleCandidate(hc *headCandidate) {
-	clog := log.With("node", hc.node.info.Host, "h", hc.ts.Height(), "w", hc.weight, "drift", time.Now().Unix()-int64(hc.ts.MinTimestamp()))
+	addr := hc.node.info.Addr
+	clog := log.With("node", addr, "h", hc.ts.Height(), "w", hc.weight, "drift", time.Now().Unix()-int64(hc.ts.MinTimestamp()))
 
 	c.headMu.Lock()
-
+	defer c.headMu.Unlock()
 	//1. more weight
 	//2. if equal weight. select more blocks
 	if c.head == nil || hc.weight.GreaterThan(c.weight) || (hc.weight.Equals(c.weight) && len(hc.ts.Blocks()) > len(c.head.Blocks())) {
-		clog.Debug("head replaced")
+		clog.Info("head replaced")
 
 		prev := c.head
 		next := hc.ts
+		headChanges, err := c.applyTipSetChange(prev, next, hc.node) //todo if network become slow
+		if err != nil {
+			clog.Errorf("apply tipset change: %s", err)
+		}
+		if headChanges == nil {
+			return
+		}
 
 		c.head = hc.ts
 		c.weight = hc.weight
-		c.nodes = append(c.nodes[:0], hc.node.info.Addr)
-		c.sel.setPriors(hc.node.info.Addr)
-
-		c.headMu.Unlock()
-
-		if err := c.applyTipSetChange(prev, next, hc.node); err != nil {
-			clog.Errorf("apply tipset change: %s", err)
-		}
+		c.nodes = append(c.nodes[:0], addr)
+		c.sel.setPriors(addr)
+		c.tspub.Pub(headChanges, tipsetChangeTopic)
 
 		return
 	}
@@ -102,20 +105,18 @@ func (c *Coordinator) handleCandidate(hc *headCandidate) {
 	if c.head.Equals(hc.ts) {
 		contains := false
 		for ni := range c.nodes {
-			if c.nodes[ni] == hc.node.info.Addr {
+			if c.nodes[ni] == addr {
 				contains = true
 				break
 			}
 		}
 
 		if !contains {
-			c.nodes = append(c.nodes, hc.node.info.Addr)
+			c.nodes = append(c.nodes, addr)
 			c.sel.setPriors(c.nodes...)
 
-			clog.Debug("another node caught up")
+			clog.Infof("another node %s caught up", addr)
 		}
-
-		c.headMu.Unlock()
 		return
 	}
 
@@ -123,10 +124,10 @@ func (c *Coordinator) handleCandidate(hc *headCandidate) {
 	return
 }
 
-func (c *Coordinator) applyTipSetChange(prev, next *types.TipSet, node *Node) error {
+func (c *Coordinator) applyTipSetChange(prev, next *types.TipSet, node *Node) ([]*api.HeadChange, error) {
 	revert, apply, err := store.ReorgOps(node.loadTipSet, prev, next)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	hc := make([]*api.HeadChange, 0, len(revert)+len(apply))
@@ -145,9 +146,7 @@ func (c *Coordinator) applyTipSetChange(prev, next *types.TipSet, node *Node) er
 	}
 
 	if len(hc) == 0 {
-		return nil
+		return nil, nil
 	}
-
-	c.tspub.Pub(hc, tipsetChangeTopic)
-	return nil
+	return hc, nil
 }

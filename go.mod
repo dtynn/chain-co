@@ -19,8 +19,9 @@ require (
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/ipfs-force-community/metrics v0.0.0-20210716075100-f6c912bf4b47
+	github.com/ipfs-force-community/venus-common-utils v0.0.0-20210714031758-ea0e25ff0ec4
 	github.com/ipfs/go-cid v0.0.7
-	github.com/ipfs/go-log/v2 v2.1.3
+	github.com/ipfs/go-log/v2 v2.3.0
 	github.com/ipfs/go-metrics-interface v0.0.1
 	github.com/libp2p/go-libp2p-core v0.7.0
 	github.com/urfave/cli/v2 v2.3.0
@@ -36,3 +37,5 @@ replace github.com/filecoin-project/filecoin-ffi => ./extern/filecoin-ffi
 replace github.com/ipfs/go-ipfs-cmds => github.com/ipfs-force-community/go-ipfs-cmds v0.6.1-0.20210521090123-4587df7fa0ab
 
 replace github.com/filecoin-project/go-jsonrpc => github.com/ipfs-force-community/go-jsonrpc v0.1.4-0.20210705020212-6dba7d87d791
+
+replace github.com/filecoin-project/lotus => github.com/ipfs-force-community/lotus v0.8.1-0.20210729013022-9378ff54da80

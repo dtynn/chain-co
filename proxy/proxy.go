@@ -68,6 +68,14 @@ func (p *Proxy) ChainGetMessage(in0 context.Context, in1 cid.Cid) (out0 *types.M
 	return cli.ChainGetMessage(in0, in1)
 }
 
+func (p *Proxy) ChainGetMessagesInTipset(in0 context.Context, in1 types.TipSetKey) (out0 []api1.Message, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		return
+	}
+	return cli.ChainGetMessagesInTipset(in0, in1)
+}
+
 func (p *Proxy) ChainGetParentMessages(in0 context.Context, in1 cid.Cid) (out0 []api1.Message, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -140,6 +148,14 @@ func (p *Proxy) ChainTipSetWeight(in0 context.Context, in1 types.TipSetKey) (out
 	return cli.ChainTipSetWeight(in0, in1)
 }
 
+func (p *Proxy) GasBatchEstimateMessageGas(in0 context.Context, in1 []*api1.EstimateMessage, in2 uint64, in3 types.TipSetKey) (out0 []*api1.EstimateResult, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		return
+	}
+	return cli.GasBatchEstimateMessageGas(in0, in1, in2, in3)
+}
+
 func (p *Proxy) MinerCreateBlock(in0 context.Context, in1 *api1.BlockTemplate) (out0 *types.BlockMsg, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -156,6 +172,22 @@ func (p *Proxy) MinerGetBaseInfo(in0 context.Context, in1 address.Address, in2 a
 	return cli.MinerGetBaseInfo(in0, in1, in2, in3)
 }
 
+func (p *Proxy) MpoolPublishByAddr(in0 context.Context, in1 address.Address) (err error) {
+	cli, err := p.Select()
+	if err != nil {
+		return
+	}
+	return cli.MpoolPublishByAddr(in0, in1)
+}
+
+func (p *Proxy) MpoolPublishMessage(in0 context.Context, in1 *types.SignedMessage) (err error) {
+	cli, err := p.Select()
+	if err != nil {
+		return
+	}
+	return cli.MpoolPublishMessage(in0, in1)
+}
+
 func (p *Proxy) MpoolPushMessage(in0 context.Context, in1 *types.Message, in2 *api1.MessageSendSpec) (out0 *types.SignedMessage, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -170,6 +202,14 @@ func (p *Proxy) MpoolSelect(in0 context.Context, in1 types.TipSetKey, in2 float6
 		return
 	}
 	return cli.MpoolSelect(in0, in1, in2)
+}
+
+func (p *Proxy) MpoolSelects(in0 context.Context, in1 types.TipSetKey, in2 []float64) (out0 [][]*types.SignedMessage, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		return
+	}
+	return cli.MpoolSelects(in0, in1, in2)
 }
 
 func (p *Proxy) StateAccountKey(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 address.Address, err error) {
