@@ -12,10 +12,8 @@ import (
 	"github.com/filecoin-project/go-state-types/crypto"
 	api1 "github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/api/types"
-	"github.com/filecoin-project/lotus/chain/actors/builtin/miner"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/lotus/markets/loggers"
-	"github.com/filecoin-project/lotus/node/modules/dtypes"
 	"github.com/filecoin-project/specs-actors/actors/builtin/paych"
 	"github.com/google/uuid"
 	"github.com/ipfs-force-community/chain-co/api"
@@ -1019,24 +1017,6 @@ func (p *UnSupport) Shutdown(in0 context.Context) (err error) {
 	return cli.Shutdown(in0)
 }
 
-func (p *UnSupport) StateAllMinerFaults(in0 context.Context, in1 abi.ChainEpoch, in2 types.TipSetKey) (out0 []*api1.Fault, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateAllMinerFaults %v", err)
-		return
-	}
-	return cli.StateAllMinerFaults(in0, in1, in2)
-}
-
-func (p *UnSupport) StateChangedActors(in0 context.Context, in1 cid.Cid, in2 cid.Cid) (out0 map[string]types.Actor, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateChangedActors %v", err)
-		return
-	}
-	return cli.StateChangedActors(in0, in1, in2)
-}
-
 func (p *UnSupport) StateCirculatingSupply(in0 context.Context, in1 types.TipSetKey) (out0 big.Int, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -1073,15 +1053,6 @@ func (p *UnSupport) StateDecodeParams(in0 context.Context, in1 address.Address, 
 	return cli.StateDecodeParams(in0, in1, in2, in3, in4)
 }
 
-func (p *UnSupport) StateListActors(in0 context.Context, in1 types.TipSetKey) (out0 []address.Address, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateListActors %v", err)
-		return
-	}
-	return cli.StateListActors(in0, in1)
-}
-
 func (p *UnSupport) StateListMessages(in0 context.Context, in1 *api1.MessageMatch, in2 types.TipSetKey, in3 abi.ChainEpoch) (out0 []cid.Cid, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -1089,87 +1060,6 @@ func (p *UnSupport) StateListMessages(in0 context.Context, in1 *api1.MessageMatc
 		return
 	}
 	return cli.StateListMessages(in0, in1, in2, in3)
-}
-
-func (p *UnSupport) StateListMiners(in0 context.Context, in1 types.TipSetKey) (out0 []address.Address, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateListMiners %v", err)
-		return
-	}
-	return cli.StateListMiners(in0, in1)
-}
-
-func (p *UnSupport) StateMarketBalance(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 api1.MarketBalance, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateMarketBalance %v", err)
-		return
-	}
-	return cli.StateMarketBalance(in0, in1, in2)
-}
-
-func (p *UnSupport) StateMarketDeals(in0 context.Context, in1 types.TipSetKey) (out0 map[string]api1.MarketDeal, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateMarketDeals %v", err)
-		return
-	}
-	return cli.StateMarketDeals(in0, in1)
-}
-
-func (p *UnSupport) StateMarketParticipants(in0 context.Context, in1 types.TipSetKey) (out0 map[string]api1.MarketBalance, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateMarketParticipants %v", err)
-		return
-	}
-	return cli.StateMarketParticipants(in0, in1)
-}
-
-func (p *UnSupport) StateMinerActiveSectors(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 []*miner.SectorOnChainInfo, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateMinerActiveSectors %v", err)
-		return
-	}
-	return cli.StateMinerActiveSectors(in0, in1, in2)
-}
-
-func (p *UnSupport) StateMinerAvailableBalance(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 big.Int, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateMinerAvailableBalance %v", err)
-		return
-	}
-	return cli.StateMinerAvailableBalance(in0, in1, in2)
-}
-
-func (p *UnSupport) StateMinerPower(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *api1.MinerPower, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateMinerPower %v", err)
-		return
-	}
-	return cli.StateMinerPower(in0, in1, in2)
-}
-
-func (p *UnSupport) StateMinerSectorCount(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 api1.MinerSectors, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateMinerSectorCount %v", err)
-		return
-	}
-	return cli.StateMinerSectorCount(in0, in1, in2)
-}
-
-func (p *UnSupport) StateNetworkName(in0 context.Context) (out0 dtypes.NetworkName, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateNetworkName %v", err)
-		return
-	}
-	return cli.StateNetworkName(in0)
 }
 
 func (p *UnSupport) StateReadState(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *api1.ActorState, err error) {
@@ -1188,24 +1078,6 @@ func (p *UnSupport) StateReplay(in0 context.Context, in1 types.TipSetKey, in2 ci
 		return
 	}
 	return cli.StateReplay(in0, in1, in2)
-}
-
-func (p *UnSupport) StateSearchMsgLimited(in0 context.Context, in1 cid.Cid, in2 abi.ChainEpoch) (out0 *api1.MsgLookup, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateSearchMsgLimited %v", err)
-		return
-	}
-	return cli.StateSearchMsgLimited(in0, in1, in2)
-}
-
-func (p *UnSupport) StateSectorExpiration(in0 context.Context, in1 address.Address, in2 abi.SectorNumber, in3 types.TipSetKey) (out0 *miner.SectorExpiration, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateSectorExpiration %v", err)
-		return
-	}
-	return cli.StateSectorExpiration(in0, in1, in2, in3)
 }
 
 func (p *UnSupport) StateVMCirculatingSupplyInternal(in0 context.Context, in1 types.TipSetKey) (out0 api1.CirculatingSupply, err error) {
@@ -1242,15 +1114,6 @@ func (p *UnSupport) StateVerifierStatus(in0 context.Context, in1 address.Address
 		return
 	}
 	return cli.StateVerifierStatus(in0, in1, in2)
-}
-
-func (p *UnSupport) StateWaitMsgLimited(in0 context.Context, in1 cid.Cid, in2 uint64, in3 abi.ChainEpoch) (out0 *api1.MsgLookup, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateWaitMsgLimited %v", err)
-		return
-	}
-	return cli.StateWaitMsgLimited(in0, in1, in2, in3)
 }
 
 func (p *UnSupport) SyncCheckBad(in0 context.Context, in1 cid.Cid) (out0 string, err error) {

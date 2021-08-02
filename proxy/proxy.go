@@ -12,6 +12,7 @@ import (
 	api1 "github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/actors/builtin/miner"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/filecoin-project/lotus/node/modules/dtypes"
 	miner1 "github.com/filecoin-project/specs-actors/actors/builtin/miner"
 	"github.com/ipfs-force-community/chain-co/api"
 	"github.com/ipfs/go-cid"
@@ -245,6 +246,15 @@ func (p *Proxy) StateAccountKey(in0 context.Context, in1 address.Address, in2 ty
 	return cli.StateAccountKey(in0, in1, in2)
 }
 
+func (p *Proxy) StateAllMinerFaults(in0 context.Context, in1 abi.ChainEpoch, in2 types.TipSetKey) (out0 []*api1.Fault, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateAllMinerFaults %v", err)
+		return
+	}
+	return cli.StateAllMinerFaults(in0, in1, in2)
+}
+
 func (p *Proxy) StateCall(in0 context.Context, in1 *types.Message, in2 types.TipSetKey) (out0 *api1.InvocResult, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -252,6 +262,15 @@ func (p *Proxy) StateCall(in0 context.Context, in1 *types.Message, in2 types.Tip
 		return
 	}
 	return cli.StateCall(in0, in1, in2)
+}
+
+func (p *Proxy) StateChangedActors(in0 context.Context, in1 cid.Cid, in2 cid.Cid) (out0 map[string]types.Actor, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateChangedActors %v", err)
+		return
+	}
+	return cli.StateChangedActors(in0, in1, in2)
 }
 
 func (p *Proxy) StateGetActor(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *types.Actor, err error) {
@@ -263,6 +282,24 @@ func (p *Proxy) StateGetActor(in0 context.Context, in1 address.Address, in2 type
 	return cli.StateGetActor(in0, in1, in2)
 }
 
+func (p *Proxy) StateListActors(in0 context.Context, in1 types.TipSetKey) (out0 []address.Address, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateListActors %v", err)
+		return
+	}
+	return cli.StateListActors(in0, in1)
+}
+
+func (p *Proxy) StateListMiners(in0 context.Context, in1 types.TipSetKey) (out0 []address.Address, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateListMiners %v", err)
+		return
+	}
+	return cli.StateListMiners(in0, in1)
+}
+
 func (p *Proxy) StateLookupID(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 address.Address, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -272,6 +309,33 @@ func (p *Proxy) StateLookupID(in0 context.Context, in1 address.Address, in2 type
 	return cli.StateLookupID(in0, in1, in2)
 }
 
+func (p *Proxy) StateMarketBalance(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 api1.MarketBalance, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateMarketBalance %v", err)
+		return
+	}
+	return cli.StateMarketBalance(in0, in1, in2)
+}
+
+func (p *Proxy) StateMarketDeals(in0 context.Context, in1 types.TipSetKey) (out0 map[string]api1.MarketDeal, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateMarketDeals %v", err)
+		return
+	}
+	return cli.StateMarketDeals(in0, in1)
+}
+
+func (p *Proxy) StateMarketParticipants(in0 context.Context, in1 types.TipSetKey) (out0 map[string]api1.MarketBalance, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateMarketParticipants %v", err)
+		return
+	}
+	return cli.StateMarketParticipants(in0, in1)
+}
+
 func (p *Proxy) StateMarketStorageDeal(in0 context.Context, in1 abi.DealID, in2 types.TipSetKey) (out0 *api1.MarketDeal, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -279,6 +343,24 @@ func (p *Proxy) StateMarketStorageDeal(in0 context.Context, in1 abi.DealID, in2 
 		return
 	}
 	return cli.StateMarketStorageDeal(in0, in1, in2)
+}
+
+func (p *Proxy) StateMinerActiveSectors(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 []*miner.SectorOnChainInfo, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateMinerActiveSectors %v", err)
+		return
+	}
+	return cli.StateMinerActiveSectors(in0, in1, in2)
+}
+
+func (p *Proxy) StateMinerAvailableBalance(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 big.Int, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateMinerAvailableBalance %v", err)
+		return
+	}
+	return cli.StateMinerAvailableBalance(in0, in1, in2)
 }
 
 func (p *Proxy) StateMinerDeadlines(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 []api1.Deadline, err error) {
@@ -326,6 +408,15 @@ func (p *Proxy) StateMinerPartitions(in0 context.Context, in1 address.Address, i
 	return cli.StateMinerPartitions(in0, in1, in2, in3)
 }
 
+func (p *Proxy) StateMinerPower(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *api1.MinerPower, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateMinerPower %v", err)
+		return
+	}
+	return cli.StateMinerPower(in0, in1, in2)
+}
+
 func (p *Proxy) StateMinerPreCommitDepositForPower(in0 context.Context, in1 address.Address, in2 miner1.SectorPreCommitInfo, in3 types.TipSetKey) (out0 big.Int, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -362,6 +453,15 @@ func (p *Proxy) StateMinerSectorAllocated(in0 context.Context, in1 address.Addre
 	return cli.StateMinerSectorAllocated(in0, in1, in2, in3)
 }
 
+func (p *Proxy) StateMinerSectorCount(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 api1.MinerSectors, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateMinerSectorCount %v", err)
+		return
+	}
+	return cli.StateMinerSectorCount(in0, in1, in2)
+}
+
 func (p *Proxy) StateMinerSectors(in0 context.Context, in1 address.Address, in2 *bitfield.BitField, in3 types.TipSetKey) (out0 []*miner.SectorOnChainInfo, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -369,6 +469,15 @@ func (p *Proxy) StateMinerSectors(in0 context.Context, in1 address.Address, in2 
 		return
 	}
 	return cli.StateMinerSectors(in0, in1, in2, in3)
+}
+
+func (p *Proxy) StateNetworkName(in0 context.Context) (out0 dtypes.NetworkName, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateNetworkName %v", err)
+		return
+	}
+	return cli.StateNetworkName(in0)
 }
 
 func (p *Proxy) StateNetworkVersion(in0 context.Context, in1 types.TipSetKey) (out0 network.Version, err error) {
@@ -387,6 +496,24 @@ func (p *Proxy) StateSearchMsg(in0 context.Context, in1 types.TipSetKey, in2 cid
 		return
 	}
 	return cli.StateSearchMsg(in0, in1, in2, in3, in4)
+}
+
+func (p *Proxy) StateSearchMsgLimited(in0 context.Context, in1 cid.Cid, in2 abi.ChainEpoch) (out0 *api1.MsgLookup, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateSearchMsgLimited %v", err)
+		return
+	}
+	return cli.StateSearchMsgLimited(in0, in1, in2)
+}
+
+func (p *Proxy) StateSectorExpiration(in0 context.Context, in1 address.Address, in2 abi.SectorNumber, in3 types.TipSetKey) (out0 *miner.SectorExpiration, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateSectorExpiration %v", err)
+		return
+	}
+	return cli.StateSectorExpiration(in0, in1, in2, in3)
 }
 
 func (p *Proxy) StateSectorGetInfo(in0 context.Context, in1 address.Address, in2 abi.SectorNumber, in3 types.TipSetKey) (out0 *miner.SectorOnChainInfo, err error) {
@@ -423,6 +550,15 @@ func (p *Proxy) StateWaitMsg(in0 context.Context, in1 cid.Cid, in2 uint64, in3 a
 		return
 	}
 	return cli.StateWaitMsg(in0, in1, in2, in3, in4)
+}
+
+func (p *Proxy) StateWaitMsgLimited(in0 context.Context, in1 cid.Cid, in2 uint64, in3 abi.ChainEpoch) (out0 *api1.MsgLookup, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateWaitMsgLimited %v", err)
+		return
+	}
+	return cli.StateWaitMsgLimited(in0, in1, in2, in3)
 }
 
 func (p *Proxy) SyncSubmitBlock(in0 context.Context, in1 *types.BlockMsg) (err error) {

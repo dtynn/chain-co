@@ -142,6 +142,13 @@ type Proxy interface {
 	StateMinerPreCommitDepositForPower(context.Context, address.Address, miner.SectorPreCommitInfo, types.TipSetKey) (types.BigInt, error) //perm:read
 	// StateMinerSectorAllocated checks if a sector is allocated
 	StateMinerSectorAllocated(context.Context, address.Address, abi.SectorNumber, types.TipSetKey) (bool, error) //perm:read
+	// StateMinerActiveSectors returns info about sectors that a given miner is actively proving.
+	StateMinerActiveSectors(context.Context, address.Address, types.TipSetKey) ([]*miner.SectorOnChainInfo, error) //perm:read
+	// StateMinerAvailableBalance returns the portion of a miner's balance that can be withdrawn or spent
+	StateMinerAvailableBalance(context.Context, address.Address, types.TipSetKey) (types.BigInt, error) //perm:read
+	// StateSectorExpiration returns epoch at which given sector will expire
+	StateSectorExpiration(context.Context, address.Address, abi.SectorNumber, types.TipSetKey) (*miner.SectorExpiration, error) //perm:read
+
 	// StateSearchMsg looks back up to limit epochs in the chain for a message, and returns its receipt and the tipset where it was executed
 	//
 	// NOTE: If a replacing message is found on chain, this method will return
@@ -180,6 +187,33 @@ type Proxy interface {
 	StateWaitMsg(ctx context.Context, cid cid.Cid, confidence uint64, limit abi.ChainEpoch, allowReplaced bool) (*api.MsgLookup, error) //perm:read
 	// StateNetworkVersion returns the network version at the given tipset
 	StateNetworkVersion(context.Context, types.TipSetKey) (network.Version, error) //perm:read
+	// StateNetworkName returns the name of the network the node is synced to
+	StateNetworkName(context.Context) (dtypes.NetworkName, error) //perm:read
+	// StateMinerPower returns the power of the indicated miner
+	StateMinerPower(context.Context, address.Address, types.TipSetKey) (*api.MinerPower, error) //perm:read
+	// StateAllMinerFaults returns all non-expired Faults that occur within lookback epochs of the given tipset
+	StateAllMinerFaults(ctx context.Context, lookback abi.ChainEpoch, ts types.TipSetKey) ([]*api.Fault, error) //perm:read
+	// StateSearchMsgLimited looks back up to limit epochs in the chain for a message, and returns its receipt and the tipset where it was executed
+	StateSearchMsgLimited(ctx context.Context, msg cid.Cid, limit abi.ChainEpoch) (*api.MsgLookup, error)
+	// StateWaitMsgLimited looks back up to limit epochs in the chain for a message.
+	// If not found, it blocks until the message arrives on chain, and gets to the
+	// indicated confidence depth.
+	StateWaitMsgLimited(ctx context.Context, cid cid.Cid, confidence uint64, limit abi.ChainEpoch) (*api.MsgLookup, error)
+	// StateListMiners returns the addresses of every miner that has claimed power in the Power Actor
+	StateListMiners(context.Context, types.TipSetKey) ([]address.Address, error) //perm:read
+	// StateListActors returns the addresses of every actor in the state
+	StateListActors(context.Context, types.TipSetKey) ([]address.Address, error) //perm:read
+	// StateMarketBalance looks up the Escrow and Locked balances of the given address in the Storage Market
+	StateMarketBalance(context.Context, address.Address, types.TipSetKey) (api.MarketBalance, error) //perm:read
+	// StateMarketParticipants returns the Escrow and Locked balances of every participant in the Storage Market
+	StateMarketParticipants(context.Context, types.TipSetKey) (map[string]api.MarketBalance, error) //perm:read
+	// StateMarketDeals returns information about every deal in the Storage Market
+	StateMarketDeals(context.Context, types.TipSetKey) (map[string]api.MarketDeal, error) //perm:read
+	// StateChangedActors returns all the actors whose states change between the two given state CIDs
+	// TODO: Should this take tipset keys instead?
+	StateChangedActors(context.Context, cid.Cid, cid.Cid) (map[string]types.Actor, error) //perm:read
+	// StateMinerSectorCount returns the number of sectors in a miner's sector set and proving set
+	StateMinerSectorCount(context.Context, address.Address, types.TipSetKey) (api.MinerSectors, error) //perm:read
 
 	// MethodGroup: Wallet
 
@@ -483,39 +517,6 @@ type UnSupport interface {
 	// StateDecodeParams attempts to decode the provided params, based on the recipient actor address and method number.
 	StateDecodeParams(ctx context.Context, toAddr address.Address, method abi.MethodNum, params []byte, tsk types.TipSetKey) (interface{}, error) //perm:read
 
-	// StateNetworkName returns the name of the network the node is synced to
-	StateNetworkName(context.Context) (dtypes.NetworkName, error) //perm:read
-	// StateMinerActiveSectors returns info about sectors that a given miner is actively proving.
-	StateMinerActiveSectors(context.Context, address.Address, types.TipSetKey) ([]*miner.SectorOnChainInfo, error) //perm:read
-	// StateMinerPower returns the power of the indicated miner
-	StateMinerPower(context.Context, address.Address, types.TipSetKey) (*api.MinerPower, error) //perm:read
-	// StateAllMinerFaults returns all non-expired Faults that occur within lookback epochs of the given tipset
-	StateAllMinerFaults(ctx context.Context, lookback abi.ChainEpoch, ts types.TipSetKey) ([]*api.Fault, error) //perm:read
-	// StateMinerAvailableBalance returns the portion of a miner's balance that can be withdrawn or spent
-	StateMinerAvailableBalance(context.Context, address.Address, types.TipSetKey) (types.BigInt, error) //perm:read
-	// StateSectorExpiration returns epoch at which given sector will expire
-	StateSectorExpiration(context.Context, address.Address, abi.SectorNumber, types.TipSetKey) (*miner.SectorExpiration, error) //perm:read
-	// StateSearchMsgLimited looks back up to limit epochs in the chain for a message, and returns its receipt and the tipset where it was executed
-	StateSearchMsgLimited(ctx context.Context, msg cid.Cid, limit abi.ChainEpoch) (*api.MsgLookup, error)
-	// StateWaitMsgLimited looks back up to limit epochs in the chain for a message.
-	// If not found, it blocks until the message arrives on chain, and gets to the
-	// indicated confidence depth.
-	StateWaitMsgLimited(ctx context.Context, cid cid.Cid, confidence uint64, limit abi.ChainEpoch) (*api.MsgLookup, error)
-	// StateListMiners returns the addresses of every miner that has claimed power in the Power Actor
-	StateListMiners(context.Context, types.TipSetKey) ([]address.Address, error) //perm:read
-	// StateListActors returns the addresses of every actor in the state
-	StateListActors(context.Context, types.TipSetKey) ([]address.Address, error) //perm:read
-	// StateMarketBalance looks up the Escrow and Locked balances of the given address in the Storage Market
-	StateMarketBalance(context.Context, address.Address, types.TipSetKey) (api.MarketBalance, error) //perm:read
-	// StateMarketParticipants returns the Escrow and Locked balances of every participant in the Storage Market
-	StateMarketParticipants(context.Context, types.TipSetKey) (map[string]api.MarketBalance, error) //perm:read
-	// StateMarketDeals returns information about every deal in the Storage Market
-	StateMarketDeals(context.Context, types.TipSetKey) (map[string]api.MarketDeal, error) //perm:read
-	// StateChangedActors returns all the actors whose states change between the two given state CIDs
-	// TODO: Should this take tipset keys instead?
-	StateChangedActors(context.Context, cid.Cid, cid.Cid) (map[string]types.Actor, error) //perm:read
-	// StateMinerSectorCount returns the number of sectors in a miner's sector set and proving set
-	StateMinerSectorCount(context.Context, address.Address, types.TipSetKey) (api.MinerSectors, error) //perm:read
 	// StateCompute is a flexible command that applies the given messages on the given tipset.
 	// The messages are run as though the VM were at the provided height.
 	//
