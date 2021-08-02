@@ -21,8 +21,8 @@ build-dep/filecoin-install: $(FFI_PATH)
 		    @touch $@
 
 MODULES+=$(FFI_PATH)
-BUILD_DEPS+=build-dep/.filecoin-install
-CLEAN+=build-dep/.filecoin-install
+BUILD_DEPS+=build-dep/filecoin-install
+CLEAN+=build-dep/filecoin-install
 
 $(MODULES): build-dep/.update-modules ;
 
