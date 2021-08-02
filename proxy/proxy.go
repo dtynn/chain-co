@@ -498,15 +498,6 @@ func (p *Proxy) StateSearchMsg(in0 context.Context, in1 types.TipSetKey, in2 cid
 	return cli.StateSearchMsg(in0, in1, in2, in3, in4)
 }
 
-func (p *Proxy) StateSearchMsgLimited(in0 context.Context, in1 cid.Cid, in2 abi.ChainEpoch) (out0 *api1.MsgLookup, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateSearchMsgLimited %v", err)
-		return
-	}
-	return cli.StateSearchMsgLimited(in0, in1, in2)
-}
-
 func (p *Proxy) StateSectorExpiration(in0 context.Context, in1 address.Address, in2 abi.SectorNumber, in3 types.TipSetKey) (out0 *miner.SectorExpiration, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -550,15 +541,6 @@ func (p *Proxy) StateWaitMsg(in0 context.Context, in1 cid.Cid, in2 uint64, in3 a
 		return
 	}
 	return cli.StateWaitMsg(in0, in1, in2, in3, in4)
-}
-
-func (p *Proxy) StateWaitMsgLimited(in0 context.Context, in1 cid.Cid, in2 uint64, in3 abi.ChainEpoch) (out0 *api1.MsgLookup, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateWaitMsgLimited %v", err)
-		return
-	}
-	return cli.StateWaitMsgLimited(in0, in1, in2, in3)
 }
 
 func (p *Proxy) SyncSubmitBlock(in0 context.Context, in1 *types.BlockMsg) (err error) {

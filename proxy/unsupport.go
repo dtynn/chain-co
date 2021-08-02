@@ -1080,6 +1080,15 @@ func (p *UnSupport) StateReplay(in0 context.Context, in1 types.TipSetKey, in2 ci
 	return cli.StateReplay(in0, in1, in2)
 }
 
+func (p *UnSupport) StateSearchMsgLimited(in0 context.Context, in1 cid.Cid, in2 abi.ChainEpoch) (out0 *api1.MsgLookup, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateSearchMsgLimited %v", err)
+		return
+	}
+	return cli.StateSearchMsgLimited(in0, in1, in2)
+}
+
 func (p *UnSupport) StateVMCirculatingSupplyInternal(in0 context.Context, in1 types.TipSetKey) (out0 api1.CirculatingSupply, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -1114,6 +1123,15 @@ func (p *UnSupport) StateVerifierStatus(in0 context.Context, in1 address.Address
 		return
 	}
 	return cli.StateVerifierStatus(in0, in1, in2)
+}
+
+func (p *UnSupport) StateWaitMsgLimited(in0 context.Context, in1 cid.Cid, in2 uint64, in3 abi.ChainEpoch) (out0 *api1.MsgLookup, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateWaitMsgLimited %v", err)
+		return
+	}
+	return cli.StateWaitMsgLimited(in0, in1, in2, in3)
 }
 
 func (p *UnSupport) SyncCheckBad(in0 context.Context, in1 cid.Cid) (out0 string, err error) {

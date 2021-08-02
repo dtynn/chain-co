@@ -193,12 +193,6 @@ type Proxy interface {
 	StateMinerPower(context.Context, address.Address, types.TipSetKey) (*api.MinerPower, error) //perm:read
 	// StateAllMinerFaults returns all non-expired Faults that occur within lookback epochs of the given tipset
 	StateAllMinerFaults(ctx context.Context, lookback abi.ChainEpoch, ts types.TipSetKey) ([]*api.Fault, error) //perm:read
-	// StateSearchMsgLimited looks back up to limit epochs in the chain for a message, and returns its receipt and the tipset where it was executed
-	StateSearchMsgLimited(ctx context.Context, msg cid.Cid, limit abi.ChainEpoch) (*api.MsgLookup, error)
-	// StateWaitMsgLimited looks back up to limit epochs in the chain for a message.
-	// If not found, it blocks until the message arrives on chain, and gets to the
-	// indicated confidence depth.
-	StateWaitMsgLimited(ctx context.Context, cid cid.Cid, confidence uint64, limit abi.ChainEpoch) (*api.MsgLookup, error)
 	// StateListMiners returns the addresses of every miner that has claimed power in the Power Actor
 	StateListMiners(context.Context, types.TipSetKey) ([]address.Address, error) //perm:read
 	// StateListActors returns the addresses of every actor in the state
@@ -423,6 +417,13 @@ type UnSupport interface {
 	WalletDelete(context.Context, address.Address) error //perm:admin
 	// WalletValidateAddress validates whether a given string can be decoded as a well-formed address
 	WalletValidateAddress(context.Context, string) (address.Address, error) //perm:read
+
+	// StateSearchMsgLimited looks back up to limit epochs in the chain for a message, and returns its receipt and the tipset where it was executed
+	StateSearchMsgLimited(ctx context.Context, msg cid.Cid, limit abi.ChainEpoch) (*api.MsgLookup, error)
+	// StateWaitMsgLimited looks back up to limit epochs in the chain for a message.
+	// If not found, it blocks until the message arrives on chain, and gets to the
+	// indicated confidence depth.
+	StateWaitMsgLimited(ctx context.Context, cid cid.Cid, confidence uint64, limit abi.ChainEpoch) (*api.MsgLookup, error)
 
 	// Other
 
