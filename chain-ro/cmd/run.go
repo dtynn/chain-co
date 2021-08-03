@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"github.com/ipfs-force-community/metrics"
 	"io/ioutil"
+	"strings"
 
 	"github.com/urfave/cli/v2"
 
@@ -46,6 +48,10 @@ var runCmd = &cli.Command{
 			Value:       "v1",
 			DefaultText: "v1",
 		},
+		&cli.StringFlag{Name: "auth-url", Usage: "venus auth url"},
+		&cli.StringFlag{Name: "jaeger-proxy", Hidden: true},
+		&cli.Float64Flag{Name: "trace-sampler", Value: 1.0, Hidden: true},
+		&cli.StringFlag{Name: "trace-node-name", Value: "venus-gateway", Hidden: true},
 	},
 	Action: func(cctx *cli.Context) error {
 		appCtx, appCancel := context.WithCancel(cctx.Context)
@@ -79,11 +85,22 @@ var runCmd = &cli.Command{
 
 		defer stop(context.Background())
 
+		var mCnf = &metrics.TraceConfig{}
+		var proxy, sampler, serverName = strings.TrimSpace(cctx.String("jaeger-proxy")),
+			cctx.Float64("trace-sampler"),
+			strings.TrimSpace(cctx.String("trace-node-name"))
+
+		if mCnf.JaegerTracingEnabled = len(proxy) != 0; mCnf.JaegerTracingEnabled {
+			mCnf.ProbabilitySampler, mCnf.JaegerEndpoint, mCnf.ServerName =
+				sampler, proxy, serverName
+		}
+
 		return serveRPC(
 			appCtx,
 			cctx.String("auth-url"),
 			cctx.String("rate_limit_redis"),
 			cctx.String("listen"),
+			mCnf,
 			localJwt,
 			full,
 			func(ctx context.Context) error {

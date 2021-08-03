@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"github.com/ipfs-force-community/metrics"
+	"go.opencensus.io/plugin/ochttp"
 	"net"
 	"net/http"
 	_ "net/http/pprof"
@@ -23,7 +25,7 @@ import (
 	"github.com/ipfs-force-community/metrics/ratelimit"
 )
 
-func serveRPC(ctx context.Context, authEndpoint, rate_limit_redis, listen string, jwt *localwt.LocalJwt, full api.FullNode, stop dix.StopFunc, maxRequestSize int64) error {
+func serveRPC(ctx context.Context, authEndpoint, rate_limit_redis, listen string, mCnf *metrics.TraceConfig, jwt *localwt.LocalJwt, full api.FullNode, stop dix.StopFunc, maxRequestSize int64) error {
 	serverOptions := []jsonrpc.ServerOption{}
 	if maxRequestSize > 0 {
 		serverOptions = append(serverOptions, jsonrpc.WithMaxRequestSize(maxRequestSize))
@@ -37,17 +39,25 @@ func serveRPC(ctx context.Context, authEndpoint, rate_limit_redis, listen string
 		remoteJwtCli = jwtclient.NewJWTClient(authEndpoint)
 	}
 
+	//register hander to verify token in venus-auth
+	var handler http.Handler
+	if remoteJwtCli != nil {
+		handler = (http.Handler)(jwtclient.NewAuthMux(jwt, jwtclient.WarpIJwtAuthClient(remoteJwtCli), rpcServer, logging.Logger("Auth")))
+	} else {
+		handler = (http.Handler)(jwtclient.NewAuthMux(jwt, nil, rpcServer, logging.Logger("Auth")))
+	}
+
+	if repoter, err := metrics.RegisterJaeger(mCnf.ServerName, mCnf); err != nil {
+		log.Fatalf("register %s JaegerRepoter to %s failed:%s", mCnf.ServerName, mCnf.JaegerEndpoint)
+	} else if repoter != nil {
+		log.Infof("register jaeger-tracing exporter to %s, with node-name:%s", mCnf.JaegerEndpoint, mCnf.ServerName)
+		defer metrics.UnregisterJaeger(repoter)
+		handler = &ochttp.Handler{Handler: handler}
+	}
+
 	serveRpc := func(path string, hnd interface{}) {
 		rpcServer := jsonrpc.NewServer(serverOptions...)
 		rpcServer.Register("Filecoin", hnd)
-
-		//register hander to verify token in venus-auth
-		var handler http.Handler
-		if remoteJwtCli != nil {
-			handler = (http.Handler)(jwtclient.NewAuthMux(jwt, jwtclient.WarpIJwtAuthClient(remoteJwtCli), rpcServer, logging.Logger("Auth")))
-		} else {
-			handler = (http.Handler)(jwtclient.NewAuthMux(jwt, nil, rpcServer, logging.Logger("Auth")))
-		}
 		http.Handle(path, handler)
 	}
 
