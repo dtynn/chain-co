@@ -41,6 +41,11 @@ type Proxy interface {
 	// blockstore and returns raw bytes.
 	ChainReadObj(context.Context, cid.Cid) ([]byte, error) //perm:read
 
+	// ChainStatObj returns statistics about the graph referenced by 'obj'.
+	// If 'base' is also specified, then the returned stat will be a diff
+	// between the two objects.
+	ChainStatObj(ctx context.Context, obj cid.Cid, base cid.Cid) (api.ObjStat, error) //perm:read
+
 	// ChainHead returns the current head of the chain.
 	ChainHead(context.Context) (*types.TipSet, error) //perm:read
 
@@ -275,11 +280,6 @@ type UnSupport interface {
 
 	// ChainDeleteObj deletes node referenced by the given CID
 	ChainDeleteObj(context.Context, cid.Cid) error //perm:admin
-
-	// ChainStatObj returns statistics about the graph referenced by 'obj'.
-	// If 'base' is also specified, then the returned stat will be a diff
-	// between the two objects.
-	ChainStatObj(ctx context.Context, obj cid.Cid, base cid.Cid) (api.ObjStat, error) //perm:read
 
 	// ChainSetHead forcefully sets current chain head. Use with caution.
 	ChainSetHead(context.Context, types.TipSetKey) error //perm:admin
