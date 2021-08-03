@@ -48,10 +48,20 @@ var runCmd = &cli.Command{
 			Value:       "v1",
 			DefaultText: "v1",
 		},
-		&cli.StringFlag{Name: "auth-url", Usage: "venus auth url"},
-		&cli.StringFlag{Name: "jaeger-proxy", Hidden: true},
-		&cli.Float64Flag{Name: "trace-sampler", Value: 1.0, Hidden: true},
-		&cli.StringFlag{Name: "trace-node-name", Value: "venus-gateway", Hidden: true},
+		&cli.StringFlag{
+			Name:   "jaeger-proxy",
+			Hidden: true,
+		},
+		&cli.Float64Flag{
+			Name:   "trace-sampler",
+			Value:  1.0,
+			Hidden: true,
+		},
+		&cli.StringFlag{
+			Name:   "trace-node-name",
+			Value:  "venus-gateway",
+			Hidden: true,
+		},
 	},
 	Action: func(cctx *cli.Context) error {
 		appCtx, appCancel := context.WithCancel(cctx.Context)
