@@ -37,9 +37,8 @@ var runCmd = &cli.Command{
 			Value: "",
 		},
 		&cli.StringFlag{
-			Name:   "rate_limit_redis",
-			Usage:  "config redis to request api limit",
-			Hidden: true,
+			Name:  "rate_limit_redis",
+			Usage: "config redis to request api limit",
 		},
 		&cli.StringFlag{
 			Name:        "version",

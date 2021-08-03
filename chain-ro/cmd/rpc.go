@@ -63,9 +63,11 @@ func serveRPC(ctx context.Context, authEndpoint, rate_limit_redis, listen string
 			return err
 		}
 
-		var rateLimitAPI api.FullNode
-		limiter.WarpFunctions(full, &rateLimitAPI)
-		limitWrapper = rateLimitAPI
+		var rateLimitAPI api.FullNodeStruct
+		limiter.WarpFunctions(full, &rateLimitAPI.Internal)
+		limiter.WarpFunctions(full, &rateLimitAPI.VenusAPIStruct.Internal)
+		limiter.WarpFunctions(full, &rateLimitAPI.CommonStruct.Internal)
+		limitWrapper = &rateLimitAPI
 	}
 
 	pma := api.PermissionedFullAPI(limitWrapper)
