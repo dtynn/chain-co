@@ -119,6 +119,8 @@ func (g *generator) writeImports(buf *bytes.Buffer) {
 		buf.WriteString(path)
 		buf.WriteString("\"\n")
 	}
+	buf.WriteString("\"")
+	buf.WriteString("\"\n")
 	buf.WriteString(")\n\n")
 }
 

@@ -156,6 +156,15 @@ func (p *Proxy) ChainHead(in0 context.Context) (out0 *types.TipSet, err error) {
 	return cli.ChainHead(in0)
 }
 
+func (p *Proxy) ChainReadObj(in0 context.Context, in1 cid.Cid) (out0 []uint8, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api ChainReadObj %v", err)
+		return
+	}
+	return cli.ChainReadObj(in0, in1)
+}
+
 func (p *Proxy) ChainTipSetWeight(in0 context.Context, in1 types.TipSetKey) (out0 big.Int, err error) {
 	cli, err := p.Select()
 	if err != nil {

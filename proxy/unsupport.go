@@ -90,15 +90,6 @@ func (p *UnSupport) ChainGetPath(in0 context.Context, in1 types.TipSetKey, in2 t
 	return cli.ChainGetPath(in0, in1, in2)
 }
 
-func (p *UnSupport) ChainReadObj(in0 context.Context, in1 cid.Cid) (out0 []uint8, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api ChainReadObj %v", err)
-		return
-	}
-	return cli.ChainReadObj(in0, in1)
-}
-
 func (p *UnSupport) ChainSetHead(in0 context.Context, in1 types.TipSetKey) (err error) {
 	cli, err := p.Select()
 	if err != nil {

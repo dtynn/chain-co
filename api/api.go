@@ -37,6 +37,10 @@ type combined interface {
 // Requests involved will be proxied to the choosen remote node
 type Proxy interface {
 
+	// ChainReadObj reads ipld nodes referenced by the specified CID from chain
+	// blockstore and returns raw bytes.
+	ChainReadObj(context.Context, cid.Cid) ([]byte, error) //perm:read
+
 	// ChainHead returns the current head of the chain.
 	ChainHead(context.Context) (*types.TipSet, error) //perm:read
 
@@ -268,10 +272,6 @@ type Local interface {
 // Requests will be rejected
 type UnSupport interface {
 	api.Common
-
-	// ChainReadObj reads ipld nodes referenced by the specified CID from chain
-	// blockstore and returns raw bytes.
-	ChainReadObj(context.Context, cid.Cid) ([]byte, error) //perm:read
 
 	// ChainDeleteObj deletes node referenced by the given CID
 	ChainDeleteObj(context.Context, cid.Cid) error //perm:admin
