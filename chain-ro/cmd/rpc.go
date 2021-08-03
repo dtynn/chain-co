@@ -25,7 +25,7 @@ import (
 	"github.com/ipfs-force-community/metrics/ratelimit"
 )
 
-func serveRPC(ctx context.Context, authEndpoint, rate_limit_redis, listen string, mCnf *metrics.TraceConfig, jwt *localwt.LocalJwt, full api.FullNode, stop dix.StopFunc, maxRequestSize int64) error {
+func serveRPC(ctx context.Context, authEndpoint, rateLimitRedis, listen string, mCnf *metrics.TraceConfig, jwt *localwt.LocalJwt, full api.FullNode, stop dix.StopFunc, maxRequestSize int64) error {
 	serverOptions := []jsonrpc.ServerOption{}
 	if maxRequestSize > 0 {
 		serverOptions = append(serverOptions, jsonrpc.WithMaxRequestSize(maxRequestSize))
@@ -62,9 +62,10 @@ func serveRPC(ctx context.Context, authEndpoint, rate_limit_redis, listen string
 	}
 
 	limitWrapper := full
-	if len(rate_limit_redis) > 0 && remoteJwtCli != nil {
+	if len(rateLimitRedis) > 0 && remoteJwtCli != nil {
+		log.Infof("use reate limit %s", rateLimitRedis)
 		limiter, err := ratelimit.NewRateLimitHandler(
-			rate_limit_redis,
+			rateLimitRedis,
 			nil, &jwtclient.ValueFromCtx{},
 			jwtclient.WarpLimitFinder(remoteJwtCli),
 			logging.Logger("rate-limit"))

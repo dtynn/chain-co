@@ -39,7 +39,7 @@ var runCmd = &cli.Command{
 			Value: "",
 		},
 		&cli.StringFlag{
-			Name:  "rate_limit_redis",
+			Name:  "rate-limit-redis",
 			Usage: "config redis to request api limit",
 		},
 		&cli.StringFlag{
@@ -59,7 +59,7 @@ var runCmd = &cli.Command{
 		},
 		&cli.StringFlag{
 			Name:   "trace-node-name",
-			Value:  "venus-gateway",
+			Value:  "venus-node-co",
 			Hidden: true,
 		},
 	},
@@ -108,7 +108,7 @@ var runCmd = &cli.Command{
 		return serveRPC(
 			appCtx,
 			cctx.String("auth-url"),
-			cctx.String("rate_limit_redis"),
+			cctx.String("rate-limit-redis"),
 			cctx.String("listen"),
 			mCnf,
 			localJwt,
