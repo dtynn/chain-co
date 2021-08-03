@@ -63,7 +63,7 @@ func serveRPC(ctx context.Context, authEndpoint, rateLimitRedis, listen string, 
 			nil, &jwtclient.ValueFromCtx{},
 			jwtclient.WarpLimitFinder(remoteJwtCli),
 			logging.Logger("rate-limit"))
-		_ = logging.SetLogLevel("rate-limit", "info")
+		_ = logging.SetLogLevel("rate-limit", "debug")
 		if err != nil {
 			return err
 		}
