@@ -99,15 +99,6 @@ func (p *UnSupport) ChainSetHead(in0 context.Context, in1 types.TipSetKey) (err 
 	return cli.ChainSetHead(in0, in1)
 }
 
-func (p *UnSupport) ChainStatObj(in0 context.Context, in1 cid.Cid, in2 cid.Cid) (out0 api1.ObjStat, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api ChainStatObj %v", err)
-		return
-	}
-	return cli.ChainStatObj(in0, in1, in2)
-}
-
 func (p *UnSupport) ClientCalcCommP(in0 context.Context, in1 string) (out0 *api1.CommPRet, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -349,42 +340,6 @@ func (p *UnSupport) Discover(in0 context.Context) (out0 apitypes.OpenRPCDocument
 		return
 	}
 	return cli.Discover(in0)
-}
-
-func (p *UnSupport) GasEstimateFeeCap(in0 context.Context, in1 *types.Message, in2 int64, in3 types.TipSetKey) (out0 big.Int, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api GasEstimateFeeCap %v", err)
-		return
-	}
-	return cli.GasEstimateFeeCap(in0, in1, in2, in3)
-}
-
-func (p *UnSupport) GasEstimateGasLimit(in0 context.Context, in1 *types.Message, in2 types.TipSetKey) (out0 int64, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api GasEstimateGasLimit %v", err)
-		return
-	}
-	return cli.GasEstimateGasLimit(in0, in1, in2)
-}
-
-func (p *UnSupport) GasEstimateGasPremium(in0 context.Context, in1 uint64, in2 address.Address, in3 int64, in4 types.TipSetKey) (out0 big.Int, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api GasEstimateGasPremium %v", err)
-		return
-	}
-	return cli.GasEstimateGasPremium(in0, in1, in2, in3, in4)
-}
-
-func (p *UnSupport) GasEstimateMessageGas(in0 context.Context, in1 *types.Message, in2 *api1.MessageSendSpec, in3 types.TipSetKey) (out0 *types.Message, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api GasEstimateMessageGas %v", err)
-		return
-	}
-	return cli.GasEstimateMessageGas(in0, in1, in2, in3)
 }
 
 func (p *UnSupport) ID(in0 context.Context) (out0 peer.ID, err error) {
@@ -1053,15 +1008,6 @@ func (p *UnSupport) StateListMessages(in0 context.Context, in1 *api1.MessageMatc
 	return cli.StateListMessages(in0, in1, in2, in3)
 }
 
-func (p *UnSupport) StateReadState(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *api1.ActorState, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateReadState %v", err)
-		return
-	}
-	return cli.StateReadState(in0, in1, in2)
-}
-
 func (p *UnSupport) StateReplay(in0 context.Context, in1 types.TipSetKey, in2 cid.Cid) (out0 *api1.InvocResult, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -1159,15 +1105,6 @@ func (p *UnSupport) SyncMarkBad(in0 context.Context, in1 cid.Cid) (err error) {
 		return
 	}
 	return cli.SyncMarkBad(in0, in1)
-}
-
-func (p *UnSupport) SyncState(in0 context.Context) (out0 *api1.SyncState, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api SyncState %v", err)
-		return
-	}
-	return cli.SyncState(in0)
 }
 
 func (p *UnSupport) SyncUnmarkAllBad(in0 context.Context) (err error) {

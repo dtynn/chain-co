@@ -217,6 +217,8 @@ type Proxy interface {
 	StateChangedActors(context.Context, cid.Cid, cid.Cid) (map[string]types.Actor, error) //perm:read
 	// StateMinerSectorCount returns the number of sectors in a miner's sector set and proving set
 	StateMinerSectorCount(context.Context, address.Address, types.TipSetKey) (api.MinerSectors, error) //perm:read
+	// StateReadState returns the indicated actor's state.
+	StateReadState(ctx context.Context, actor address.Address, tsk types.TipSetKey) (*api.ActorState, error) //perm:read
 
 	// MethodGroup: Wallet
 
@@ -254,6 +256,29 @@ type Proxy interface {
 	// When maxFee is set to 0, MpoolPushMessage will guess appropriate fee
 	// based on current chain conditions
 	MpoolPushMessage(ctx context.Context, msg *types.Message, spec *api.MessageSendSpec) (*types.SignedMessage, error) //perm:sign
+
+	// GasEstimateFeeCap estimates gas fee cap
+	GasEstimateFeeCap(context.Context, *types.Message, int64, types.TipSetKey) (types.BigInt, error) //perm:read
+
+	// GasEstimateGasLimit estimates gas used by the message and returns it.
+	// It fails if message fails to execute.
+	GasEstimateGasLimit(context.Context, *types.Message, types.TipSetKey) (int64, error) //perm:read
+
+	// GasEstimateGasPremium estimates what gas price should be used for a
+	// message to have high likelihood of inclusion in `nblocksincl` epochs.
+
+	GasEstimateGasPremium(_ context.Context, nblocksincl uint64,
+		sender address.Address, gaslimit int64, tsk types.TipSetKey) (types.BigInt, error) //perm:read
+
+	// GasEstimateMessageGas estimates gas values for unset message gas fields
+	GasEstimateMessageGas(context.Context, *types.Message, *api.MessageSendSpec, types.TipSetKey) (*types.Message, error) //perm:read
+
+	// MethodGroup: Sync
+	// The Sync method group contains methods for interacting with and
+	// observing the lotus sync service.
+
+	// SyncState returns the current status of the lotus sync system.
+	SyncState(context.Context) (*api.SyncState, error) //perm:read
 
 	//venus specify
 	GasBatchEstimateMessageGas(ctx context.Context, estimateMessages []*api.EstimateMessage, fromNonce uint64, tsk types.TipSetKey) ([]*api.EstimateResult, error) //perm:read
@@ -307,29 +332,6 @@ type UnSupport interface {
 	// state trees.
 	// If oldmsgskip is set, messages from before the requested roots are also not included.
 	ChainExport(ctx context.Context, nroots abi.ChainEpoch, oldmsgskip bool, tsk types.TipSetKey) (<-chan []byte, error) //perm:read
-
-	// GasEstimateFeeCap estimates gas fee cap
-	GasEstimateFeeCap(context.Context, *types.Message, int64, types.TipSetKey) (types.BigInt, error) //perm:read
-
-	// GasEstimateGasLimit estimates gas used by the message and returns it.
-	// It fails if message fails to execute.
-	GasEstimateGasLimit(context.Context, *types.Message, types.TipSetKey) (int64, error) //perm:read
-
-	// GasEstimateGasPremium estimates what gas price should be used for a
-	// message to have high likelihood of inclusion in `nblocksincl` epochs.
-
-	GasEstimateGasPremium(_ context.Context, nblocksincl uint64,
-		sender address.Address, gaslimit int64, tsk types.TipSetKey) (types.BigInt, error) //perm:read
-
-	// GasEstimateMessageGas estimates gas values for unset message gas fields
-	GasEstimateMessageGas(context.Context, *types.Message, *api.MessageSendSpec, types.TipSetKey) (*types.Message, error) //perm:read
-
-	// MethodGroup: Sync
-	// The Sync method group contains methods for interacting with and
-	// observing the lotus sync service.
-
-	// SyncState returns the current status of the lotus sync system.
-	SyncState(context.Context) (*api.SyncState, error) //perm:read
 
 	// SyncIncomingBlocks returns a channel streaming incoming, potentially not
 	// yet synced block headers.
@@ -511,8 +513,6 @@ type UnSupport interface {
 	// different signature, but with all other parameters matching (source/destination,
 	// nonce, params, etc.)
 	StateReplay(context.Context, types.TipSetKey, cid.Cid) (*api.InvocResult, error) //perm:read
-	// StateReadState returns the indicated actor's state.
-	StateReadState(ctx context.Context, actor address.Address, tsk types.TipSetKey) (*api.ActorState, error) //perm:read
 	// StateListMessages looks back and returns all messages with a matching to or from address, stopping at the given height.
 	StateListMessages(ctx context.Context, match *api.MessageMatch, tsk types.TipSetKey, toht abi.ChainEpoch) ([]cid.Cid, error) //perm:read
 	// StateDecodeParams attempts to decode the provided params, based on the recipient actor address and method number.

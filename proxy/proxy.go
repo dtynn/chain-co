@@ -165,6 +165,15 @@ func (p *Proxy) ChainReadObj(in0 context.Context, in1 cid.Cid) (out0 []uint8, er
 	return cli.ChainReadObj(in0, in1)
 }
 
+func (p *Proxy) ChainStatObj(in0 context.Context, in1 cid.Cid, in2 cid.Cid) (out0 api1.ObjStat, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api ChainStatObj %v", err)
+		return
+	}
+	return cli.ChainStatObj(in0, in1, in2)
+}
+
 func (p *Proxy) ChainTipSetWeight(in0 context.Context, in1 types.TipSetKey) (out0 big.Int, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -181,6 +190,42 @@ func (p *Proxy) GasBatchEstimateMessageGas(in0 context.Context, in1 []*api1.Esti
 		return
 	}
 	return cli.GasBatchEstimateMessageGas(in0, in1, in2, in3)
+}
+
+func (p *Proxy) GasEstimateFeeCap(in0 context.Context, in1 *types.Message, in2 int64, in3 types.TipSetKey) (out0 big.Int, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api GasEstimateFeeCap %v", err)
+		return
+	}
+	return cli.GasEstimateFeeCap(in0, in1, in2, in3)
+}
+
+func (p *Proxy) GasEstimateGasLimit(in0 context.Context, in1 *types.Message, in2 types.TipSetKey) (out0 int64, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api GasEstimateGasLimit %v", err)
+		return
+	}
+	return cli.GasEstimateGasLimit(in0, in1, in2)
+}
+
+func (p *Proxy) GasEstimateGasPremium(in0 context.Context, in1 uint64, in2 address.Address, in3 int64, in4 types.TipSetKey) (out0 big.Int, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api GasEstimateGasPremium %v", err)
+		return
+	}
+	return cli.GasEstimateGasPremium(in0, in1, in2, in3, in4)
+}
+
+func (p *Proxy) GasEstimateMessageGas(in0 context.Context, in1 *types.Message, in2 *api1.MessageSendSpec, in3 types.TipSetKey) (out0 *types.Message, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api GasEstimateMessageGas %v", err)
+		return
+	}
+	return cli.GasEstimateMessageGas(in0, in1, in2, in3)
 }
 
 func (p *Proxy) MinerCreateBlock(in0 context.Context, in1 *api1.BlockTemplate) (out0 *types.BlockMsg, err error) {
@@ -498,6 +543,15 @@ func (p *Proxy) StateNetworkVersion(in0 context.Context, in1 types.TipSetKey) (o
 	return cli.StateNetworkVersion(in0, in1)
 }
 
+func (p *Proxy) StateReadState(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *api1.ActorState, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateReadState %v", err)
+		return
+	}
+	return cli.StateReadState(in0, in1, in2)
+}
+
 func (p *Proxy) StateSearchMsg(in0 context.Context, in1 types.TipSetKey, in2 cid.Cid, in3 abi.ChainEpoch, in4 bool) (out0 *api1.MsgLookup, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -550,6 +604,15 @@ func (p *Proxy) StateWaitMsg(in0 context.Context, in1 cid.Cid, in2 uint64, in3 a
 		return
 	}
 	return cli.StateWaitMsg(in0, in1, in2, in3, in4)
+}
+
+func (p *Proxy) SyncState(in0 context.Context) (out0 *api1.SyncState, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api SyncState %v", err)
+		return
+	}
+	return cli.SyncState(in0)
 }
 
 func (p *Proxy) SyncSubmitBlock(in0 context.Context, in1 *types.BlockMsg) (err error) {
