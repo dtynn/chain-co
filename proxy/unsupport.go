@@ -1134,15 +1134,6 @@ func (p *UnSupport) SyncValidateTipset(in0 context.Context, in1 types.TipSetKey)
 	return cli.SyncValidateTipset(in0, in1)
 }
 
-func (p *UnSupport) Version(in0 context.Context) (out0 api1.APIVersion, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api Version %v", err)
-		return
-	}
-	return cli.Version(in0)
-}
-
 func (p *UnSupport) WalletDefaultAddress(in0 context.Context) (out0 address.Address, err error) {
 	cli, err := p.Select()
 	if err != nil {

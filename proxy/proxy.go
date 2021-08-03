@@ -624,6 +624,15 @@ func (p *Proxy) SyncSubmitBlock(in0 context.Context, in1 *types.BlockMsg) (err e
 	return cli.SyncSubmitBlock(in0, in1)
 }
 
+func (p *Proxy) Version(in0 context.Context) (out0 api1.APIVersion, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api Version %v", err)
+		return
+	}
+	return cli.Version(in0)
+}
+
 func (p *Proxy) WalletBalance(in0 context.Context, in1 address.Address) (out0 big.Int, err error) {
 	cli, err := p.Select()
 	if err != nil {

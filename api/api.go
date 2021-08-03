@@ -2,7 +2,9 @@ package api
 
 import (
 	"context"
-
+	"github.com/filecoin-project/go-jsonrpc/auth"
+	apitypes "github.com/filecoin-project/lotus/api/types"
+	"github.com/google/uuid"
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p-core/peer"
 
@@ -23,6 +25,9 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	marketevents "github.com/filecoin-project/lotus/markets/loggers"
 	"github.com/filecoin-project/lotus/node/modules/dtypes"
+	metrics "github.com/libp2p/go-libp2p-core/metrics"
+	libnetwork "github.com/libp2p/go-libp2p-core/network"
+	protocol "github.com/libp2p/go-libp2p-core/protocol"
 )
 
 var _ api.FullNode = combined(nil)
@@ -288,6 +293,9 @@ type Proxy interface {
 	MpoolPublishMessage(ctx context.Context, smsg *types.SignedMessage) error //perm:write
 
 	MpoolPublishByAddr(context.Context, address.Address) error //perm:write
+
+	// Version provides information about API provider
+	Version(context.Context) (api.APIVersion, error) //perm:read
 }
 
 // Local is a subset of api.FullNode.
@@ -301,7 +309,60 @@ type Local interface {
 // UnSupport is a subset of api.FullNode
 // Requests will be rejected
 type UnSupport interface {
-	api.Common
+
+	// MethodGroup: Auth
+
+	AuthVerify(ctx context.Context, token string) ([]auth.Permission, error) //perm:read
+	AuthNew(ctx context.Context, perms []auth.Permission) ([]byte, error)    //perm:admin
+
+	// MethodGroup: Net
+
+	NetConnectedness(context.Context, peer.ID) (libnetwork.Connectedness, error) //perm:read
+	NetPeers(context.Context) ([]peer.AddrInfo, error)                           //perm:read
+	NetConnect(context.Context, peer.AddrInfo) error                             //perm:write
+	NetAddrsListen(context.Context) (peer.AddrInfo, error)                       //perm:read
+	NetDisconnect(context.Context, peer.ID) error                                //perm:write
+	NetFindPeer(context.Context, peer.ID) (peer.AddrInfo, error)                 //perm:read
+	NetPubsubScores(context.Context) ([]api.PubsubScore, error)                  //perm:read
+	NetAutoNatStatus(context.Context) (api.NatInfo, error)                       //perm:read
+	NetAgentVersion(ctx context.Context, p peer.ID) (string, error)              //perm:read
+	NetPeerInfo(context.Context, peer.ID) (*api.ExtendedPeerInfo, error)         //perm:read
+
+	// NetBandwidthStats returns statistics about the nodes total bandwidth
+	// usage and current rate across all peers and protocols.
+	NetBandwidthStats(ctx context.Context) (metrics.Stats, error) //perm:read
+
+	// NetBandwidthStatsByPeer returns statistics about the nodes bandwidth
+	// usage and current rate per peer
+	NetBandwidthStatsByPeer(ctx context.Context) (map[string]metrics.Stats, error) //perm:read
+
+	// NetBandwidthStatsByProtocol returns statistics about the nodes bandwidth
+	// usage and current rate per protocol
+	NetBandwidthStatsByProtocol(ctx context.Context) (map[protocol.ID]metrics.Stats, error) //perm:read
+
+	// ConnectionGater API
+	NetBlockAdd(ctx context.Context, acl api.NetBlockList) error    //perm:admin
+	NetBlockRemove(ctx context.Context, acl api.NetBlockList) error //perm:admin
+	NetBlockList(ctx context.Context) (api.NetBlockList, error)     //perm:read
+
+	// MethodGroup: Common
+
+	// Discover returns an OpenRPC document describing an RPC API.
+	Discover(ctx context.Context) (apitypes.OpenRPCDocument, error) //perm:read
+
+	// ID returns peerID of libp2p node backing this API
+	ID(context.Context) (peer.ID, error) //perm:read
+
+	LogList(context.Context) ([]string, error)         //perm:write
+	LogSetLevel(context.Context, string, string) error //perm:write
+
+	// trigger graceful shutdown
+	Shutdown(context.Context) error //perm:admin
+
+	// Session returns a random UUID of api provider session
+	Session(context.Context) (uuid.UUID, error) //perm:read
+
+	Closing(context.Context) (<-chan struct{}, error) //perm:read
 
 	// ChainDeleteObj deletes node referenced by the given CID
 	ChainDeleteObj(context.Context, cid.Cid) error //perm:admin
