@@ -18,7 +18,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/golang-lru v0.5.4
-	github.com/ipfs-force-community/metrics v0.0.0-20210716075100-f6c912bf4b47
+	github.com/ipfs-force-community/metrics v1.0.0
 	github.com/ipfs-force-community/venus-common-utils v0.0.0-20210714031758-ea0e25ff0ec4
 	github.com/ipfs/go-cid v0.0.7
 	github.com/ipfs/go-log/v2 v2.3.0
