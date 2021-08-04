@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/filecoin-project/lotus/api/v0api"
 	"github.com/ipfs-force-community/metrics"
 	"go.opencensus.io/plugin/ochttp"
 	"net"
@@ -82,7 +83,7 @@ func serveRPC(ctx context.Context, authEndpoint, rateLimitRedis, listen string, 
 		http.Handle(path, handler)
 	}
 
-	serveRpc("/rpc/v0", pma)
+	serveRpc("/rpc/v0", &v0api.WrapperV1Full{FullNode: pma})
 	serveRpc("/rpc/v1", pma)
 
 	server := http.Server{
