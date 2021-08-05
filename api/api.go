@@ -254,6 +254,9 @@ type Proxy interface {
 	// MpoolSelect returns a list of pending messages for inclusion in the next block
 	MpoolSelect(context.Context, types.TipSetKey, float64) ([]*types.SignedMessage, error) //perm:read
 
+	// MpoolPush pushes a signed message to mempool.
+	MpoolPush(context.Context, *types.SignedMessage) (cid.Cid, error) //perm:write
+
 	// MpoolPushMessage atomically assigns a nonce, signs, and pushes a message
 	// to mempool.
 	// maxFee is only used when GasFeeCap/GasPremium fields aren't specified
@@ -424,9 +427,6 @@ type UnSupport interface {
 
 	// MpoolPending returns pending mempool messages.
 	MpoolPending(context.Context, types.TipSetKey) ([]*types.SignedMessage, error) //perm:read
-
-	// MpoolPush pushes a signed message to mempool.
-	MpoolPush(context.Context, *types.SignedMessage) (cid.Cid, error) //perm:write
 
 	// MpoolPushUntrusted pushes a signed message to mempool from untrusted sources.
 	MpoolPushUntrusted(context.Context, *types.SignedMessage) (cid.Cid, error) //perm:write
