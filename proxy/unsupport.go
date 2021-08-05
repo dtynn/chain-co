@@ -477,15 +477,6 @@ func (p *UnSupport) MpoolPending(in0 context.Context, in1 types.TipSetKey) (out0
 	return cli.MpoolPending(in0, in1)
 }
 
-func (p *UnSupport) MpoolPush(in0 context.Context, in1 *types.SignedMessage) (out0 cid.Cid, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api MpoolPush %v", err)
-		return
-	}
-	return cli.MpoolPush(in0, in1)
-}
-
 func (p *UnSupport) MpoolPushUntrusted(in0 context.Context, in1 *types.SignedMessage) (out0 cid.Cid, err error) {
 	cli, err := p.Select()
 	if err != nil {

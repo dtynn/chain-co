@@ -264,6 +264,15 @@ func (p *Proxy) MpoolPublishMessage(in0 context.Context, in1 *types.SignedMessag
 	return cli.MpoolPublishMessage(in0, in1)
 }
 
+func (p *Proxy) MpoolPush(in0 context.Context, in1 *types.SignedMessage) (out0 cid.Cid, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api MpoolPush %v", err)
+		return
+	}
+	return cli.MpoolPush(in0, in1)
+}
+
 func (p *Proxy) MpoolPushMessage(in0 context.Context, in1 *types.Message, in2 *api1.MessageSendSpec) (out0 *types.SignedMessage, err error) {
 	cli, err := p.Select()
 	if err != nil {
