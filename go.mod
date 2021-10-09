@@ -15,6 +15,7 @@ require (
 	github.com/filecoin-project/specs-actors v0.9.13
 	github.com/filecoin-project/venus-auth v1.2.2-0.20210716071053-565a8999f9e5
 	github.com/gbrlsnchs/jwt/v3 v3.0.0
+	github.com/google/flatbuffers v1.12.1 // indirect
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/golang-lru v0.5.4
