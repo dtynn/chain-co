@@ -33,7 +33,7 @@ func serveRPC(ctx context.Context, authEndpoint, rateLimitRedis, listen string, 
 	}
 
 	rpcServer := jsonrpc.NewServer(serverOptions...)
-	rpcServer.Register("Filecoin", full)
+	rpcServer2 := jsonrpc.NewServer(serverOptions...)
 
 	var remoteJwtCli *jwtclient.JWTClient
 	if len(authEndpoint) > 0 {
@@ -41,11 +41,13 @@ func serveRPC(ctx context.Context, authEndpoint, rateLimitRedis, listen string, 
 	}
 
 	//register hander to verify token in venus-auth
-	var handler http.Handler
+	var handler, handler2 http.Handler
 	if remoteJwtCli != nil {
 		handler = (http.Handler)(jwtclient.NewAuthMux(jwt, jwtclient.WarpIJwtAuthClient(remoteJwtCli), rpcServer, logging.Logger("Auth")))
+		handler2 = (http.Handler)(jwtclient.NewAuthMux(jwt, jwtclient.WarpIJwtAuthClient(remoteJwtCli), rpcServer2, logging.Logger("Auth")))
 	} else {
 		handler = (http.Handler)(jwtclient.NewAuthMux(jwt, nil, rpcServer, logging.Logger("Auth")))
+		handler2 = (http.Handler)(jwtclient.NewAuthMux(jwt, nil, rpcServer2, logging.Logger("Auth")))
 	}
 
 	if repoter, err := metrics.RegisterJaeger(mCnf.ServerName, mCnf); err != nil {
@@ -54,6 +56,7 @@ func serveRPC(ctx context.Context, authEndpoint, rateLimitRedis, listen string, 
 		log.Infof("register jaeger-tracing exporter to %s, with node-name:%s", mCnf.JaegerEndpoint, mCnf.ServerName)
 		defer metrics.UnregisterJaeger(repoter)
 		handler = &ochttp.Handler{Handler: handler}
+		handler2 = &ochttp.Handler{Handler: handler2}
 	}
 
 	limitWrapper := full
@@ -78,13 +81,13 @@ func serveRPC(ctx context.Context, authEndpoint, rateLimitRedis, listen string, 
 
 	pma := api.PermissionedFullAPI(limitWrapper)
 
-	serveRpc := func(path string, hnd interface{}) {
-		rpcServer.Register("Filecoin", hnd)
+	serveRpc := func(path string, hnd interface{}, handler http.Handler, rpcSer *jsonrpc.RPCServer) {
+		rpcSer.Register("Filecoin", hnd)
 		http.Handle(path, handler)
 	}
 
-	serveRpc("/rpc/v0", &v0api.WrapperV1Full{FullNode: pma})
-	serveRpc("/rpc/v1", pma)
+	serveRpc("/rpc/v0", &v0api.WrapperV1Full{FullNode: pma}, handler, rpcServer)
+	serveRpc("/rpc/v1", pma, handler2, rpcServer2)
 
 	server := http.Server{
 		Addr:    listen,
