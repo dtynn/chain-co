@@ -68,6 +68,13 @@ func (s *Selector) setPriors(addrs ...string) {
 	s.prior.Unlock()
 }
 
+func (s *Selector) delPriors(addr string) {
+	s.prior.Lock()
+	log.Warnf("remove address %s", addr)
+	s.prior.addrs = remove(s.prior.addrs, addr)
+	s.prior.Unlock()
+}
+
 // Select tries to choose a node from the candidates
 func (s *Selector) Select() (*Node, error) {
 	var addr string
@@ -100,4 +107,13 @@ func (s *Selector) Select() (*Node, error) {
 	}
 
 	return s.all.nodes[s.all.addrs[rand.Intn(allSize)]], nil
+}
+
+func remove(s []string, r string) []string {
+	for i, v := range s {
+		if v == r {
+			return append(s[:i], s[i+1:]...)
+		}
+	}
+	return s
 }

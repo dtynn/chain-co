@@ -156,7 +156,7 @@ func (n *Node) reListen() (<-chan []*api.HeadChange, error) {
 		ch, err := n.upstream.full.ChainNotify(n.ctx)
 		if err != nil {
 			n.log.Errorf("call CahinNotify: %s, will re-call in %s", err, n.reListenInterval)
-
+			n.sctx.errNodeCh <- n.info.Addr
 			select {
 			case <-n.ctx.Done():
 				return nil, n.ctx.Err()

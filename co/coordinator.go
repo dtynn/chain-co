@@ -62,6 +62,8 @@ func (c *Coordinator) Start() {
 
 		case hc := <-c.ctx.headCh:
 			c.handleCandidate(hc)
+		case addr := <-c.ctx.errNodeCh:
+			c.delNodeAddr(addr)
 		}
 	}
 }
@@ -71,7 +73,9 @@ func (c *Coordinator) Stop() error {
 	c.tspub.Shutdown()
 	return nil
 }
-
+func (c *Coordinator) delNodeAddr(addr string) {
+	c.sel.delPriors(addr)
+}
 func (c *Coordinator) handleCandidate(hc *headCandidate) {
 	addr := hc.node.info.Addr
 	clog := log.With("node", addr, "h", hc.ts.Height(), "w", hc.weight, "drift", time.Now().Unix()-int64(hc.ts.MinTimestamp()))
