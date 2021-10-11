@@ -2,8 +2,11 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/filecoin-project/go-jsonrpc/auth"
 	apitypes "github.com/filecoin-project/lotus/api/types"
+	"github.com/filecoin-project/lotus/journal/alerting"
+	"github.com/filecoin-project/lotus/node/repo/imports"
 	"github.com/google/uuid"
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -13,7 +16,6 @@ import (
 	datatransfer "github.com/filecoin-project/go-data-transfer"
 	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
-	"github.com/filecoin-project/go-multistore"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/go-state-types/crypto"
 	"github.com/filecoin-project/go-state-types/dline"
@@ -54,12 +56,6 @@ type Proxy interface {
 	// ChainHead returns the current head of the chain.
 	ChainHead(context.Context) (*types.TipSet, error) //perm:read
 
-	// ChainGetRandomnessFromTickets is used to sample the chain for randomness.
-	ChainGetRandomnessFromTickets(ctx context.Context, tsk types.TipSetKey, personalization crypto.DomainSeparationTag, randEpoch abi.ChainEpoch, entropy []byte) (abi.Randomness, error) //perm:read
-
-	// ChainGetRandomnessFromBeacon is used to sample the beacon for randomness.
-	ChainGetRandomnessFromBeacon(ctx context.Context, tsk types.TipSetKey, personalization crypto.DomainSeparationTag, randEpoch abi.ChainEpoch, entropy []byte) (abi.Randomness, error) //perm:read
-
 	// ChainGetBlock returns the block specified by the given CID.
 	ChainGetBlock(context.Context, cid.Cid) (*types.BlockHeader, error) //perm:read
 
@@ -97,6 +93,21 @@ type Proxy interface {
 
 	// ChainHasObj checks if a given CID exists in the chain blockstore.
 	ChainHasObj(context.Context, cid.Cid) (bool, error) //perm:read
+
+	// ChainGetPath returns a set of revert/apply operations needed to get from
+	// one tipset to another, for example:
+	//```
+	//        to
+	//         ^
+	// from   tAA
+	//   ^     ^
+	// tBA    tAB
+	//  ^---*--^
+	//      ^
+	//     tRR
+	//```
+	// Would return `[revert(tBA), apply(tAB), apply(tAA)]`
+	ChainGetPath(ctx context.Context, from types.TipSetKey, to types.TipSetKey) ([]*api.HeadChange, error) //perm:read
 
 	// MethodGroup: Beacon
 	// The Beacon method group contains methods for interacting with the random beacon (DRAND)
@@ -225,6 +236,27 @@ type Proxy interface {
 	// StateReadState returns the indicated actor's state.
 	StateReadState(ctx context.Context, actor address.Address, tsk types.TipSetKey) (*api.ActorState, error) //perm:read
 
+	// StateCirculatingSupply returns the exact circulating supply of Filecoin at the given tipset.
+	// This is not used anywhere in the protocol itself, and is only for external consumption.
+	StateCirculatingSupply(context.Context, types.TipSetKey) (abi.TokenAmount, error) //perm:read
+	// StateVMCirculatingSupplyInternal returns an approximation of the circulating supply of Filecoin at the given tipset.
+	// This is the value reported by the runtime interface to actors code.
+	StateVMCirculatingSupplyInternal(context.Context, types.TipSetKey) (api.CirculatingSupply, error) //perm:read
+
+	// StateVerifierStatus returns the data cap for the given address.
+	// Returns nil if there is no entry in the data cap table for the
+	// address.
+	StateVerifierStatus(ctx context.Context, addr address.Address, tsk types.TipSetKey) (*abi.StoragePower, error) //perm:read
+	// StateVerifiedClientStatus returns the data cap for the given address.
+	// Returns nil if there is no entry in the data cap table for the
+	// address.
+	StateVerifiedClientStatus(ctx context.Context, addr address.Address, tsk types.TipSetKey) (*abi.StoragePower, error) //perm:read
+	// StateVerifiedClientStatus returns the address of the Verified Registry's root key
+	StateVerifiedRegistryRootKey(ctx context.Context, tsk types.TipSetKey) (address.Address, error) //perm:read
+	// StateDealProviderCollateralBounds returns the min and max collateral a storage provider
+	// can issue. It takes the deal size and verified status as parameters.
+	StateDealProviderCollateralBounds(context.Context, abi.PaddedPieceSize, bool, types.TipSetKey) (api.DealCollateralBounds, error) //perm:read
+
 	// MethodGroup: Wallet
 
 	// WalletSign signs the given bytes using the given address.
@@ -297,6 +329,18 @@ type Proxy interface {
 
 	MpoolPublishByAddr(context.Context, address.Address) error //perm:write
 
+	// StateGetRandomnessFromTickets is used to sample the chain for randomness.
+	StateGetRandomnessFromTickets(ctx context.Context, personalization crypto.DomainSeparationTag, randEpoch abi.ChainEpoch, entropy []byte, tsk types.TipSetKey) (abi.Randomness, error) //perm:read
+	// StateGetRandomnessFromBeacon is used to sample the beacon for randomness.
+	StateGetRandomnessFromBeacon(ctx context.Context, personalization crypto.DomainSeparationTag, randEpoch abi.ChainEpoch, entropy []byte, tsk types.TipSetKey) (abi.Randomness, error) //perm:read
+
+	// ChainGetRandomnessFromTickets is used to sample the chain for randomness.
+	ChainGetRandomnessFromTickets(ctx context.Context, tsk types.TipSetKey, personalization crypto.DomainSeparationTag, randEpoch abi.ChainEpoch, entropy []byte) (abi.Randomness, error) //perm:read
+
+	// ChainGetRandomnessFromBeacon is used to sample the beacon for randomness.
+	ChainGetRandomnessFromBeacon(ctx context.Context, tsk types.TipSetKey, personalization crypto.DomainSeparationTag, randEpoch abi.ChainEpoch, entropy []byte) (abi.Randomness, error) //perm:read
+
+	ChainGetTipSetAfterHeight(ctx context.Context, epoch abi.ChainEpoch, key types.TipSetKey) (*types.TipSet, error) //perm:read
 	// Version provides information about API provider
 	Version(context.Context) (api.APIVersion, error) //perm:read
 }
@@ -375,21 +419,6 @@ type UnSupport interface {
 
 	ChainGetNode(ctx context.Context, p string) (*api.IpldObject, error) //perm:read
 
-	// ChainGetPath returns a set of revert/apply operations needed to get from
-	// one tipset to another, for example:
-	//```
-	//        to
-	//         ^
-	// from   tAA
-	//   ^     ^
-	// tBA    tAB
-	//  ^---*--^
-	//      ^
-	//     tRR
-	//```
-	// Would return `[revert(tBA), apply(tAB), apply(tAA)]`
-	ChainGetPath(ctx context.Context, from types.TipSetKey, to types.TipSetKey) ([]*api.HeadChange, error) //perm:read
-
 	// ChainExport returns a stream of bytes with CAR dump of chain data.
 	// The exported chain data includes the header chain from the given tipset
 	// back to genesis, the entire genesis state, and the most recent 'nroots'
@@ -453,6 +482,13 @@ type UnSupport interface {
 	// MpoolSetConfig sets the mpool config to (a copy of) the supplied config
 	MpoolSetConfig(context.Context, *types.MpoolConfig) error //perm:admin
 
+	// MpoolCheckMessages performs logical checks on a batch of messages
+	MpoolCheckMessages(context.Context, []*api.MessagePrototype) ([][]api.MessageCheckStatus, error) //perm:read
+	// MpoolCheckPendingMessages performs logical checks for all pending messages from a given address
+	MpoolCheckPendingMessages(context.Context, address.Address) ([][]api.MessageCheckStatus, error) //perm:read
+	// MpoolCheckReplaceMessages performs logical checks on pending messages with replacement
+	MpoolCheckReplaceMessages(context.Context, []*types.Message) ([][]api.MessageCheckStatus, error) //perm:read
+
 	// // UX ?
 
 	// MethodGroup: Wallet
@@ -497,7 +533,7 @@ type UnSupport interface {
 	// ClientImport imports file under the specified path into filestore.
 	ClientImport(ctx context.Context, ref api.FileRef) (*api.ImportRes, error)
 	// ClientRemoveImport removes file import
-	ClientRemoveImport(ctx context.Context, importID multistore.StoreID) error
+	ClientRemoveImport(ctx context.Context, importID imports.ID) error //perm:admin
 	// ClientStartDeal proposes a deal with a miner.
 	ClientStartDeal(ctx context.Context, params *api.StartDealParams) (*cid.Cid, error)
 	// ClientGetDealInfo returns the latest information about a given deal.
@@ -543,9 +579,14 @@ type UnSupport interface {
 	// ClientCancelRetrievalDeal cancels an ongoing retrieval deal based on DealID
 	ClientCancelRetrievalDeal(ctx context.Context, dealid retrievalmarket.DealID) error //perm:write
 
-	// ClientUnimport removes references to the specified file from filestore
-	//ClientUnimport(path string)
+	// ClientStatelessDeal fire-and-forget-proposes an offline deal to a miner without subsequent tracking.
+	ClientStatelessDeal(ctx context.Context, params *api.StartDealParams) (*cid.Cid, error) //perm:write
 
+	// ClientListRetrievals returns information about retrievals made by the local client
+	ClientListRetrievals(ctx context.Context) ([]api.RetrievalInfo, error) //perm:write
+
+	// ClientGetRetrievalUpdates returns status of updated retrieval deals
+	ClientGetRetrievalUpdates(ctx context.Context) (<-chan api.RetrievalInfo, error) //perm:write
 	// ClientListImports lists imported files and their root CIDs
 	ClientListImports(ctx context.Context) ([]api.Import, error)
 
@@ -612,26 +653,6 @@ type UnSupport interface {
 	// Messages in the `apply` parameter must have the correct nonces, and gas
 	// values set.
 	StateCompute(context.Context, abi.ChainEpoch, []*types.Message, types.TipSetKey) (*api.ComputeStateOutput, error) //perm:read
-	// StateVerifierStatus returns the data cap for the given address.
-	// Returns nil if there is no entry in the data cap table for the
-	// address.
-	StateVerifierStatus(ctx context.Context, addr address.Address, tsk types.TipSetKey) (*abi.StoragePower, error) //perm:read
-	// StateVerifiedClientStatus returns the data cap for the given address.
-	// Returns nil if there is no entry in the data cap table for the
-	// address.
-	StateVerifiedClientStatus(ctx context.Context, addr address.Address, tsk types.TipSetKey) (*abi.StoragePower, error) //perm:read
-	// StateVerifiedClientStatus returns the address of the Verified Registry's root key
-	StateVerifiedRegistryRootKey(ctx context.Context, tsk types.TipSetKey) (address.Address, error) //perm:read
-	// StateDealProviderCollateralBounds returns the min and max collateral a storage provider
-	// can issue. It takes the deal size and verified status as parameters.
-	StateDealProviderCollateralBounds(context.Context, abi.PaddedPieceSize, bool, types.TipSetKey) (api.DealCollateralBounds, error) //perm:read
-
-	// StateCirculatingSupply returns the exact circulating supply of Filecoin at the given tipset.
-	// This is not used anywhere in the protocol itself, and is only for external consumption.
-	StateCirculatingSupply(context.Context, types.TipSetKey) (abi.TokenAmount, error) //perm:read
-	// StateVMCirculatingSupplyInternal returns an approximation of the circulating supply of Filecoin at the given tipset.
-	// This is the value reported by the runtime interface to actors code.
-	StateVMCirculatingSupplyInternal(context.Context, types.TipSetKey) (api.CirculatingSupply, error) //perm:read
 
 	// MethodGroup: Msig
 	// The Msig methods are used to interact with multisig wallets on the
@@ -653,15 +674,16 @@ type UnSupport interface {
 	// MsigCreate creates a multisig wallet
 	// It takes the following params: <required number of senders>, <approving addresses>, <unlock duration>
 	//<initial balance>, <sender address of the create msg>, <gas price>
-	MsigCreate(context.Context, uint64, []address.Address, abi.ChainEpoch, types.BigInt, address.Address, types.BigInt) (cid.Cid, error) //perm:sign
+	MsigCreate(context.Context, uint64, []address.Address, abi.ChainEpoch, types.BigInt, address.Address, types.BigInt) (*api.MessagePrototype, error) //perm:sign
+
 	// MsigPropose proposes a multisig message
 	// It takes the following params: <multisig address>, <recipient address>, <value to transfer>,
 	// <sender address of the propose msg>, <method to call in the proposed message>, <params to include in the proposed message>
-	MsigPropose(context.Context, address.Address, address.Address, types.BigInt, address.Address, uint64, []byte) (cid.Cid, error) //perm:sign
+	MsigPropose(context.Context, address.Address, address.Address, types.BigInt, address.Address, uint64, []byte) (*api.MessagePrototype, error) //perm:sign
 
 	// MsigApprove approves a previously-proposed multisig message by transaction ID
 	// It takes the following params: <multisig address>, <proposed transaction ID> <signer address>
-	MsigApprove(context.Context, address.Address, uint64, address.Address) (cid.Cid, error) //perm:sign
+	MsigApprove(context.Context, address.Address, uint64, address.Address) (*api.MessagePrototype, error) //perm:sign
 
 	// MsigApproveTxnHash approves a previously-proposed multisig message, specified
 	// using both transaction ID and a hash of the parameters used in the
@@ -669,43 +691,49 @@ type UnSupport interface {
 	// exactly the transaction you think you are.
 	// It takes the following params: <multisig address>, <proposed message ID>, <proposer address>, <recipient address>, <value to transfer>,
 	// <sender address of the approve msg>, <method to call in the proposed message>, <params to include in the proposed message>
-	MsigApproveTxnHash(context.Context, address.Address, uint64, address.Address, address.Address, types.BigInt, address.Address, uint64, []byte) (cid.Cid, error) //perm:sign
+	MsigApproveTxnHash(context.Context, address.Address, uint64, address.Address, address.Address, types.BigInt, address.Address, uint64, []byte) (*api.MessagePrototype, error) //perm:sign
 
 	// MsigCancel cancels a previously-proposed multisig message
 	// It takes the following params: <multisig address>, <proposed transaction ID>, <recipient address>, <value to transfer>,
 	// <sender address of the cancel msg>, <method to call in the proposed message>, <params to include in the proposed message>
-	MsigCancel(context.Context, address.Address, uint64, address.Address, types.BigInt, address.Address, uint64, []byte) (cid.Cid, error) //perm:sign
+	MsigCancel(context.Context, address.Address, uint64, address.Address, types.BigInt, address.Address, uint64, []byte) (*api.MessagePrototype, error) //perm:sign
+
 	// MsigAddPropose proposes adding a signer in the multisig
 	// It takes the following params: <multisig address>, <sender address of the propose msg>,
 	// <new signer>, <whether the number of required signers should be increased>
-	MsigAddPropose(context.Context, address.Address, address.Address, address.Address, bool) (cid.Cid, error) //perm:sign
+	MsigAddPropose(context.Context, address.Address, address.Address, address.Address, bool) (*api.MessagePrototype, error) //perm:sign
+
 	// MsigAddApprove approves a previously proposed AddSigner message
 	// It takes the following params: <multisig address>, <sender address of the approve msg>, <proposed message ID>,
 	// <proposer address>, <new signer>, <whether the number of required signers should be increased>
-	MsigAddApprove(context.Context, address.Address, address.Address, uint64, address.Address, address.Address, bool) (cid.Cid, error) //perm:sign
+	MsigAddApprove(context.Context, address.Address, address.Address, uint64, address.Address, address.Address, bool) (*api.MessagePrototype, error) //perm:sign
+
 	// MsigAddCancel cancels a previously proposed AddSigner message
 	// It takes the following params: <multisig address>, <sender address of the cancel msg>, <proposed message ID>,
 	// <new signer>, <whether the number of required signers should be increased>
-	MsigAddCancel(context.Context, address.Address, address.Address, uint64, address.Address, bool) (cid.Cid, error) //perm:sign
+	MsigAddCancel(context.Context, address.Address, address.Address, uint64, address.Address, bool) (*api.MessagePrototype, error) //perm:sign
+
 	// MsigSwapPropose proposes swapping 2 signers in the multisig
 	// It takes the following params: <multisig address>, <sender address of the propose msg>,
 	// <old signer>, <new signer>
-	MsigSwapPropose(context.Context, address.Address, address.Address, address.Address, address.Address) (cid.Cid, error) //perm:sign
+	MsigSwapPropose(context.Context, address.Address, address.Address, address.Address, address.Address) (*api.MessagePrototype, error) //perm:sign
+
 	// MsigSwapApprove approves a previously proposed SwapSigner
 	// It takes the following params: <multisig address>, <sender address of the approve msg>, <proposed message ID>,
 	// <proposer address>, <old signer>, <new signer>
-	MsigSwapApprove(context.Context, address.Address, address.Address, uint64, address.Address, address.Address, address.Address) (cid.Cid, error) //perm:sign
+	MsigSwapApprove(context.Context, address.Address, address.Address, uint64, address.Address, address.Address, address.Address) (*api.MessagePrototype, error) //perm:sign
+
 	// MsigSwapCancel cancels a previously proposed SwapSigner message
 	// It takes the following params: <multisig address>, <sender address of the cancel msg>, <proposed message ID>,
 	// <old signer>, <new signer>
-	MsigSwapCancel(context.Context, address.Address, address.Address, uint64, address.Address, address.Address) (cid.Cid, error) //perm:sign
+	MsigSwapCancel(context.Context, address.Address, address.Address, uint64, address.Address, address.Address) (*api.MessagePrototype, error) //perm:sign
 
 	// MsigRemoveSigner proposes the removal of a signer from the multisig.
 	// It accepts the multisig to make the change on, the proposer address to
 	// send the message from, the address to be removed, and a boolean
 	// indicating whether or not the signing threshold should be lowered by one
 	// along with the address removal.
-	MsigRemoveSigner(ctx context.Context, msig address.Address, proposer address.Address, toRemove address.Address, decrease bool) (cid.Cid, error) //perm:sign
+	MsigRemoveSigner(ctx context.Context, msig address.Address, proposer address.Address, toRemove address.Address, decrease bool) (*api.MessagePrototype, error) //perm:sign
 
 	// MarketAddBalance adds funds to the market actor
 	MarketAddBalance(ctx context.Context, wallet, addr address.Address, amt types.BigInt) (cid.Cid, error) //perm:sign
@@ -743,4 +771,17 @@ type UnSupport interface {
 	// LOTUS_BACKUP_BASE_PATH environment variable set to some path, and that
 	// the path specified when calling CreateBackup is within the base path
 	CreateBackup(ctx context.Context, fpath string) error //perm:admin
+
+	LogAlerts(ctx context.Context) ([]alerting.Alert, error) //perm:admin
+
+	// ChainCheckBlockstore performs an (asynchronous) health check on the chain/state blockstore
+	// if supported by the underlying implementation.
+	ChainCheckBlockstore(context.Context) error //perm:admin
+
+	// ChainBlockstoreInfo returns some basic information about the blockstore
+	ChainBlockstoreInfo(context.Context) (map[string]interface{}, error) //perm:read
+
+	NodeStatus(ctx context.Context, inclChainStatus bool) (api.NodeStatus, error) //perm:read
+
+	StateEncodeParams(ctx context.Context, toActCode cid.Cid, method abi.MethodNum, params json.RawMessage) ([]byte, error)
 }

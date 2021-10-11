@@ -6,25 +6,24 @@ require (
 	github.com/dtynn/dix v0.1.0
 	github.com/filecoin-project/go-address v0.0.5
 	github.com/filecoin-project/go-bitfield v0.2.4
-	github.com/filecoin-project/go-data-transfer v1.4.3
-	github.com/filecoin-project/go-fil-markets v1.2.5
+	github.com/filecoin-project/go-data-transfer v1.10.1
+	github.com/filecoin-project/go-fil-markets v1.12.0
 	github.com/filecoin-project/go-jsonrpc v0.1.4-0.20210217175800-45ea43ac2bec
 	github.com/filecoin-project/go-multistore v0.0.3
-	github.com/filecoin-project/go-state-types v0.1.1-0.20210506134452-99b279731c48
-	github.com/filecoin-project/lotus v1.10.1
-	github.com/filecoin-project/specs-actors v0.9.13
-	github.com/filecoin-project/venus-auth v1.2.2-0.20210716071053-565a8999f9e5
+	github.com/filecoin-project/go-state-types v0.1.1-0.20210915140513-d354ccf10379
+	github.com/filecoin-project/lotus v1.13.0-rc2
+	github.com/filecoin-project/specs-actors v0.9.14
+	github.com/filecoin-project/venus-auth v1.2.2-0.20210721103851-593a379c4916
 	github.com/gbrlsnchs/jwt/v3 v3.0.0
-	github.com/google/flatbuffers v1.12.1 // indirect
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/ipfs-force-community/metrics v1.0.0
 	github.com/ipfs-force-community/venus-common-utils v0.0.0-20210714031758-ea0e25ff0ec4
-	github.com/ipfs/go-cid v0.0.7
+	github.com/ipfs/go-cid v0.1.0
 	github.com/ipfs/go-log/v2 v2.3.0
 	github.com/ipfs/go-metrics-interface v0.0.1
-	github.com/libp2p/go-libp2p-core v0.7.0
+	github.com/libp2p/go-libp2p-core v0.8.6
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/whyrusleeping/pubsub v0.0.0-20190708150250-92bcb0691325
 	go.opencensus.io v0.23.0
@@ -39,4 +38,4 @@ replace github.com/ipfs/go-ipfs-cmds => github.com/ipfs-force-community/go-ipfs-
 
 replace github.com/filecoin-project/go-jsonrpc => github.com/ipfs-force-community/go-jsonrpc v0.1.4-0.20210705020212-6dba7d87d791
 
-replace github.com/filecoin-project/lotus => github.com/ipfs-force-community/lotus v0.8.1-0.20210729013022-9378ff54da80
+replace github.com/filecoin-project/lotus => github.com/ipfs-force-community/lotus v0.8.1-0.20211009103222-7455b2a31f37

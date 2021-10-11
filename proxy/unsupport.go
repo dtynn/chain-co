@@ -2,18 +2,20 @@ package proxy
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-data-transfer"
 	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
-	"github.com/filecoin-project/go-multistore"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/go-state-types/big"
 	"github.com/filecoin-project/go-state-types/crypto"
 	api1 "github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/api/types"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/filecoin-project/lotus/journal/alerting"
 	"github.com/filecoin-project/lotus/markets/loggers"
+	"github.com/filecoin-project/lotus/node/repo/imports"
 	"github.com/filecoin-project/specs-actors/actors/builtin/paych"
 	"github.com/google/uuid"
 	"github.com/ipfs-force-community/chain-co/api"
@@ -54,6 +56,24 @@ func (p *UnSupport) AuthVerify(in0 context.Context, in1 string) (out0 []string, 
 	return cli.AuthVerify(in0, in1)
 }
 
+func (p *UnSupport) ChainBlockstoreInfo(in0 context.Context) (out0 map[string]interface{}, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api ChainBlockstoreInfo %v", err)
+		return
+	}
+	return cli.ChainBlockstoreInfo(in0)
+}
+
+func (p *UnSupport) ChainCheckBlockstore(in0 context.Context) (err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api ChainCheckBlockstore %v", err)
+		return
+	}
+	return cli.ChainCheckBlockstore(in0)
+}
+
 func (p *UnSupport) ChainDeleteObj(in0 context.Context, in1 cid.Cid) (err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -79,15 +99,6 @@ func (p *UnSupport) ChainGetNode(in0 context.Context, in1 string) (out0 *api1.Ip
 		return
 	}
 	return cli.ChainGetNode(in0, in1)
-}
-
-func (p *UnSupport) ChainGetPath(in0 context.Context, in1 types.TipSetKey, in2 types.TipSetKey) (out0 []*api1.HeadChange, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api ChainGetPath %v", err)
-		return
-	}
-	return cli.ChainGetPath(in0, in1, in2)
 }
 
 func (p *UnSupport) ChainSetHead(in0 context.Context, in1 types.TipSetKey) (err error) {
@@ -198,6 +209,15 @@ func (p *UnSupport) ClientGetDealUpdates(in0 context.Context) (out0 <-chan api1.
 	return cli.ClientGetDealUpdates(in0)
 }
 
+func (p *UnSupport) ClientGetRetrievalUpdates(in0 context.Context) (out0 <-chan api1.RetrievalInfo, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api ClientGetRetrievalUpdates %v", err)
+		return
+	}
+	return cli.ClientGetRetrievalUpdates(in0)
+}
+
 func (p *UnSupport) ClientHasLocal(in0 context.Context, in1 cid.Cid) (out0 bool, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -243,6 +263,15 @@ func (p *UnSupport) ClientListImports(in0 context.Context) (out0 []api1.Import, 
 	return cli.ClientListImports(in0)
 }
 
+func (p *UnSupport) ClientListRetrievals(in0 context.Context) (out0 []api1.RetrievalInfo, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api ClientListRetrievals %v", err)
+		return
+	}
+	return cli.ClientListRetrievals(in0)
+}
+
 func (p *UnSupport) ClientMinerQueryOffer(in0 context.Context, in1 address.Address, in2 cid.Cid, in3 *cid.Cid) (out0 api1.QueryOffer, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -261,7 +290,7 @@ func (p *UnSupport) ClientQueryAsk(in0 context.Context, in1 peer.ID, in2 address
 	return cli.ClientQueryAsk(in0, in1, in2)
 }
 
-func (p *UnSupport) ClientRemoveImport(in0 context.Context, in1 multistore.StoreID) (err error) {
+func (p *UnSupport) ClientRemoveImport(in0 context.Context, in1 imports.ID) (err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api ClientRemoveImport %v", err)
@@ -315,6 +344,15 @@ func (p *UnSupport) ClientStartDeal(in0 context.Context, in1 *api1.StartDealPara
 	return cli.ClientStartDeal(in0, in1)
 }
 
+func (p *UnSupport) ClientStatelessDeal(in0 context.Context, in1 *api1.StartDealParams) (out0 *cid.Cid, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api ClientStatelessDeal %v", err)
+		return
+	}
+	return cli.ClientStatelessDeal(in0, in1)
+}
+
 func (p *UnSupport) Closing(in0 context.Context) (out0 <-chan struct{}, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -349,6 +387,15 @@ func (p *UnSupport) ID(in0 context.Context) (out0 peer.ID, err error) {
 		return
 	}
 	return cli.ID(in0)
+}
+
+func (p *UnSupport) LogAlerts(in0 context.Context) (out0 []alerting.Alert, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api LogAlerts %v", err)
+		return
+	}
+	return cli.LogAlerts(in0)
 }
 
 func (p *UnSupport) LogList(in0 context.Context) (out0 []string, err error) {
@@ -441,6 +488,33 @@ func (p *UnSupport) MpoolBatchPushUntrusted(in0 context.Context, in1 []*types.Si
 	return cli.MpoolBatchPushUntrusted(in0, in1)
 }
 
+func (p *UnSupport) MpoolCheckMessages(in0 context.Context, in1 []*api1.MessagePrototype) (out0 [][]api1.MessageCheckStatus, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api MpoolCheckMessages %v", err)
+		return
+	}
+	return cli.MpoolCheckMessages(in0, in1)
+}
+
+func (p *UnSupport) MpoolCheckPendingMessages(in0 context.Context, in1 address.Address) (out0 [][]api1.MessageCheckStatus, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api MpoolCheckPendingMessages %v", err)
+		return
+	}
+	return cli.MpoolCheckPendingMessages(in0, in1)
+}
+
+func (p *UnSupport) MpoolCheckReplaceMessages(in0 context.Context, in1 []*types.Message) (out0 [][]api1.MessageCheckStatus, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api MpoolCheckReplaceMessages %v", err)
+		return
+	}
+	return cli.MpoolCheckReplaceMessages(in0, in1)
+}
+
 func (p *UnSupport) MpoolClear(in0 context.Context, in1 bool) (err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -504,7 +578,7 @@ func (p *UnSupport) MpoolSub(in0 context.Context) (out0 <-chan api1.MpoolUpdate,
 	return cli.MpoolSub(in0)
 }
 
-func (p *UnSupport) MsigAddApprove(in0 context.Context, in1 address.Address, in2 address.Address, in3 uint64, in4 address.Address, in5 address.Address, in6 bool) (out0 cid.Cid, err error) {
+func (p *UnSupport) MsigAddApprove(in0 context.Context, in1 address.Address, in2 address.Address, in3 uint64, in4 address.Address, in5 address.Address, in6 bool) (out0 *api1.MessagePrototype, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api MsigAddApprove %v", err)
@@ -513,7 +587,7 @@ func (p *UnSupport) MsigAddApprove(in0 context.Context, in1 address.Address, in2
 	return cli.MsigAddApprove(in0, in1, in2, in3, in4, in5, in6)
 }
 
-func (p *UnSupport) MsigAddCancel(in0 context.Context, in1 address.Address, in2 address.Address, in3 uint64, in4 address.Address, in5 bool) (out0 cid.Cid, err error) {
+func (p *UnSupport) MsigAddCancel(in0 context.Context, in1 address.Address, in2 address.Address, in3 uint64, in4 address.Address, in5 bool) (out0 *api1.MessagePrototype, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api MsigAddCancel %v", err)
@@ -522,7 +596,7 @@ func (p *UnSupport) MsigAddCancel(in0 context.Context, in1 address.Address, in2 
 	return cli.MsigAddCancel(in0, in1, in2, in3, in4, in5)
 }
 
-func (p *UnSupport) MsigAddPropose(in0 context.Context, in1 address.Address, in2 address.Address, in3 address.Address, in4 bool) (out0 cid.Cid, err error) {
+func (p *UnSupport) MsigAddPropose(in0 context.Context, in1 address.Address, in2 address.Address, in3 address.Address, in4 bool) (out0 *api1.MessagePrototype, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api MsigAddPropose %v", err)
@@ -531,7 +605,7 @@ func (p *UnSupport) MsigAddPropose(in0 context.Context, in1 address.Address, in2
 	return cli.MsigAddPropose(in0, in1, in2, in3, in4)
 }
 
-func (p *UnSupport) MsigApprove(in0 context.Context, in1 address.Address, in2 uint64, in3 address.Address) (out0 cid.Cid, err error) {
+func (p *UnSupport) MsigApprove(in0 context.Context, in1 address.Address, in2 uint64, in3 address.Address) (out0 *api1.MessagePrototype, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api MsigApprove %v", err)
@@ -540,7 +614,7 @@ func (p *UnSupport) MsigApprove(in0 context.Context, in1 address.Address, in2 ui
 	return cli.MsigApprove(in0, in1, in2, in3)
 }
 
-func (p *UnSupport) MsigApproveTxnHash(in0 context.Context, in1 address.Address, in2 uint64, in3 address.Address, in4 address.Address, in5 big.Int, in6 address.Address, in7 uint64, in8 []uint8) (out0 cid.Cid, err error) {
+func (p *UnSupport) MsigApproveTxnHash(in0 context.Context, in1 address.Address, in2 uint64, in3 address.Address, in4 address.Address, in5 big.Int, in6 address.Address, in7 uint64, in8 []uint8) (out0 *api1.MessagePrototype, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api MsigApproveTxnHash %v", err)
@@ -549,7 +623,7 @@ func (p *UnSupport) MsigApproveTxnHash(in0 context.Context, in1 address.Address,
 	return cli.MsigApproveTxnHash(in0, in1, in2, in3, in4, in5, in6, in7, in8)
 }
 
-func (p *UnSupport) MsigCancel(in0 context.Context, in1 address.Address, in2 uint64, in3 address.Address, in4 big.Int, in5 address.Address, in6 uint64, in7 []uint8) (out0 cid.Cid, err error) {
+func (p *UnSupport) MsigCancel(in0 context.Context, in1 address.Address, in2 uint64, in3 address.Address, in4 big.Int, in5 address.Address, in6 uint64, in7 []uint8) (out0 *api1.MessagePrototype, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api MsigCancel %v", err)
@@ -558,7 +632,7 @@ func (p *UnSupport) MsigCancel(in0 context.Context, in1 address.Address, in2 uin
 	return cli.MsigCancel(in0, in1, in2, in3, in4, in5, in6, in7)
 }
 
-func (p *UnSupport) MsigCreate(in0 context.Context, in1 uint64, in2 []address.Address, in3 abi.ChainEpoch, in4 big.Int, in5 address.Address, in6 big.Int) (out0 cid.Cid, err error) {
+func (p *UnSupport) MsigCreate(in0 context.Context, in1 uint64, in2 []address.Address, in3 abi.ChainEpoch, in4 big.Int, in5 address.Address, in6 big.Int) (out0 *api1.MessagePrototype, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api MsigCreate %v", err)
@@ -603,7 +677,7 @@ func (p *UnSupport) MsigGetVestingSchedule(in0 context.Context, in1 address.Addr
 	return cli.MsigGetVestingSchedule(in0, in1, in2)
 }
 
-func (p *UnSupport) MsigPropose(in0 context.Context, in1 address.Address, in2 address.Address, in3 big.Int, in4 address.Address, in5 uint64, in6 []uint8) (out0 cid.Cid, err error) {
+func (p *UnSupport) MsigPropose(in0 context.Context, in1 address.Address, in2 address.Address, in3 big.Int, in4 address.Address, in5 uint64, in6 []uint8) (out0 *api1.MessagePrototype, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api MsigPropose %v", err)
@@ -612,7 +686,7 @@ func (p *UnSupport) MsigPropose(in0 context.Context, in1 address.Address, in2 ad
 	return cli.MsigPropose(in0, in1, in2, in3, in4, in5, in6)
 }
 
-func (p *UnSupport) MsigRemoveSigner(in0 context.Context, in1 address.Address, in2 address.Address, in3 address.Address, in4 bool) (out0 cid.Cid, err error) {
+func (p *UnSupport) MsigRemoveSigner(in0 context.Context, in1 address.Address, in2 address.Address, in3 address.Address, in4 bool) (out0 *api1.MessagePrototype, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api MsigRemoveSigner %v", err)
@@ -621,7 +695,7 @@ func (p *UnSupport) MsigRemoveSigner(in0 context.Context, in1 address.Address, i
 	return cli.MsigRemoveSigner(in0, in1, in2, in3, in4)
 }
 
-func (p *UnSupport) MsigSwapApprove(in0 context.Context, in1 address.Address, in2 address.Address, in3 uint64, in4 address.Address, in5 address.Address, in6 address.Address) (out0 cid.Cid, err error) {
+func (p *UnSupport) MsigSwapApprove(in0 context.Context, in1 address.Address, in2 address.Address, in3 uint64, in4 address.Address, in5 address.Address, in6 address.Address) (out0 *api1.MessagePrototype, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api MsigSwapApprove %v", err)
@@ -630,7 +704,7 @@ func (p *UnSupport) MsigSwapApprove(in0 context.Context, in1 address.Address, in
 	return cli.MsigSwapApprove(in0, in1, in2, in3, in4, in5, in6)
 }
 
-func (p *UnSupport) MsigSwapCancel(in0 context.Context, in1 address.Address, in2 address.Address, in3 uint64, in4 address.Address, in5 address.Address) (out0 cid.Cid, err error) {
+func (p *UnSupport) MsigSwapCancel(in0 context.Context, in1 address.Address, in2 address.Address, in3 uint64, in4 address.Address, in5 address.Address) (out0 *api1.MessagePrototype, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api MsigSwapCancel %v", err)
@@ -639,7 +713,7 @@ func (p *UnSupport) MsigSwapCancel(in0 context.Context, in1 address.Address, in2
 	return cli.MsigSwapCancel(in0, in1, in2, in3, in4, in5)
 }
 
-func (p *UnSupport) MsigSwapPropose(in0 context.Context, in1 address.Address, in2 address.Address, in3 address.Address, in4 address.Address) (out0 cid.Cid, err error) {
+func (p *UnSupport) MsigSwapPropose(in0 context.Context, in1 address.Address, in2 address.Address, in3 address.Address, in4 address.Address) (out0 *api1.MessagePrototype, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api MsigSwapPropose %v", err)
@@ -790,6 +864,15 @@ func (p *UnSupport) NetPubsubScores(in0 context.Context) (out0 []api1.PubsubScor
 		return
 	}
 	return cli.NetPubsubScores(in0)
+}
+
+func (p *UnSupport) NodeStatus(in0 context.Context, in1 bool) (out0 api1.NodeStatus, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api NodeStatus %v", err)
+		return
+	}
+	return cli.NodeStatus(in0, in1)
 }
 
 func (p *UnSupport) PaychAllocateLane(in0 context.Context, in1 address.Address) (out0 uint64, err error) {
@@ -954,15 +1037,6 @@ func (p *UnSupport) Shutdown(in0 context.Context) (err error) {
 	return cli.Shutdown(in0)
 }
 
-func (p *UnSupport) StateCirculatingSupply(in0 context.Context, in1 types.TipSetKey) (out0 big.Int, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateCirculatingSupply %v", err)
-		return
-	}
-	return cli.StateCirculatingSupply(in0, in1)
-}
-
 func (p *UnSupport) StateCompute(in0 context.Context, in1 abi.ChainEpoch, in2 []*types.Message, in3 types.TipSetKey) (out0 *api1.ComputeStateOutput, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -972,15 +1046,6 @@ func (p *UnSupport) StateCompute(in0 context.Context, in1 abi.ChainEpoch, in2 []
 	return cli.StateCompute(in0, in1, in2, in3)
 }
 
-func (p *UnSupport) StateDealProviderCollateralBounds(in0 context.Context, in1 abi.PaddedPieceSize, in2 bool, in3 types.TipSetKey) (out0 api1.DealCollateralBounds, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateDealProviderCollateralBounds %v", err)
-		return
-	}
-	return cli.StateDealProviderCollateralBounds(in0, in1, in2, in3)
-}
-
 func (p *UnSupport) StateDecodeParams(in0 context.Context, in1 address.Address, in2 abi.MethodNum, in3 []uint8, in4 types.TipSetKey) (out0 interface{}, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -988,6 +1053,15 @@ func (p *UnSupport) StateDecodeParams(in0 context.Context, in1 address.Address, 
 		return
 	}
 	return cli.StateDecodeParams(in0, in1, in2, in3, in4)
+}
+
+func (p *UnSupport) StateEncodeParams(in0 context.Context, in1 cid.Cid, in2 abi.MethodNum, in3 json.RawMessage) (out0 []uint8, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateEncodeParams %v", err)
+		return
+	}
+	return cli.StateEncodeParams(in0, in1, in2, in3)
 }
 
 func (p *UnSupport) StateListMessages(in0 context.Context, in1 *api1.MessageMatch, in2 types.TipSetKey, in3 abi.ChainEpoch) (out0 []cid.Cid, err error) {
@@ -1015,42 +1089,6 @@ func (p *UnSupport) StateSearchMsgLimited(in0 context.Context, in1 cid.Cid, in2 
 		return
 	}
 	return cli.StateSearchMsgLimited(in0, in1, in2)
-}
-
-func (p *UnSupport) StateVMCirculatingSupplyInternal(in0 context.Context, in1 types.TipSetKey) (out0 api1.CirculatingSupply, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateVMCirculatingSupplyInternal %v", err)
-		return
-	}
-	return cli.StateVMCirculatingSupplyInternal(in0, in1)
-}
-
-func (p *UnSupport) StateVerifiedClientStatus(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *big.Int, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateVerifiedClientStatus %v", err)
-		return
-	}
-	return cli.StateVerifiedClientStatus(in0, in1, in2)
-}
-
-func (p *UnSupport) StateVerifiedRegistryRootKey(in0 context.Context, in1 types.TipSetKey) (out0 address.Address, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateVerifiedRegistryRootKey %v", err)
-		return
-	}
-	return cli.StateVerifiedRegistryRootKey(in0, in1)
-}
-
-func (p *UnSupport) StateVerifierStatus(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *big.Int, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api StateVerifierStatus %v", err)
-		return
-	}
-	return cli.StateVerifierStatus(in0, in1, in2)
 }
 
 func (p *UnSupport) StateWaitMsgLimited(in0 context.Context, in1 cid.Cid, in2 uint64, in3 abi.ChainEpoch) (out0 *api1.MsgLookup, err error) {

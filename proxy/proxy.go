@@ -102,6 +102,15 @@ func (p *Proxy) ChainGetParentReceipts(in0 context.Context, in1 cid.Cid) (out0 [
 	return cli.ChainGetParentReceipts(in0, in1)
 }
 
+func (p *Proxy) ChainGetPath(in0 context.Context, in1 types.TipSetKey, in2 types.TipSetKey) (out0 []*api1.HeadChange, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api ChainGetPath %v", err)
+		return
+	}
+	return cli.ChainGetPath(in0, in1, in2)
+}
+
 func (p *Proxy) ChainGetRandomnessFromBeacon(in0 context.Context, in1 types.TipSetKey, in2 crypto.DomainSeparationTag, in3 abi.ChainEpoch, in4 []uint8) (out0 abi.Randomness, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -127,6 +136,15 @@ func (p *Proxy) ChainGetTipSet(in0 context.Context, in1 types.TipSetKey) (out0 *
 		return
 	}
 	return cli.ChainGetTipSet(in0, in1)
+}
+
+func (p *Proxy) ChainGetTipSetAfterHeight(in0 context.Context, in1 abi.ChainEpoch, in2 types.TipSetKey) (out0 *types.TipSet, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api ChainGetTipSetAfterHeight %v", err)
+		return
+	}
+	return cli.ChainGetTipSetAfterHeight(in0, in1, in2)
 }
 
 func (p *Proxy) ChainGetTipSetByHeight(in0 context.Context, in1 abi.ChainEpoch, in2 types.TipSetKey) (out0 *types.TipSet, err error) {
@@ -336,6 +354,24 @@ func (p *Proxy) StateChangedActors(in0 context.Context, in1 cid.Cid, in2 cid.Cid
 	return cli.StateChangedActors(in0, in1, in2)
 }
 
+func (p *Proxy) StateCirculatingSupply(in0 context.Context, in1 types.TipSetKey) (out0 big.Int, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateCirculatingSupply %v", err)
+		return
+	}
+	return cli.StateCirculatingSupply(in0, in1)
+}
+
+func (p *Proxy) StateDealProviderCollateralBounds(in0 context.Context, in1 abi.PaddedPieceSize, in2 bool, in3 types.TipSetKey) (out0 api1.DealCollateralBounds, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateDealProviderCollateralBounds %v", err)
+		return
+	}
+	return cli.StateDealProviderCollateralBounds(in0, in1, in2, in3)
+}
+
 func (p *Proxy) StateGetActor(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *types.Actor, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -343,6 +379,24 @@ func (p *Proxy) StateGetActor(in0 context.Context, in1 address.Address, in2 type
 		return
 	}
 	return cli.StateGetActor(in0, in1, in2)
+}
+
+func (p *Proxy) StateGetRandomnessFromBeacon(in0 context.Context, in1 crypto.DomainSeparationTag, in2 abi.ChainEpoch, in3 []uint8, in4 types.TipSetKey) (out0 abi.Randomness, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateGetRandomnessFromBeacon %v", err)
+		return
+	}
+	return cli.StateGetRandomnessFromBeacon(in0, in1, in2, in3, in4)
+}
+
+func (p *Proxy) StateGetRandomnessFromTickets(in0 context.Context, in1 crypto.DomainSeparationTag, in2 abi.ChainEpoch, in3 []uint8, in4 types.TipSetKey) (out0 abi.Randomness, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateGetRandomnessFromTickets %v", err)
+		return
+	}
+	return cli.StateGetRandomnessFromTickets(in0, in1, in2, in3, in4)
 }
 
 func (p *Proxy) StateListActors(in0 context.Context, in1 types.TipSetKey) (out0 []address.Address, err error) {
@@ -604,6 +658,42 @@ func (p *Proxy) StateSectorPreCommitInfo(in0 context.Context, in1 address.Addres
 		return
 	}
 	return cli.StateSectorPreCommitInfo(in0, in1, in2, in3)
+}
+
+func (p *Proxy) StateVMCirculatingSupplyInternal(in0 context.Context, in1 types.TipSetKey) (out0 api1.CirculatingSupply, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateVMCirculatingSupplyInternal %v", err)
+		return
+	}
+	return cli.StateVMCirculatingSupplyInternal(in0, in1)
+}
+
+func (p *Proxy) StateVerifiedClientStatus(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *big.Int, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateVerifiedClientStatus %v", err)
+		return
+	}
+	return cli.StateVerifiedClientStatus(in0, in1, in2)
+}
+
+func (p *Proxy) StateVerifiedRegistryRootKey(in0 context.Context, in1 types.TipSetKey) (out0 address.Address, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateVerifiedRegistryRootKey %v", err)
+		return
+	}
+	return cli.StateVerifiedRegistryRootKey(in0, in1)
+}
+
+func (p *Proxy) StateVerifierStatus(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *big.Int, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateVerifierStatus %v", err)
+		return
+	}
+	return cli.StateVerifierStatus(in0, in1, in2)
 }
 
 func (p *Proxy) StateWaitMsg(in0 context.Context, in1 cid.Cid, in2 uint64, in3 abi.ChainEpoch, in4 bool) (out0 *api1.MsgLookup, err error) {
