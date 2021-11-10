@@ -328,7 +328,6 @@ github.com/filecoin-project/go-hamt-ipld/v3 v3.0.1/go.mod h1:gXpNmr3oQx8l3o7qkGy
 github.com/filecoin-project/go-hamt-ipld/v3 v3.1.0 h1:rVVNq0x6RGQIzCo1iiJlGFm9AGIZzeifggxtKMU7zmI=
 github.com/filecoin-project/go-hamt-ipld/v3 v3.1.0/go.mod h1:bxmzgT8tmeVQA1/gvBwFmYdT8SOFUwB3ovSUfG1Ux0g=
 github.com/filecoin-project/go-leb128 v0.0.0-20190212224330-8d79a5489543/go.mod h1:mjrHv1cDGJWDlGmC0eDc1E5VJr8DmL9XMUcaFwiuKg8=
-github.com/filecoin-project/go-multistore v0.0.3 h1:vaRBY4YiA2UZFPK57RNuewypB8u0DzzQwqsL0XarpnI=
 github.com/filecoin-project/go-multistore v0.0.3/go.mod h1:kaNqCC4IhU4B1uyr7YWFHd23TL4KM32aChS0jNkyUvQ=
 github.com/filecoin-project/go-padreader v0.0.0-20200903213702-ed5fae088b20/go.mod h1:mPn+LRRd5gEKNAtc+r3ScpW2JRU/pj4NBKdADYWHiak=
 github.com/filecoin-project/go-padreader v0.0.0-20201016201355-9c5eb1faedb5/go.mod h1:mPn+LRRd5gEKNAtc+r3ScpW2JRU/pj4NBKdADYWHiak=
@@ -688,8 +687,8 @@ github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 h1:W9WBk7
 github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839/go.mod h1:xaLFMmpvUxqXtVkUJfg9QmT88cDaCJ3ZKgdZ78oO8Qo=
 github.com/ipfs-force-community/go-ipfs-cmds v0.6.1-0.20210521090123-4587df7fa0ab h1:+Jov61TTljdzTKBecQizmUWJ6IIoVgzjukKppVr5TgI=
 github.com/ipfs-force-community/go-ipfs-cmds v0.6.1-0.20210521090123-4587df7fa0ab/go.mod h1:ZgYiWVnCk43ChwoH8hAmI1IRbuVtq3GSTHwtRB/Kqhk=
-github.com/ipfs-force-community/go-jsonrpc v0.1.4-0.20210705020212-6dba7d87d791 h1:xQQnz+r32QCmzEC7Bjwgj+Bp/BUQfUthGSoFxC/UVx4=
-github.com/ipfs-force-community/go-jsonrpc v0.1.4-0.20210705020212-6dba7d87d791/go.mod h1:XBBpuKIMaXIIzeqzO1iucq4GvbF8CxmXRFoezRh+Cx4=
+github.com/ipfs-force-community/go-jsonrpc v0.1.4-0.20211110021956-43f2e2c5394c h1:xhGXamJbA9qAojtyMlfeBkcZW3dpyzKYK26oRP+mFq8=
+github.com/ipfs-force-community/go-jsonrpc v0.1.4-0.20211110021956-43f2e2c5394c/go.mod h1:XBBpuKIMaXIIzeqzO1iucq4GvbF8CxmXRFoezRh+Cx4=
 github.com/ipfs-force-community/lotus v0.8.1-0.20211009103222-7455b2a31f37 h1:jQp8jh+Mu1mHVJq+r5mzIdpnW5r0crs6+SlN58KSoLI=
 github.com/ipfs-force-community/lotus v0.8.1-0.20211009103222-7455b2a31f37/go.mod h1:fnPigCMtLp+hVFzQHoAq6LecW9cFKcd4yWWHVAKWka0=
 github.com/ipfs-force-community/metrics v0.0.0-20210721095706-e644662d8554/go.mod h1:mn40SioMuKtjmRumHFy/fJ26Pn028XuDjUJE9dorjyw=

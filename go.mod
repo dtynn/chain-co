@@ -9,7 +9,6 @@ require (
 	github.com/filecoin-project/go-data-transfer v1.10.1
 	github.com/filecoin-project/go-fil-markets v1.12.0
 	github.com/filecoin-project/go-jsonrpc v0.1.4-0.20210217175800-45ea43ac2bec
-	github.com/filecoin-project/go-multistore v0.0.3
 	github.com/filecoin-project/go-state-types v0.1.1-0.20210915140513-d354ccf10379
 	github.com/filecoin-project/lotus v1.13.0-rc2
 	github.com/filecoin-project/specs-actors v0.9.14
@@ -36,6 +35,6 @@ replace github.com/filecoin-project/filecoin-ffi => ./extern/filecoin-ffi
 
 replace github.com/ipfs/go-ipfs-cmds => github.com/ipfs-force-community/go-ipfs-cmds v0.6.1-0.20210521090123-4587df7fa0ab
 
-replace github.com/filecoin-project/go-jsonrpc => github.com/ipfs-force-community/go-jsonrpc v0.1.4-0.20210705020212-6dba7d87d791
+replace github.com/filecoin-project/go-jsonrpc => github.com/ipfs-force-community/go-jsonrpc v0.1.4-0.20211110021956-43f2e2c5394c
 
 replace github.com/filecoin-project/lotus => github.com/ipfs-force-community/lotus v0.8.1-0.20211009103222-7455b2a31f37
