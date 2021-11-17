@@ -2,9 +2,6 @@ package main
 
 import (
 	"context"
-	"github.com/filecoin-project/lotus/api/v0api"
-	"github.com/ipfs-force-community/metrics"
-	"go.opencensus.io/plugin/ochttp"
 	"net"
 	"net/http"
 	_ "net/http/pprof"
@@ -12,18 +9,16 @@ import (
 	"os/signal"
 	"syscall"
 
-	logging "github.com/ipfs/go-log/v2"
-
 	"github.com/dtynn/dix"
-
 	"github.com/filecoin-project/go-jsonrpc"
-
 	"github.com/filecoin-project/lotus/api"
-
+	"github.com/filecoin-project/lotus/api/v0api"
 	"github.com/filecoin-project/venus-auth/cmd/jwtclient"
-
 	"github.com/ipfs-force-community/chain-co/localwt"
+	"github.com/ipfs-force-community/metrics"
 	"github.com/ipfs-force-community/metrics/ratelimit"
+	logging "github.com/ipfs/go-log/v2"
+	"go.opencensus.io/plugin/ochttp"
 )
 
 func serveRPC(ctx context.Context, authEndpoint, rateLimitRedis, listen string, mCnf *metrics.TraceConfig, jwt *localwt.LocalJwt, full api.FullNode, stop dix.StopFunc, maxRequestSize int64) error {
@@ -51,7 +46,7 @@ func serveRPC(ctx context.Context, authEndpoint, rateLimitRedis, listen string, 
 	}
 
 	if repoter, err := metrics.RegisterJaeger(mCnf.ServerName, mCnf); err != nil {
-		log.Fatalf("register %s JaegerRepoter to %s failed:%s", mCnf.ServerName, mCnf.JaegerEndpoint)
+		log.Fatalf("register %s JaegerRepoter to %s failed:%s", mCnf.ServerName, mCnf.JaegerEndpoint, err)
 	} else if repoter != nil {
 		log.Infof("register jaeger-tracing exporter to %s, with node-name:%s", mCnf.JaegerEndpoint, mCnf.ServerName)
 		defer metrics.UnregisterJaeger(repoter)
