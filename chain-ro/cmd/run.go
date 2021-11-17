@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"github.com/ipfs-force-community/metrics"
 	"io/ioutil"
 	"strings"
+
+	"github.com/ipfs-force-community/metrics"
 
 	"github.com/urfave/cli/v2"
 
@@ -49,18 +50,15 @@ var runCmd = &cli.Command{
 			DefaultText: "v1",
 		},
 		&cli.StringFlag{
-			Name:   "jaeger-proxy",
-			Hidden: true,
+			Name: "jaeger-proxy",
 		},
 		&cli.Float64Flag{
-			Name:   "trace-sampler",
-			Value:  1.0,
-			Hidden: true,
+			Name:  "trace-sampler",
+			Value: 1.0,
 		},
 		&cli.StringFlag{
-			Name:   "trace-node-name",
-			Value:  "venus-node-co",
-			Hidden: true,
+			Name:  "trace-node-name",
+			Value: "venus-node-co",
 		},
 	},
 	Action: func(cctx *cli.Context) error {
