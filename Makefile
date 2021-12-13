@@ -9,7 +9,7 @@ MODULES:=
 CLEAN:=
 BINS:=
 
-ldflags=-X=github.com/filecoin-project/lotus/build.CurrentCommit=+git.$(subst -,.,$(shell git describe --always --match=NeVeRmAtCh --dirty 2>/dev/null || git rev-parse --short HEAD 2>/dev/null))
+ldflags=-X=github.com/ipfs-force-community/chain-co/version.CurrentCommit=+git.$(subst -,.,$(shell git describe --always --match=NeVeRmAtCh --dirty 2>/dev/null || git rev-parse --short HEAD 2>/dev/null))
 ifneq ($(strip $(LDFLAGS)),)
 	    ldflags+=-extldflags=$(LDFLAGS)
 	endif
@@ -55,6 +55,7 @@ build-ro: $(BUILD_DEPS)
 	mkdir -p ./bin
 	rm -f ./bin/chain-ro
 	go build $(GOFLAGS) -o ./bin/chain-ro ./chain-ro/cmd
+	./bin/chain-ro --version
 
 .PHONY: lotus
 BINS+=lotus
