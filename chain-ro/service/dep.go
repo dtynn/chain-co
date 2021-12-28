@@ -65,7 +65,7 @@ func buildCoordinator(lc fx.Lifecycle, ctx *co.Ctx, connector *co.Connector, inf
 	defer func() {
 		if !allDone {
 			for i := range nodes {
-				nodes[i].Stop()
+				nodes[i].Stop() // nolint:errcheck
 			}
 		}
 	}()
@@ -86,7 +86,7 @@ func buildCoordinator(lc fx.Lifecycle, ctx *co.Ctx, connector *co.Connector, inf
 		full := node.FullNode()
 		h, w, err := getHeadCandidate(full)
 		if err != nil {
-			node.Stop()
+			node.Stop() // nolint:errcheck
 			nlog.Errorf("failed to get head: %s", err)
 			continue
 		}
@@ -116,7 +116,7 @@ func buildCoordinator(lc fx.Lifecycle, ctx *co.Ctx, connector *co.Connector, inf
 			return nil
 		},
 		OnStop: func(context.Context) error {
-			coordinator.Stop()
+			coordinator.Stop() // nolint:errcheck
 			return nil
 		},
 	})

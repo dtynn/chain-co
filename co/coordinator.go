@@ -125,7 +125,6 @@ func (c *Coordinator) handleCandidate(hc *headCandidate) {
 	}
 
 	clog.Debug("ignored a lighter head")
-	return
 }
 
 func (c *Coordinator) applyTipSetChange(prev, next *types.TipSet, node *Node) ([]*api.HeadChange, error) {

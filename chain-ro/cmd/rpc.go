@@ -110,7 +110,7 @@ func serveRPC(ctx context.Context, authEndpoint, rateLimitRedis, listen string, 
 			log.Warnf("call app stop func: %s", err)
 		}
 
-		log.Sync()
+		log.Sync() // nolint:errcheck
 	}()
 
 	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)

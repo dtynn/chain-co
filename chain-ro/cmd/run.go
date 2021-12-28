@@ -91,7 +91,7 @@ var runCmd = &cli.Command{
 			return nil
 		}
 
-		defer stop(context.Background())
+		defer stop(context.Background()) // nolint:errcheck
 
 		var mCnf = &metrics.TraceConfig{}
 		var proxy, sampler, serverName = strings.TrimSpace(cctx.String("jaeger-proxy")),
@@ -113,7 +113,7 @@ var runCmd = &cli.Command{
 			full,
 			func(ctx context.Context) error {
 				appCancel()
-				stop(ctx)
+				stop(ctx) // nolint:errcheck
 				return nil
 			},
 			cctx.Int64("max-req-size"),
