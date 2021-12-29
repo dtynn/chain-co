@@ -4,6 +4,8 @@ import (
 	"context"
 	"os"
 
+	"github.com/ipfs-force-community/chain-co/version"
+
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/urfave/cli/v2"
 	"go.opencensus.io/trace"
@@ -51,6 +53,7 @@ func main() {
 		Name:                 cliName,
 		Usage:                "read-only chain node for filecoin",
 		EnableBashCompletion: true,
+		Version:              version.Version + version.CurrentCommit,
 		Flags:                []cli.Flag{},
 
 		Commands: local,
