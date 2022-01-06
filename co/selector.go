@@ -38,7 +38,7 @@ func (s *Selector) ReplaceNodes(add []*Node, removes map[string]bool, removesAll
 		s.all.addrs = s.all.addrs[:0]
 		for host := range s.all.nodes {
 			if removesAll || removes[host] {
-				s.all.nodes[host].Stop()
+				s.all.nodes[host].Stop() // nolint:errcheck
 				delete(s.all.nodes, host)
 				continue
 			}
@@ -50,7 +50,7 @@ func (s *Selector) ReplaceNodes(add []*Node, removes map[string]bool, removesAll
 	for i := range add {
 		current := add[i]
 		if prev, has := s.all.nodes[current.info.Addr]; has {
-			prev.Stop()
+			prev.Stop() // nolint:errcheck
 		} else {
 			s.all.addrs = append(s.all.addrs, current.info.Addr)
 		}

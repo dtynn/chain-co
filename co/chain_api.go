@@ -22,7 +22,7 @@ func (c *Coordinator) ChainNotify(ctx context.Context) (<-chan []*api.HeadChange
 		Val:  head,
 	}}
 
-	done := make(chan struct{}, 0)
+	done := make(chan struct{})
 	go func() {
 		select {
 		case <-ctx.Done():
