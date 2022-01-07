@@ -533,24 +533,6 @@ func (p *UnSupport) MpoolGetConfig(in0 context.Context) (out0 *types.MpoolConfig
 	return cli.MpoolGetConfig(in0)
 }
 
-func (p *UnSupport) MpoolGetNonce(in0 context.Context, in1 address.Address) (out0 uint64, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api MpoolGetNonce %v", err)
-		return
-	}
-	return cli.MpoolGetNonce(in0, in1)
-}
-
-func (p *UnSupport) MpoolPending(in0 context.Context, in1 types.TipSetKey) (out0 []*types.SignedMessage, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api MpoolPending %v", err)
-		return
-	}
-	return cli.MpoolPending(in0, in1)
-}
-
 func (p *UnSupport) MpoolPushUntrusted(in0 context.Context, in1 *types.SignedMessage) (out0 cid.Cid, err error) {
 	cli, err := p.Select()
 	if err != nil {

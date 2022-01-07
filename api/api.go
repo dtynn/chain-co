@@ -289,6 +289,13 @@ type Proxy interface {
 	// MpoolPush pushes a signed message to mempool.
 	MpoolPush(context.Context, *types.SignedMessage) (cid.Cid, error) //perm:write
 
+	// MpoolPending returns pending mempool messages.
+	MpoolPending(context.Context, types.TipSetKey) ([]*types.SignedMessage, error) //perm:read
+
+	// MpoolGetNonce gets next nonce for the specified sender.
+	// Note that this method may not be atomic. Use MpoolPushMessage instead.
+	MpoolGetNonce(context.Context, address.Address) (uint64, error) //perm:read
+
 	// MpoolPushMessage atomically assigns a nonce, signs, and pushes a message
 	// to mempool.
 	// maxFee is only used when GasFeeCap/GasPremium fields aren't specified
@@ -454,9 +461,6 @@ type UnSupport interface {
 	// The Mpool methods are for interacting with the message pool. The message pool
 	// manages all incoming and outgoing 'messages' going over the network.
 
-	// MpoolPending returns pending mempool messages.
-	MpoolPending(context.Context, types.TipSetKey) ([]*types.SignedMessage, error) //perm:read
-
 	// MpoolPushUntrusted pushes a signed message to mempool from untrusted sources.
 	MpoolPushUntrusted(context.Context, *types.SignedMessage) (cid.Cid, error) //perm:write
 
@@ -469,10 +473,7 @@ type UnSupport interface {
 	// MpoolBatchPushMessage batch pushes a unsigned message to mempool.
 	MpoolBatchPushMessage(context.Context, []*types.Message, *api.MessageSendSpec) ([]*types.SignedMessage, error) //perm:sign
 
-	// MpoolGetNonce gets next nonce for the specified sender.
-	// Note that this method may not be atomic. Use MpoolPushMessage instead.
-	MpoolGetNonce(context.Context, address.Address) (uint64, error) //perm:read
-	MpoolSub(context.Context) (<-chan api.MpoolUpdate, error)       //perm:read
+	MpoolSub(context.Context) (<-chan api.MpoolUpdate, error) //perm:read
 
 	// MpoolClear clears pending messages from the mpool
 	MpoolClear(context.Context, bool) error //perm:write
