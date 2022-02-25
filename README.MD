@@ -1,7 +1,8 @@
-# chain-co
+# Chain-co
 
-used to work with venus/lotus. you can used this program to proxy api call, chain-co select the best weight node and proxy request to that.
+This project is used to proxy multiple daemon(venus/lotus) programs. The difference from other proxy(nginx) is that chain-co can automatically select the best daemon to access.
 
+Use [Venus Issues](https://github.com/filecoin-project/venus/issues) for reporting issues about this repository.
 
 ## Quick Start
 
@@ -10,7 +11,7 @@ build
 make
 ```
 
-start 
+start
 ```shell
 ./chain-co --auth-url <venus-auth url> --node <token>:<url>  --node <token>:<url>
 ```
