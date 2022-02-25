@@ -11,9 +11,9 @@ import (
 
 	"github.com/filecoin-project/lotus/api/v1api"
 
-	"github.com/ipfs-force-community/chain-co/chain-ro/service"
 	"github.com/ipfs-force-community/chain-co/dep"
 	"github.com/ipfs-force-community/chain-co/localwt"
+	"github.com/ipfs-force-community/chain-co/service"
 )
 
 var runCmd = &cli.Command{

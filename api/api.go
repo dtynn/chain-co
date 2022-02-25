@@ -289,6 +289,13 @@ type Proxy interface {
 	// MpoolPush pushes a signed message to mempool.
 	MpoolPush(context.Context, *types.SignedMessage) (cid.Cid, error) //perm:write
 
+	// MpoolPending returns pending mempool messages.
+	MpoolPending(context.Context, types.TipSetKey) ([]*types.SignedMessage, error) //perm:read
+
+	// MpoolGetNonce gets next nonce for the specified sender.
+	// Note that this method may not be atomic. Use MpoolPushMessage instead.
+	MpoolGetNonce(context.Context, address.Address) (uint64, error) //perm:read
+
 	// MpoolPushMessage atomically assigns a nonce, signs, and pushes a message
 	// to mempool.
 	// maxFee is only used when GasFeeCap/GasPremium fields aren't specified
@@ -454,9 +461,6 @@ type UnSupport interface {
 	// The Mpool methods are for interacting with the message pool. The message pool
 	// manages all incoming and outgoing 'messages' going over the network.
 
-	// MpoolPending returns pending mempool messages.
-	MpoolPending(context.Context, types.TipSetKey) ([]*types.SignedMessage, error) //perm:read
-
 	// MpoolPushUntrusted pushes a signed message to mempool from untrusted sources.
 	MpoolPushUntrusted(context.Context, *types.SignedMessage) (cid.Cid, error) //perm:write
 
@@ -469,10 +473,7 @@ type UnSupport interface {
 	// MpoolBatchPushMessage batch pushes a unsigned message to mempool.
 	MpoolBatchPushMessage(context.Context, []*types.Message, *api.MessageSendSpec) ([]*types.SignedMessage, error) //perm:sign
 
-	// MpoolGetNonce gets next nonce for the specified sender.
-	// Note that this method may not be atomic. Use MpoolPushMessage instead.
-	MpoolGetNonce(context.Context, address.Address) (uint64, error) //perm:read
-	MpoolSub(context.Context) (<-chan api.MpoolUpdate, error)       //perm:read
+	MpoolSub(context.Context) (<-chan api.MpoolUpdate, error) //perm:read
 
 	// MpoolClear clears pending messages from the mpool
 	MpoolClear(context.Context, bool) error //perm:write
@@ -550,8 +551,7 @@ type UnSupport interface {
 	ClientFindData(ctx context.Context, root cid.Cid, piece *cid.Cid) ([]api.QueryOffer, error)
 	// ClientMinerQueryOffer returns a QueryOffer for the specific miner and file.
 	ClientMinerQueryOffer(ctx context.Context, miner address.Address, root cid.Cid, piece *cid.Cid) (api.QueryOffer, error)
-	// ClientRetrieve initiates the retrieval of a file, as specified in the order.
-	ClientRetrieve(ctx context.Context, order api.RetrievalOrder, ref *api.FileRef) error
+
 	// ClientRetrieveWithEvents initiates the retrieval of a file, as specified in the order, and provides a channel
 	// of status updates.
 	ClientRetrieveWithEvents(ctx context.Context, order api.RetrievalOrder, ref *api.FileRef) (<-chan marketevents.RetrievalEvent, error)
@@ -693,11 +693,6 @@ type UnSupport interface {
 	// <sender address of the approve msg>, <method to call in the proposed message>, <params to include in the proposed message>
 	MsigApproveTxnHash(context.Context, address.Address, uint64, address.Address, address.Address, types.BigInt, address.Address, uint64, []byte) (*api.MessagePrototype, error) //perm:sign
 
-	// MsigCancel cancels a previously-proposed multisig message
-	// It takes the following params: <multisig address>, <proposed transaction ID>, <recipient address>, <value to transfer>,
-	// <sender address of the cancel msg>, <method to call in the proposed message>, <params to include in the proposed message>
-	MsigCancel(context.Context, address.Address, uint64, address.Address, types.BigInt, address.Address, uint64, []byte) (*api.MessagePrototype, error) //perm:sign
-
 	// MsigAddPropose proposes adding a signer in the multisig
 	// It takes the following params: <multisig address>, <sender address of the propose msg>,
 	// <new signer>, <whether the number of required signers should be increased>
@@ -784,4 +779,15 @@ type UnSupport interface {
 	NodeStatus(ctx context.Context, inclChainStatus bool) (api.NodeStatus, error) //perm:read
 
 	StateEncodeParams(ctx context.Context, toActCode cid.Cid, method abi.MethodNum, params json.RawMessage) ([]byte, error)
+
+	//v1.14.0
+	ClientRetrieve(ctx context.Context, params api.RetrievalOrder) (*api.RestrievalRes, error)
+
+	ClientRetrieveWait(ctx context.Context, deal retrievalmarket.DealID) error
+
+	ClientExport(ctx context.Context, exportRef api.ExportRef, fileRef api.FileRef) error
+
+	MsigCancel(ctx context.Context, a address.Address, u uint64, a2 address.Address) (*api.MessagePrototype, error)
+
+	MsigCancelTxnHash(ctx context.Context, a address.Address, u uint64, a2 address.Address, bigInt types.BigInt, a3 address.Address, u2 uint64, bytes []byte) (*api.MessagePrototype, error)
 }

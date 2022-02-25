@@ -164,6 +164,15 @@ func (p *UnSupport) ClientDealSize(in0 context.Context, in1 cid.Cid) (out0 api1.
 	return cli.ClientDealSize(in0, in1)
 }
 
+func (p *UnSupport) ClientExport(in0 context.Context, in1 api1.ExportRef, in2 api1.FileRef) (err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api ClientExport %v", err)
+		return
+	}
+	return cli.ClientExport(in0, in1, in2)
+}
+
 func (p *UnSupport) ClientFindData(in0 context.Context, in1 cid.Cid, in2 *cid.Cid) (out0 []api1.QueryOffer, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -308,13 +317,13 @@ func (p *UnSupport) ClientRestartDataTransfer(in0 context.Context, in1 datatrans
 	return cli.ClientRestartDataTransfer(in0, in1, in2, in3)
 }
 
-func (p *UnSupport) ClientRetrieve(in0 context.Context, in1 api1.RetrievalOrder, in2 *api1.FileRef) (err error) {
+func (p *UnSupport) ClientRetrieve(in0 context.Context, in1 api1.RetrievalOrder) (out0 *api1.RestrievalRes, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api ClientRetrieve %v", err)
 		return
 	}
-	return cli.ClientRetrieve(in0, in1, in2)
+	return cli.ClientRetrieve(in0, in1)
 }
 
 func (p *UnSupport) ClientRetrieveTryRestartInsufficientFunds(in0 context.Context, in1 address.Address) (err error) {
@@ -324,6 +333,15 @@ func (p *UnSupport) ClientRetrieveTryRestartInsufficientFunds(in0 context.Contex
 		return
 	}
 	return cli.ClientRetrieveTryRestartInsufficientFunds(in0, in1)
+}
+
+func (p *UnSupport) ClientRetrieveWait(in0 context.Context, in1 retrievalmarket.DealID) (err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api ClientRetrieveWait %v", err)
+		return
+	}
+	return cli.ClientRetrieveWait(in0, in1)
 }
 
 func (p *UnSupport) ClientRetrieveWithEvents(in0 context.Context, in1 api1.RetrievalOrder, in2 *api1.FileRef) (out0 <-chan marketevents.RetrievalEvent, err error) {
@@ -533,24 +551,6 @@ func (p *UnSupport) MpoolGetConfig(in0 context.Context) (out0 *types.MpoolConfig
 	return cli.MpoolGetConfig(in0)
 }
 
-func (p *UnSupport) MpoolGetNonce(in0 context.Context, in1 address.Address) (out0 uint64, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api MpoolGetNonce %v", err)
-		return
-	}
-	return cli.MpoolGetNonce(in0, in1)
-}
-
-func (p *UnSupport) MpoolPending(in0 context.Context, in1 types.TipSetKey) (out0 []*types.SignedMessage, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api MpoolPending %v", err)
-		return
-	}
-	return cli.MpoolPending(in0, in1)
-}
-
 func (p *UnSupport) MpoolPushUntrusted(in0 context.Context, in1 *types.SignedMessage) (out0 cid.Cid, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -623,13 +623,22 @@ func (p *UnSupport) MsigApproveTxnHash(in0 context.Context, in1 address.Address,
 	return cli.MsigApproveTxnHash(in0, in1, in2, in3, in4, in5, in6, in7, in8)
 }
 
-func (p *UnSupport) MsigCancel(in0 context.Context, in1 address.Address, in2 uint64, in3 address.Address, in4 big.Int, in5 address.Address, in6 uint64, in7 []uint8) (out0 *api1.MessagePrototype, err error) {
+func (p *UnSupport) MsigCancel(in0 context.Context, in1 address.Address, in2 uint64, in3 address.Address) (out0 *api1.MessagePrototype, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api MsigCancel %v", err)
 		return
 	}
-	return cli.MsigCancel(in0, in1, in2, in3, in4, in5, in6, in7)
+	return cli.MsigCancel(in0, in1, in2, in3)
+}
+
+func (p *UnSupport) MsigCancelTxnHash(in0 context.Context, in1 address.Address, in2 uint64, in3 address.Address, in4 big.Int, in5 address.Address, in6 uint64, in7 []uint8) (out0 *api1.MessagePrototype, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api MsigCancelTxnHash %v", err)
+		return
+	}
+	return cli.MsigCancelTxnHash(in0, in1, in2, in3, in4, in5, in6, in7)
 }
 
 func (p *UnSupport) MsigCreate(in0 context.Context, in1 uint64, in2 []address.Address, in3 abi.ChainEpoch, in4 big.Int, in5 address.Address, in6 big.Int) (out0 *api1.MessagePrototype, err error) {
