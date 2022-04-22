@@ -10,12 +10,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"time"
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-bitfield"
 	datatransfer "github.com/filecoin-project/go-data-transfer"
 	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
-	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/go-state-types/crypto"
 	"github.com/filecoin-project/go-state-types/dline"
@@ -556,7 +556,7 @@ type UnSupport interface {
 	// of status updates.
 	ClientRetrieveWithEvents(ctx context.Context, order api.RetrievalOrder, ref *api.FileRef) (<-chan marketevents.RetrievalEvent, error)
 	// ClientQueryAsk returns a signed StorageAsk from the specified miner.
-	ClientQueryAsk(ctx context.Context, p peer.ID, miner address.Address) (*storagemarket.StorageAsk, error)
+	//ClientQueryAsk(ctx context.Context, p peer.ID, miner address.Address) (*storagemarket.StorageAsk, error)
 	// ClientCalcCommP calculates the CommP and data size of the specified CID
 	ClientDealPieceCID(ctx context.Context, root cid.Cid) (api.DataCIDSize, error)
 	// ClientCalcCommP calculates the CommP for a specified file
@@ -744,7 +744,7 @@ type UnSupport interface {
 	// MethodGroup: Paych
 	// The Paych methods are for interacting with and managing payment channels
 
-	PaychGet(ctx context.Context, from, to address.Address, amt types.BigInt) (*api.ChannelInfo, error)                  //perm:sign
+	//PaychGet(ctx context.Context, from, to address.Address, amt types.BigInt) (*api.ChannelInfo, error)                  //perm:sign
 	PaychGetWaitReady(context.Context, cid.Cid) (address.Address, error)                                                 //perm:sign
 	PaychAvailableFunds(ctx context.Context, ch address.Address) (*api.ChannelAvailableFunds, error)                     //perm:sign
 	PaychAvailableFundsByFromTo(ctx context.Context, from, to address.Address) (*api.ChannelAvailableFunds, error)       //perm:sign
@@ -790,4 +790,16 @@ type UnSupport interface {
 	MsigCancel(ctx context.Context, a address.Address, u uint64, a2 address.Address) (*api.MessagePrototype, error)
 
 	MsigCancelTxnHash(ctx context.Context, a address.Address, u uint64, a2 address.Address, bigInt types.BigInt, a3 address.Address, u2 uint64, bytes []byte) (*api.MessagePrototype, error)
+
+	NetPing(ctx context.Context, id peer.ID) (time.Duration, error)
+	NetProtectAdd(ctx context.Context, acl []peer.ID) error
+	NetProtectRemove(ctx context.Context, acl []peer.ID) error
+	NetProtectList(ctx context.Context) ([]peer.ID, error)
+	NetStat(ctx context.Context, scope string) (api.NetStat, error)
+	NetLimit(ctx context.Context, scope string) (api.NetLimit, error)
+	NetSetLimit(ctx context.Context, scope string, limit api.NetLimit) error
+	ClientQueryAsk(ctx context.Context, p peer.ID, miner address.Address) (*api.StorageAsk, error)
+	StateLookupRobustAddress(ctx context.Context, a address.Address, key types.TipSetKey) (address.Address, error)
+	PaychGet(ctx context.Context, from, to address.Address, amt types.BigInt, opts api.PaychGetOpts) (*api.ChannelInfo, error)
+	PaychFund(ctx context.Context, from, to address.Address, amt types.BigInt) (*api.ChannelInfo, error)
 }

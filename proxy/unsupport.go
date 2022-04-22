@@ -6,7 +6,6 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-data-transfer"
 	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
-	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/go-state-types/big"
 	"github.com/filecoin-project/go-state-types/crypto"
@@ -25,6 +24,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	"golang.org/x/xerrors"
+	"time"
 )
 
 var _ UnSupportAPI = (*UnSupport)(nil)
@@ -290,7 +290,7 @@ func (p *UnSupport) ClientMinerQueryOffer(in0 context.Context, in1 address.Addre
 	return cli.ClientMinerQueryOffer(in0, in1, in2, in3)
 }
 
-func (p *UnSupport) ClientQueryAsk(in0 context.Context, in1 peer.ID, in2 address.Address) (out0 *storagemarket.StorageAsk, err error) {
+func (p *UnSupport) ClientQueryAsk(in0 context.Context, in1 peer.ID, in2 address.Address) (out0 *api1.StorageAsk, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api ClientQueryAsk %v", err)
@@ -920,15 +920,6 @@ func (p *UnSupport) PaychCollect(in0 context.Context, in1 address.Address) (out0
 	return cli.PaychCollect(in0, in1)
 }
 
-func (p *UnSupport) PaychGet(in0 context.Context, in1 address.Address, in2 address.Address, in3 big.Int) (out0 *api1.ChannelInfo, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api PaychGet %v", err)
-		return
-	}
-	return cli.PaychGet(in0, in1, in2, in3)
-}
-
 func (p *UnSupport) PaychGetWaitReady(in0 context.Context, in1 cid.Cid) (out0 address.Address, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -1260,4 +1251,94 @@ func (p *UnSupport) WalletVerify(in0 context.Context, in1 address.Address, in2 [
 		return
 	}
 	return cli.WalletVerify(in0, in1, in2, in3)
+}
+
+func (p *UnSupport) NetPing(in0 context.Context, in1 peer.ID) (out0 time.Duration, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api NetProtectAdd %v", err)
+		return
+	}
+	return cli.NetPing(in0, in1)
+}
+
+func (p *UnSupport) NetProtectAdd(in0 context.Context, in1 []peer.ID) (err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api NetProtectAdd %v", err)
+		return
+	}
+	return cli.NetProtectAdd(in0, in1)
+}
+func (p *UnSupport) NetProtectRemove(in0 context.Context, in1 []peer.ID) (err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api NetProtectRemove %v", err)
+		return
+	}
+	return cli.NetProtectRemove(in0, in1)
+}
+
+func (p *UnSupport) NetProtectList(in0 context.Context) (out0 []peer.ID, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api NetPProtectList %v", err)
+		return
+	}
+	return cli.NetProtectList(in0)
+}
+
+func (p *UnSupport) NetStat(in0 context.Context, in1 string) (out0 api1.NetStat, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api NetStat %v", err)
+		return
+	}
+	return cli.NetStat(in0, in1)
+}
+
+func (p *UnSupport) NetLimit(in0 context.Context, in1 string) (out0 api1.NetLimit, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api NetLimit %v", err)
+		return
+	}
+	return cli.NetLimit(in0, in1)
+}
+
+func (p *UnSupport) StateLookupRobustAddress(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 address.Address, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api StateLookupRobustAddress %v", err)
+		return
+	}
+	return cli.StateLookupRobustAddress(in0, in1, in2)
+}
+
+func (p *UnSupport) PaychGet(in0 context.Context, in1, in2 address.Address, in3 types.BigInt, in4 api1.PaychGetOpts) (out0 *api1.ChannelInfo, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api NetLimit %v", err)
+		return
+	}
+	return cli.PaychGet(in0, in1, in2, in3, in4)
+
+}
+
+func (p *UnSupport) PaychFund(in0 context.Context, in1, in2 address.Address, in3 types.BigInt) (out0 *api1.ChannelInfo, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api NetLimit %v", err)
+		return
+	}
+	return cli.PaychFund(in0, in1, in2, in3)
+}
+
+func (p *UnSupport) NetSetLimit(in0 context.Context, in1 string, in2 api1.NetLimit) (err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api NetLimit %v", err)
+		return
+	}
+	return cli.NetSetLimit(in0, in1, in2)
 }
