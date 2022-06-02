@@ -3,20 +3,21 @@ package proxy
 import (
 	"context"
 	"encoding/json"
+	"time"
+
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/go-data-transfer"
+	datatransfer "github.com/filecoin-project/go-data-transfer"
 	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
-	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/go-state-types/big"
+	"github.com/filecoin-project/go-state-types/builtin/v8/paych"
 	"github.com/filecoin-project/go-state-types/crypto"
 	api1 "github.com/filecoin-project/lotus/api"
-	"github.com/filecoin-project/lotus/api/types"
+	apitypes "github.com/filecoin-project/lotus/api/types"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/lotus/journal/alerting"
-	"github.com/filecoin-project/lotus/markets/loggers"
+	marketevents "github.com/filecoin-project/lotus/markets/loggers"
 	"github.com/filecoin-project/lotus/node/repo/imports"
-	"github.com/filecoin-project/specs-actors/actors/builtin/paych"
 	"github.com/google/uuid"
 	"github.com/ipfs-force-community/chain-co/api"
 	"github.com/ipfs/go-cid"
@@ -290,7 +291,7 @@ func (p *UnSupport) ClientMinerQueryOffer(in0 context.Context, in1 address.Addre
 	return cli.ClientMinerQueryOffer(in0, in1, in2, in3)
 }
 
-func (p *UnSupport) ClientQueryAsk(in0 context.Context, in1 peer.ID, in2 address.Address) (out0 *storagemarket.StorageAsk, err error) {
+func (p *UnSupport) ClientQueryAsk(in0 context.Context, in1 peer.ID, in2 address.Address) (out0 *api1.StorageAsk, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api ClientQueryAsk %v", err)
@@ -875,6 +876,66 @@ func (p *UnSupport) NetPubsubScores(in0 context.Context) (out0 []api1.PubsubScor
 	return cli.NetPubsubScores(in0)
 }
 
+func (p *UnSupport) NetPing(in0 context.Context, in1 peer.ID) (out0 time.Duration, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api NetPing %v", err)
+		return
+	}
+	return cli.NetPing(in0, in1)
+}
+
+func (p *UnSupport) NetProtectAdd(in0 context.Context, in1 []peer.ID) error {
+	cli, err := p.Select()
+	if err != nil {
+		return xerrors.Errorf("api NetProtectAdd %v", err)
+	}
+	return cli.NetProtectAdd(in0, in1)
+}
+
+func (p *UnSupport) NetProtectRemove(in0 context.Context, in1 []peer.ID) error {
+	cli, err := p.Select()
+	if err != nil {
+		return xerrors.Errorf("api NetProtectRemove %v", err)
+	}
+	return cli.NetProtectRemove(in0, in1)
+}
+
+func (p *UnSupport) NetProtectList(in0 context.Context) (out0 []peer.ID, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api NetProtectList %v", err)
+		return
+	}
+	return cli.NetProtectList(in0)
+}
+
+func (p *UnSupport) NetStat(in0 context.Context, in1 string) (out0 api1.NetStat, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api NetStat %v", err)
+		return
+	}
+	return cli.NetStat(in0, in1)
+}
+
+func (p *UnSupport) NetLimit(in0 context.Context, in1 string) (out0 api1.NetLimit, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api NetLimit %v", err)
+		return
+	}
+	return cli.NetLimit(in0, in1)
+}
+
+func (p *UnSupport) NetSetLimit(in0 context.Context, in1 string, in2 api1.NetLimit) error {
+	cli, err := p.Select()
+	if err != nil {
+		return xerrors.Errorf("api NetSetLimit %v", err)
+	}
+	return cli.NetSetLimit(in0, in1, in2)
+}
+
 func (p *UnSupport) NodeStatus(in0 context.Context, in1 bool) (out0 api1.NodeStatus, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -920,13 +981,13 @@ func (p *UnSupport) PaychCollect(in0 context.Context, in1 address.Address) (out0
 	return cli.PaychCollect(in0, in1)
 }
 
-func (p *UnSupport) PaychGet(in0 context.Context, in1 address.Address, in2 address.Address, in3 big.Int) (out0 *api1.ChannelInfo, err error) {
+func (p *UnSupport) PaychGet(in0 context.Context, in1 address.Address, in2 address.Address, in3 big.Int, in4 api1.PaychGetOpts) (out0 *api1.ChannelInfo, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api PaychGet %v", err)
 		return
 	}
-	return cli.PaychGet(in0, in1, in2, in3)
+	return cli.PaychGet(in0, in1, in2, in3, in4)
 }
 
 func (p *UnSupport) PaychGetWaitReady(in0 context.Context, in1 cid.Cid) (out0 address.Address, err error) {
@@ -1026,6 +1087,15 @@ func (p *UnSupport) PaychVoucherSubmit(in0 context.Context, in1 address.Address,
 		return
 	}
 	return cli.PaychVoucherSubmit(in0, in1, in2, in3, in4)
+}
+
+func (p *UnSupport) PaychFund(in0 context.Context, in1, in2 address.Address, in3 types.BigInt) (out0 *api1.ChannelInfo, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = xerrors.Errorf("api PaychFund %v", err)
+		return
+	}
+	return cli.PaychFund(in0, in1, in2, in3)
 }
 
 func (p *UnSupport) Session(in0 context.Context) (out0 uuid.UUID, err error) {

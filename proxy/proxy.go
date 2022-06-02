@@ -2,18 +2,19 @@ package proxy
 
 import (
 	"context"
+
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-bitfield"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/go-state-types/big"
+	"github.com/filecoin-project/go-state-types/builtin/v8/miner"
 	"github.com/filecoin-project/go-state-types/crypto"
 	"github.com/filecoin-project/go-state-types/dline"
 	"github.com/filecoin-project/go-state-types/network"
 	api1 "github.com/filecoin-project/lotus/api"
-	"github.com/filecoin-project/lotus/chain/actors/builtin/miner"
+	lminer "github.com/filecoin-project/lotus/chain/actors/builtin/miner"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/lotus/node/modules/dtypes"
-	miner1 "github.com/filecoin-project/specs-actors/actors/builtin/miner"
 	"github.com/ipfs-force-community/chain-co/api"
 	"github.com/ipfs/go-cid"
 	"golang.org/x/xerrors"
@@ -30,13 +31,13 @@ type Proxy struct {
 }
 
 // impl api.Proxy
-func (p *Proxy) BeaconGetEntry(in0 context.Context, in1 abi.ChainEpoch) (out0 *types.BeaconEntry, err error) {
+func (p *Proxy) StateGetBeaconEntry(in0 context.Context, in1 abi.ChainEpoch) (out0 *types.BeaconEntry, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api BeaconGetEntry %v", err)
 		return
 	}
-	return cli.BeaconGetEntry(in0, in1)
+	return cli.StateGetBeaconEntry(in0, in1)
 }
 
 func (p *Proxy) ChainGetBlock(in0 context.Context, in1 cid.Cid) (out0 *types.BlockHeader, err error) {
@@ -453,7 +454,7 @@ func (p *Proxy) StateMarketBalance(in0 context.Context, in1 address.Address, in2
 	return cli.StateMarketBalance(in0, in1, in2)
 }
 
-func (p *Proxy) StateMarketDeals(in0 context.Context, in1 types.TipSetKey) (out0 map[string]api1.MarketDeal, err error) {
+func (p *Proxy) StateMarketDeals(in0 context.Context, in1 types.TipSetKey) (out0 map[string]*api1.MarketDeal, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api StateMarketDeals %v", err)
@@ -516,7 +517,7 @@ func (p *Proxy) StateMinerFaults(in0 context.Context, in1 address.Address, in2 t
 	return cli.StateMinerFaults(in0, in1, in2)
 }
 
-func (p *Proxy) StateMinerInfo(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 miner.MinerInfo, err error) {
+func (p *Proxy) StateMinerInfo(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 api1.MinerInfo, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api StateMinerInfo %v", err)
@@ -525,7 +526,7 @@ func (p *Proxy) StateMinerInfo(in0 context.Context, in1 address.Address, in2 typ
 	return cli.StateMinerInfo(in0, in1, in2)
 }
 
-func (p *Proxy) StateMinerInitialPledgeCollateral(in0 context.Context, in1 address.Address, in2 miner1.SectorPreCommitInfo, in3 types.TipSetKey) (out0 big.Int, err error) {
+func (p *Proxy) StateMinerInitialPledgeCollateral(in0 context.Context, in1 address.Address, in2 miner.SectorPreCommitInfo, in3 types.TipSetKey) (out0 big.Int, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api StateMinerInitialPledgeCollateral %v", err)
@@ -552,7 +553,7 @@ func (p *Proxy) StateMinerPower(in0 context.Context, in1 address.Address, in2 ty
 	return cli.StateMinerPower(in0, in1, in2)
 }
 
-func (p *Proxy) StateMinerPreCommitDepositForPower(in0 context.Context, in1 address.Address, in2 miner1.SectorPreCommitInfo, in3 types.TipSetKey) (out0 big.Int, err error) {
+func (p *Proxy) StateMinerPreCommitDepositForPower(in0 context.Context, in1 address.Address, in2 miner.SectorPreCommitInfo, in3 types.TipSetKey) (out0 big.Int, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api StateMinerPreCommitDepositForPower %v", err)
@@ -642,7 +643,7 @@ func (p *Proxy) StateSearchMsg(in0 context.Context, in1 types.TipSetKey, in2 cid
 	return cli.StateSearchMsg(in0, in1, in2, in3, in4)
 }
 
-func (p *Proxy) StateSectorExpiration(in0 context.Context, in1 address.Address, in2 abi.SectorNumber, in3 types.TipSetKey) (out0 *miner.SectorExpiration, err error) {
+func (p *Proxy) StateSectorExpiration(in0 context.Context, in1 address.Address, in2 abi.SectorNumber, in3 types.TipSetKey) (out0 *lminer.SectorExpiration, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api StateSectorExpiration %v", err)
@@ -660,7 +661,7 @@ func (p *Proxy) StateSectorGetInfo(in0 context.Context, in1 address.Address, in2
 	return cli.StateSectorGetInfo(in0, in1, in2, in3)
 }
 
-func (p *Proxy) StateSectorPartition(in0 context.Context, in1 address.Address, in2 abi.SectorNumber, in3 types.TipSetKey) (out0 *miner.SectorLocation, err error) {
+func (p *Proxy) StateSectorPartition(in0 context.Context, in1 address.Address, in2 abi.SectorNumber, in3 types.TipSetKey) (out0 *lminer.SectorLocation, err error) {
 	cli, err := p.Select()
 	if err != nil {
 		err = xerrors.Errorf("api StateSectorPartition %v", err)

@@ -3,6 +3,8 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"time"
+
 	"github.com/filecoin-project/go-jsonrpc/auth"
 	apitypes "github.com/filecoin-project/lotus/api/types"
 	"github.com/filecoin-project/lotus/journal/alerting"
@@ -15,15 +17,15 @@ import (
 	"github.com/filecoin-project/go-bitfield"
 	datatransfer "github.com/filecoin-project/go-data-transfer"
 	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
-	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/go-state-types/abi"
+	"github.com/filecoin-project/go-state-types/builtin/v8/miner"
+	"github.com/filecoin-project/go-state-types/builtin/v8/paych"
 	"github.com/filecoin-project/go-state-types/crypto"
 	"github.com/filecoin-project/go-state-types/dline"
 	"github.com/filecoin-project/go-state-types/network"
 
 	"github.com/filecoin-project/lotus/api"
-	"github.com/filecoin-project/lotus/chain/actors/builtin/miner"
-	"github.com/filecoin-project/lotus/chain/actors/builtin/paych"
+	lminer "github.com/filecoin-project/lotus/chain/actors/builtin/miner"
 	"github.com/filecoin-project/lotus/chain/types"
 	marketevents "github.com/filecoin-project/lotus/markets/loggers"
 	"github.com/filecoin-project/lotus/node/modules/dtypes"
@@ -112,10 +114,10 @@ type Proxy interface {
 	// MethodGroup: Beacon
 	// The Beacon method group contains methods for interacting with the random beacon (DRAND)
 
-	// BeaconGetEntry returns the beacon entry for the given filecoin epoch. If
+	// StateGetBeaconEntry returns the beacon entry for the given filecoin epoch. If
 	// the entry has not yet been produced, the call will block until the entry
 	// becomes available
-	BeaconGetEntry(ctx context.Context, epoch abi.ChainEpoch) (*types.BeaconEntry, error) //perm:read
+	StateGetBeaconEntry(ctx context.Context, epoch abi.ChainEpoch) (*types.BeaconEntry, error) //perm:read
 
 	// For winningPoSt & wdPoSt
 
@@ -153,9 +155,9 @@ type Proxy interface {
 	// expiration epoch
 	StateSectorGetInfo(context.Context, address.Address, abi.SectorNumber, types.TipSetKey) (*miner.SectorOnChainInfo, error) //perm:read
 	// StateSectorPartition finds deadline/partition with the specified sector
-	StateSectorPartition(ctx context.Context, maddr address.Address, sectorNumber abi.SectorNumber, tok types.TipSetKey) (*miner.SectorLocation, error) //perm:read
+	StateSectorPartition(ctx context.Context, maddr address.Address, sectorNumber abi.SectorNumber, tok types.TipSetKey) (*lminer.SectorLocation, error) //perm:read
 	// StateMinerInfo returns info about the indicated miner
-	StateMinerInfo(context.Context, address.Address, types.TipSetKey) (miner.MinerInfo, error) //perm:read
+	StateMinerInfo(context.Context, address.Address, types.TipSetKey) (api.MinerInfo, error) //perm:read
 	// StateMinerProvingDeadline calculates the deadline at some epoch for a proving period
 	// and returns the deadline-related calculations.
 	StateMinerProvingDeadline(context.Context, address.Address, types.TipSetKey) (*dline.Info, error) //perm:read
@@ -172,7 +174,7 @@ type Proxy interface {
 	// StateMinerAvailableBalance returns the portion of a miner's balance that can be withdrawn or spent
 	StateMinerAvailableBalance(context.Context, address.Address, types.TipSetKey) (types.BigInt, error) //perm:read
 	// StateSectorExpiration returns epoch at which given sector will expire
-	StateSectorExpiration(context.Context, address.Address, abi.SectorNumber, types.TipSetKey) (*miner.SectorExpiration, error) //perm:read
+	StateSectorExpiration(context.Context, address.Address, abi.SectorNumber, types.TipSetKey) (*lminer.SectorExpiration, error) //perm:read
 
 	// StateSearchMsg looks back up to limit epochs in the chain for a message, and returns its receipt and the tipset where it was executed
 	//
@@ -227,7 +229,7 @@ type Proxy interface {
 	// StateMarketParticipants returns the Escrow and Locked balances of every participant in the Storage Market
 	StateMarketParticipants(context.Context, types.TipSetKey) (map[string]api.MarketBalance, error) //perm:read
 	// StateMarketDeals returns information about every deal in the Storage Market
-	StateMarketDeals(context.Context, types.TipSetKey) (map[string]api.MarketDeal, error) //perm:read
+	StateMarketDeals(context.Context, types.TipSetKey) (map[string]*api.MarketDeal, error) //perm:read
 	// StateChangedActors returns all the actors whose states change between the two given state CIDs
 	// TODO: Should this take tipset keys instead?
 	StateChangedActors(context.Context, cid.Cid, cid.Cid) (map[string]types.Actor, error) //perm:read
@@ -381,6 +383,7 @@ type UnSupport interface {
 	NetAutoNatStatus(context.Context) (api.NatInfo, error)                       //perm:read
 	NetAgentVersion(ctx context.Context, p peer.ID) (string, error)              //perm:read
 	NetPeerInfo(context.Context, peer.ID) (*api.ExtendedPeerInfo, error)         //perm:read
+	NetPing(context.Context, peer.ID) (time.Duration, error)                     //perm:read
 
 	// NetBandwidthStats returns statistics about the nodes total bandwidth
 	// usage and current rate across all peers and protocols.
@@ -398,6 +401,15 @@ type UnSupport interface {
 	NetBlockAdd(ctx context.Context, acl api.NetBlockList) error    //perm:admin
 	NetBlockRemove(ctx context.Context, acl api.NetBlockList) error //perm:admin
 	NetBlockList(ctx context.Context) (api.NetBlockList, error)     //perm:read
+
+	NetProtectAdd(ctx context.Context, acl []peer.ID) error    //perm:admin
+	NetProtectRemove(ctx context.Context, acl []peer.ID) error //perm:admin
+	NetProtectList(ctx context.Context) ([]peer.ID, error)     //perm:read
+
+	// ResourceManager API
+	NetStat(ctx context.Context, scope string) (api.NetStat, error)          //perm:read
+	NetLimit(ctx context.Context, scope string) (api.NetLimit, error)        //perm:read
+	NetSetLimit(ctx context.Context, scope string, limit api.NetLimit) error //perm:admin
 
 	// MethodGroup: Common
 
@@ -556,7 +568,7 @@ type UnSupport interface {
 	// of status updates.
 	ClientRetrieveWithEvents(ctx context.Context, order api.RetrievalOrder, ref *api.FileRef) (<-chan marketevents.RetrievalEvent, error)
 	// ClientQueryAsk returns a signed StorageAsk from the specified miner.
-	ClientQueryAsk(ctx context.Context, p peer.ID, miner address.Address) (*storagemarket.StorageAsk, error)
+	ClientQueryAsk(ctx context.Context, p peer.ID, miner address.Address) (*api.StorageAsk, error)
 	// ClientCalcCommP calculates the CommP and data size of the specified CID
 	ClientDealPieceCID(ctx context.Context, root cid.Cid) (api.DataCIDSize, error)
 	// ClientCalcCommP calculates the CommP for a specified file
@@ -744,22 +756,25 @@ type UnSupport interface {
 	// MethodGroup: Paych
 	// The Paych methods are for interacting with and managing payment channels
 
-	PaychGet(ctx context.Context, from, to address.Address, amt types.BigInt) (*api.ChannelInfo, error)                  //perm:sign
-	PaychGetWaitReady(context.Context, cid.Cid) (address.Address, error)                                                 //perm:sign
-	PaychAvailableFunds(ctx context.Context, ch address.Address) (*api.ChannelAvailableFunds, error)                     //perm:sign
-	PaychAvailableFundsByFromTo(ctx context.Context, from, to address.Address) (*api.ChannelAvailableFunds, error)       //perm:sign
-	PaychList(context.Context) ([]address.Address, error)                                                                //perm:read
-	PaychStatus(context.Context, address.Address) (*api.PaychStatus, error)                                              //perm:read
-	PaychSettle(context.Context, address.Address) (cid.Cid, error)                                                       //perm:sign
-	PaychCollect(context.Context, address.Address) (cid.Cid, error)                                                      //perm:sign
-	PaychAllocateLane(ctx context.Context, ch address.Address) (uint64, error)                                           //perm:sign
-	PaychNewPayment(ctx context.Context, from, to address.Address, vouchers []api.VoucherSpec) (*api.PaymentInfo, error) //perm:sign
-	PaychVoucherCheckValid(context.Context, address.Address, *paych.SignedVoucher) error                                 //perm:read
-	PaychVoucherCheckSpendable(context.Context, address.Address, *paych.SignedVoucher, []byte, []byte) (bool, error)     //perm:read
-	PaychVoucherCreate(context.Context, address.Address, types.BigInt, uint64) (*api.VoucherCreateResult, error)         //perm:sign
-	PaychVoucherAdd(context.Context, address.Address, *paych.SignedVoucher, []byte, types.BigInt) (types.BigInt, error)  //perm:write
-	PaychVoucherList(context.Context, address.Address) ([]*paych.SignedVoucher, error)                                   //perm:write
-	PaychVoucherSubmit(context.Context, address.Address, *paych.SignedVoucher, []byte, []byte) (cid.Cid, error)          //perm:sign
+	PaychGet(ctx context.Context, from, to address.Address, amt types.BigInt, opts api.PaychGetOpts) (*api.ChannelInfo, error) //perm:sign
+	PaychGetWaitReady(context.Context, cid.Cid) (address.Address, error)                                                       //perm:sign
+	PaychAvailableFunds(ctx context.Context, ch address.Address) (*api.ChannelAvailableFunds, error)                           //perm:sign
+	PaychAvailableFundsByFromTo(ctx context.Context, from, to address.Address) (*api.ChannelAvailableFunds, error)             //perm:sign
+	PaychList(context.Context) ([]address.Address, error)                                                                      //perm:read
+	PaychStatus(context.Context, address.Address) (*api.PaychStatus, error)                                                    //perm:read
+	PaychSettle(context.Context, address.Address) (cid.Cid, error)                                                             //perm:sign
+	PaychCollect(context.Context, address.Address) (cid.Cid, error)                                                            //perm:sign
+	PaychAllocateLane(ctx context.Context, ch address.Address) (uint64, error)                                                 //perm:sign
+	PaychNewPayment(ctx context.Context, from, to address.Address, vouchers []api.VoucherSpec) (*api.PaymentInfo, error)       //perm:sign
+	PaychVoucherCheckValid(context.Context, address.Address, *paych.SignedVoucher) error                                       //perm:read
+	PaychVoucherCheckSpendable(context.Context, address.Address, *paych.SignedVoucher, []byte, []byte) (bool, error)           //perm:read
+	PaychVoucherCreate(context.Context, address.Address, types.BigInt, uint64) (*api.VoucherCreateResult, error)               //perm:sign
+	PaychVoucherAdd(context.Context, address.Address, *paych.SignedVoucher, []byte, types.BigInt) (types.BigInt, error)        //perm:write
+	PaychVoucherList(context.Context, address.Address) ([]*paych.SignedVoucher, error)                                         //perm:write
+	PaychVoucherSubmit(context.Context, address.Address, *paych.SignedVoucher, []byte, []byte) (cid.Cid, error)                //perm:sign
+	// PaychFund gets or creates a payment channel between address pair.
+	// The specified amount will be added to the channel through on-chain send for future use
+	PaychFund(ctx context.Context, from, to address.Address, amt types.BigInt) (*api.ChannelInfo, error) //perm:sign
 
 	// CreateBackup creates node backup onder the specified file name. The
 	// method requires that the lotus daemon is running with the
