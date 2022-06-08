@@ -480,15 +480,6 @@ func (p *UnSupport) MarketWithdraw(in0 context.Context, in1 address.Address, in2
 	return cli.MarketWithdraw(in0, in1, in2, in3)
 }
 
-func (p *UnSupport) MpoolBatchPush(in0 context.Context, in1 []*types.SignedMessage) (out0 []cid.Cid, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = xerrors.Errorf("api MpoolBatchPush %v", err)
-		return
-	}
-	return cli.MpoolBatchPush(in0, in1)
-}
-
 func (p *UnSupport) MpoolBatchPushMessage(in0 context.Context, in1 []*types.Message, in2 *api1.MessageSendSpec) (out0 []*types.SignedMessage, err error) {
 	cli, err := p.Select()
 	if err != nil {

@@ -291,6 +291,9 @@ type Proxy interface {
 	// MpoolPush pushes a signed message to mempool.
 	MpoolPush(context.Context, *types.SignedMessage) (cid.Cid, error) //perm:write
 
+	// MpoolBatchPush batch pushes a signed message to mempool.
+	MpoolBatchPush(in0 context.Context, in1 []*types.SignedMessage) (out0 []cid.Cid, err error) //perm:write
+
 	// MpoolPending returns pending mempool messages.
 	MpoolPending(context.Context, types.TipSetKey) ([]*types.SignedMessage, error) //perm:read
 
@@ -475,9 +478,6 @@ type UnSupport interface {
 
 	// MpoolPushUntrusted pushes a signed message to mempool from untrusted sources.
 	MpoolPushUntrusted(context.Context, *types.SignedMessage) (cid.Cid, error) //perm:write
-
-	// MpoolBatchPush batch pushes a signed message to mempool.
-	MpoolBatchPush(context.Context, []*types.SignedMessage) ([]cid.Cid, error) //perm:write
 
 	// MpoolBatchPushUntrusted batch pushes a signed message to mempool from untrusted sources.
 	MpoolBatchPushUntrusted(context.Context, []*types.SignedMessage) ([]cid.Cid, error) //perm:write
