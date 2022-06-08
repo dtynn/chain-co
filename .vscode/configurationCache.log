@@ -1,1 +1,0 @@
-{"buildTargets":["all","build","build-dep","build-dep/.filecoin-install","build-dep/.update-modules","dist-clean","extern/filecoin-ffi/","extern/filecoin-ffi/.install-filcrypto","lint","test"],"launchTargets":[],"customConfigurationProvider":{"workspaceBrowse":{"browsePath":[],"compilerArgs":[]},"fileIndex":[]}}
