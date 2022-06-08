@@ -13,10 +13,9 @@ jobs:
     name: lint
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: Set up Go
-        uses: actions/setup-go@v2
+      - uses: actions/setup-go@v3
         with:
           go-version: 1.17
 
@@ -32,10 +31,7 @@ jobs:
           cd extern/filecoin-ffi && ./install-filcrypto
 
       - name: golangci-lint
-        env:
-          GOPROXY: "https://proxy.golang.org,direct"
-          GO111MODULE: "on"
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v3
         with:
           # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
           version: v1.44.2
