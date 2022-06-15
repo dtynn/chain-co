@@ -34,4 +34,4 @@ replace github.com/filecoin-project/filecoin-ffi => ./extern/filecoin-ffi
 
 replace github.com/filecoin-project/go-jsonrpc => github.com/ipfs-force-community/go-jsonrpc v0.1.4-0.20211201033628-fc1430d095f6
 
-replace github.com/filecoin-project/lotus => /Users/haoziyan/Desktop/code/github.com/ipfs-force-community/lotus
+replace github.com/filecoin-project/lotus => github.com/ipfs-force-community/lotus v0.8.1-0.20220615021252-743578892348

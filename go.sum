@@ -830,6 +830,8 @@ github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 h1:W9WBk7
 github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839/go.mod h1:xaLFMmpvUxqXtVkUJfg9QmT88cDaCJ3ZKgdZ78oO8Qo=
 github.com/ipfs-force-community/go-jsonrpc v0.1.4-0.20211201033628-fc1430d095f6 h1:4fb6odv7xYyeqgqsMR4LZyYN/XsWmyYLpFAJ0KHt7Cc=
 github.com/ipfs-force-community/go-jsonrpc v0.1.4-0.20211201033628-fc1430d095f6/go.mod h1:XBBpuKIMaXIIzeqzO1iucq4GvbF8CxmXRFoezRh+Cx4=
+github.com/ipfs-force-community/lotus v0.8.1-0.20220615021252-743578892348 h1:nI+L/KkU1B4Yzv4kd73eM8brRzpzGyi22Hz2JKN3Nmg=
+github.com/ipfs-force-community/lotus v0.8.1-0.20220615021252-743578892348/go.mod h1:3yozwwkyu4AzfPl4hnV2BSKyPAGpVdCp+aLMUvFZCgE=
 github.com/ipfs-force-community/metrics v1.0.0 h1:9YTmQCVcguY+hqWq5lwpSK41dhizk5IntBFvQ6YnYNI=
 github.com/ipfs-force-community/metrics v1.0.0/go.mod h1:mn40SioMuKtjmRumHFy/fJ26Pn028XuDjUJE9dorjyw=
 github.com/ipfs-force-community/venus-auth v0.0.0-20210409095239-6767c8e7ac9f/go.mod h1:1jzX/6nT1UiBC0p2BuA1ujKFnZwPndZhmOB89Nemd+w=
