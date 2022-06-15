@@ -355,6 +355,15 @@ func (p *Proxy) StateAccountKey(in0 context.Context, in1 address.Address, in2 ty
 	return cli.StateAccountKey(in0, in1, in2)
 }
 
+func (p *Proxy) StateLookupRobustAddress(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 address.Address, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = fmt.Errorf("api StateLookupRobustAddress %v", err)
+		return
+	}
+	return cli.StateLookupRobustAddress(in0, in1, in2)
+}
+
 func (p *Proxy) StateAllMinerFaults(in0 context.Context, in1 abi.ChainEpoch, in2 types.TipSetKey) (out0 []*api1.Fault, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -731,6 +740,15 @@ func (p *Proxy) StateWaitMsg(in0 context.Context, in1 cid.Cid, in2 uint64, in3 a
 		return
 	}
 	return cli.StateWaitMsg(in0, in1, in2, in3, in4)
+}
+
+func (p *Proxy) StateGetNetworkParams(in0 context.Context) (out0 *api1.NetworkParams, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = fmt.Errorf("api StateGetNetworkParams %v", err)
+		return
+	}
+	return cli.StateGetNetworkParams(in0)
 }
 
 func (p *Proxy) SyncState(in0 context.Context) (out0 *api1.SyncState, err error) {

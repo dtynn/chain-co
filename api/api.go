@@ -10,6 +10,7 @@ import (
 	"github.com/filecoin-project/lotus/journal/alerting"
 	"github.com/filecoin-project/lotus/node/repo/imports"
 	"github.com/google/uuid"
+	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p-core/peer"
 
@@ -128,6 +129,8 @@ type Proxy interface {
 
 	// StateAccountKey returns the public key address of the given ID address
 	StateAccountKey(context.Context, address.Address, types.TipSetKey) (address.Address, error) //perm:read
+	// StateLookupRobustAddress returns the public key address of the given ID address for non-account addresses (multisig, miners etc)
+	StateLookupRobustAddress(context.Context, address.Address, types.TipSetKey) (address.Address, error) //perm:read
 	// StateCall runs the given message and returns its result without any persisted changes.
 	//
 	// StateCall applies the message to the tipset's parent state. The
@@ -258,6 +261,9 @@ type Proxy interface {
 	// StateDealProviderCollateralBounds returns the min and max collateral a storage provider
 	// can issue. It takes the deal size and verified status as parameters.
 	StateDealProviderCollateralBounds(context.Context, abi.PaddedPieceSize, bool, types.TipSetKey) (api.DealCollateralBounds, error) //perm:read
+
+	// StateGetNetworkParams return current network params
+	StateGetNetworkParams(ctx context.Context) (*api.NetworkParams, error) //perm:read
 
 	// MethodGroup: Wallet
 
@@ -435,6 +441,9 @@ type UnSupport interface {
 
 	// ChainDeleteObj deletes node referenced by the given CID
 	ChainDeleteObj(context.Context, cid.Cid) error //perm:admin
+
+	// ChainPutObj puts a given object into the block store
+	ChainPutObj(context.Context, blocks.Block) error //perm:admin
 
 	// ChainSetHead forcefully sets current chain head. Use with caution.
 	ChainSetHead(context.Context, types.TipSetKey) error //perm:admin

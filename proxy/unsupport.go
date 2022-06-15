@@ -21,6 +21,7 @@ import (
 	"github.com/filecoin-project/lotus/node/repo/imports"
 	"github.com/google/uuid"
 	"github.com/ipfs-force-community/chain-co/api"
+	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p-core/metrics"
 	"github.com/libp2p/go-libp2p-core/network"
@@ -82,6 +83,14 @@ func (p *UnSupport) ChainDeleteObj(in0 context.Context, in1 cid.Cid) (err error)
 		return
 	}
 	return cli.ChainDeleteObj(in0, in1)
+}
+
+func (p *UnSupport) ChainPutObj(in0 context.Context, in1 blocks.Block) error {
+	cli, err := p.Select()
+	if err != nil {
+		return fmt.Errorf("api ChainPutObj %v", err)
+	}
+	return cli.ChainPutObj(in0, in1)
 }
 
 func (p *UnSupport) ChainExport(in0 context.Context, in1 abi.ChainEpoch, in2 bool, in3 types.TipSetKey) (out0 <-chan []uint8, err error) {
