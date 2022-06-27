@@ -120,6 +120,11 @@ type Proxy interface {
 	// becomes available
 	StateGetBeaconEntry(ctx context.Context, epoch abi.ChainEpoch) (*types.BeaconEntry, error) //perm:read
 
+	// StateGetBeaconEntry returns the beacon entry for the given filecoin epoch. If
+	// the entry has not yet been produced, the call will block until the entry
+	// becomes available
+	BeaconGetEntry(ctx context.Context, epoch abi.ChainEpoch) (*types.BeaconEntry, error) //perm:read
+
 	// For winningPoSt & wdPoSt
 
 	// MethodGroup: State
@@ -264,6 +269,9 @@ type Proxy interface {
 
 	// StateGetNetworkParams return current network params
 	StateGetNetworkParams(ctx context.Context) (*api.NetworkParams, error) //perm:read
+
+	// StateActorCodeCIDs returns the CIDs of all the builtin actors for the given network version
+	StateActorCodeCIDs(context.Context, network.Version) (map[string]cid.Cid, error) //perm:read
 
 	// MethodGroup: Wallet
 

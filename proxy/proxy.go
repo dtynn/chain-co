@@ -40,6 +40,15 @@ func (p *Proxy) StateGetBeaconEntry(in0 context.Context, in1 abi.ChainEpoch) (ou
 	return cli.StateGetBeaconEntry(in0, in1)
 }
 
+func (p *Proxy) BeaconGetEntry(in0 context.Context, in1 abi.ChainEpoch) (out0 *types.BeaconEntry, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = fmt.Errorf("api BeaconGetEntry %v", err)
+		return
+	}
+	return cli.BeaconGetEntry(in0, in1)
+}
+
 func (p *Proxy) ChainGetBlock(in0 context.Context, in1 cid.Cid) (out0 *types.BlockHeader, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -749,6 +758,15 @@ func (p *Proxy) StateGetNetworkParams(in0 context.Context) (out0 *api1.NetworkPa
 		return
 	}
 	return cli.StateGetNetworkParams(in0)
+}
+
+func (p *Proxy) StateActorCodeCIDs(in0 context.Context, in2 network.Version) (out0 map[string]cid.Cid, err error) {
+	cli, err := p.Select()
+	if err != nil {
+		err = fmt.Errorf("api StateActorCodeCIDs %v", err)
+		return
+	}
+	return cli.StateActorCodeCIDs(in0, in2)
 }
 
 func (p *Proxy) SyncState(in0 context.Context) (out0 *api1.SyncState, err error) {
