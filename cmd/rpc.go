@@ -30,19 +30,19 @@ func serveRPC(ctx context.Context, authEndpoint, rateLimitRedis, listen string, 
 	rpcServer := jsonrpc.NewServer(serverOptions...)
 	rpcServer2 := jsonrpc.NewServer(serverOptions...)
 
-	var remoteJwtCli *jwtclient.JWTClient
+	var remoteJwtCli *jwtclient.AuthClient
 	if len(authEndpoint) > 0 {
-		remoteJwtCli = jwtclient.NewJWTClient(authEndpoint)
+		remoteJwtCli, _ = jwtclient.NewAuthClient(authEndpoint)
 	}
 
 	//register hander to verify token in venus-auth
 	var handler, handler2 http.Handler
 	if remoteJwtCli != nil {
-		handler = (http.Handler)(jwtclient.NewAuthMux(jwt, jwtclient.WarpIJwtAuthClient(remoteJwtCli), rpcServer, logging.Logger("Auth")))
-		handler2 = (http.Handler)(jwtclient.NewAuthMux(jwt, jwtclient.WarpIJwtAuthClient(remoteJwtCli), rpcServer2, logging.Logger("Auth")))
+		handler = (http.Handler)(jwtclient.NewAuthMux(jwt, jwtclient.WarpIJwtAuthClient(remoteJwtCli), rpcServer))
+		handler2 = (http.Handler)(jwtclient.NewAuthMux(jwt, jwtclient.WarpIJwtAuthClient(remoteJwtCli), rpcServer2))
 	} else {
-		handler = (http.Handler)(jwtclient.NewAuthMux(jwt, nil, rpcServer, logging.Logger("Auth")))
-		handler2 = (http.Handler)(jwtclient.NewAuthMux(jwt, nil, rpcServer2, logging.Logger("Auth")))
+		handler = (http.Handler)(jwtclient.NewAuthMux(jwt, nil, rpcServer))
+		handler2 = (http.Handler)(jwtclient.NewAuthMux(jwt, nil, rpcServer2))
 	}
 
 	if repoter, err := metrics.RegisterJaeger(mCnf.ServerName, mCnf); err != nil {

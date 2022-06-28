@@ -3,13 +3,14 @@ package localwt
 import (
 	"context"
 	"crypto/rand"
+	"fmt"
+	"io"
+	"io/ioutil"
+
 	auth2 "github.com/filecoin-project/go-jsonrpc/auth"
 	"github.com/filecoin-project/venus-auth/auth"
 	"github.com/filecoin-project/venus-auth/core"
 	"github.com/gbrlsnchs/jwt/v3"
-	"golang.org/x/xerrors"
-	"io"
-	"io/ioutil"
 )
 
 type LocalJwt struct {
@@ -37,7 +38,7 @@ func (localJwt *LocalJwt) Token() ([]byte, error) {
 func (localJwt *LocalJwt) Verify(ctx context.Context, token string) ([]auth2.Permission, error) {
 	var payload auth.JWTPayload
 	if _, err := jwt.Verify([]byte(token), localJwt.alg, &payload); err != nil {
-		return nil, xerrors.Errorf("JWT Verification failed: %w", err)
+		return nil, fmt.Errorf("JWT Verification failed: %w", err)
 	}
 
 	jwtPerms := core.AdaptOldStrategy(payload.Perm)

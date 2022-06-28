@@ -28,7 +28,7 @@ func main() {
 	jaeger := tracing.SetupJaegerTracing(cliName)
 	defer func() {
 		if jaeger != nil {
-			jaeger.Flush()
+			_ = jaeger.ForceFlush(context.Background())
 		}
 	}()
 
@@ -36,7 +36,9 @@ func main() {
 		cmd := cmd
 		originBefore := cmd.Before
 		cmd.Before = func(cctx *cli.Context) error {
-			trace.UnregisterExporter(jaeger)
+			if jaeger != nil {
+				_ = jaeger.Shutdown(cctx.Context)
+			}
 			jaeger = tracing.SetupJaegerTracing(cliName + "/" + cmd.Name)
 
 			if originBefore != nil {

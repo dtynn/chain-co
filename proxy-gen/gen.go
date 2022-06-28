@@ -69,7 +69,7 @@ func (m method) writeMethodDef(structName string, buf *bytes.Buffer) {
 	buf.WriteString(fmt.Sprintf("func (p *%s) %s(%s) (%s) {\n", structName, m.name, strings.Join(inDefs, ", "), strings.Join(outDefs, ", ")))
 	buf.WriteString(fmt.Sprintf(`cli, err := p.Select()
 	if err != nil {
-		err = xerrors.Errorf("api %s %%v", err)
+		err = fmt.Errorf("api %s %%v", err)
 		return
 	}
 	`, m.name))
