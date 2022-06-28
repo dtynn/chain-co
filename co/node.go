@@ -2,9 +2,10 @@ package co
 
 import (
 	"context"
+	"time"
+
 	"github.com/filecoin-project/lotus/api/v1api"
 	"github.com/ipfs-force-community/venus-common-utils/apiinfo"
-	"time"
 
 	"github.com/filecoin-project/go-jsonrpc"
 	"github.com/hashicorp/go-multierror"
@@ -229,8 +230,8 @@ func (n *Node) applyChanges(lifeCtx context.Context, changes []*api.HeadChange) 
 	}
 }
 
-func (n *Node) loadTipSet(tsk types.TipSetKey) (*types.TipSet, error) {
-	reqCtx, reqCancel := context.WithTimeout(n.ctx, n.opt.APITimeout)
+func (n *Node) loadTipSet(ctx context.Context, tsk types.TipSetKey) (*types.TipSet, error) {
+	reqCtx, reqCancel := context.WithTimeout(ctx, n.opt.APITimeout)
 	defer reqCancel()
 
 	var wg multierror.Group
