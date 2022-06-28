@@ -471,8 +471,8 @@ github.com/filecoin-project/storetheindex v0.3.5/go.mod h1:0r3d0kSpK63O6AvLr1CjA
 github.com/filecoin-project/test-vectors/schema v0.0.5/go.mod h1:iQ9QXLpYWL3m7warwvK1JC/pTri8mnfEmKygNDqqY6E=
 github.com/filecoin-project/venus v0.9.2-0.20210331052540-ca4ea7bab5fa/go.mod h1:9IY4iNo5At3GMBUNa8we3aGL7zM3cFUNxy2rMpb86C0=
 github.com/filecoin-project/venus v0.9.5/go.mod h1:ol4DC0omgbpszB6UNJB92zT0QfAkux974U7aiW89XvI=
-github.com/filecoin-project/venus-auth v1.6.0-rc1 h1:FPdXmAoMOt7KN12eDuV6Qp2QUc3IYCBrQ1o53c7eKOY=
-github.com/filecoin-project/venus-auth v1.6.0-rc1/go.mod h1:x/Cv3zz9z5O+/uqIKgYtk5UsL7nYu+CtiPjyVQ8Lywg=
+github.com/filecoin-project/venus-auth v1.6.0 h1:DLl7q5g1eh6UTpp98MLpRWAI79k6TUw1Myh/RLeaFpU=
+github.com/filecoin-project/venus-auth v1.6.0/go.mod h1:x/Cv3zz9z5O+/uqIKgYtk5UsL7nYu+CtiPjyVQ8Lywg=
 github.com/filecoin-project/venus-sealer v1.0.3/go.mod h1:6cErhac2TkfheD/ii65kaZJYK2i5sY37ys3cGmfnfTA=
 github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568/go.mod h1:xEzjJPgXI435gkrCt3MPfRiAkVrwSbHsst4LCFVfpJc=
 github.com/flynn/noise v0.0.0-20180327030543-2492fe189ae6/go.mod h1:1i71OnUq3iUe1ma7Lr6yG6/rjvM3emb6yoL7xLFzcVQ=
@@ -829,8 +829,8 @@ github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 h1:W9WBk7
 github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839/go.mod h1:xaLFMmpvUxqXtVkUJfg9QmT88cDaCJ3ZKgdZ78oO8Qo=
 github.com/ipfs-force-community/go-jsonrpc v0.1.4-0.20211201033628-fc1430d095f6 h1:4fb6odv7xYyeqgqsMR4LZyYN/XsWmyYLpFAJ0KHt7Cc=
 github.com/ipfs-force-community/go-jsonrpc v0.1.4-0.20211201033628-fc1430d095f6/go.mod h1:XBBpuKIMaXIIzeqzO1iucq4GvbF8CxmXRFoezRh+Cx4=
-github.com/ipfs-force-community/lotus v0.8.1-0.20220627101022-7a26f456e343 h1:dciR9c68hvDanhEOEhXV5o9HGld0gbiPOgmTGo4nVfQ=
-github.com/ipfs-force-community/lotus v0.8.1-0.20220627101022-7a26f456e343/go.mod h1:c/wh5cEDQ6W4wCmhHZbV1dMdHBXYp/u+YdYIHb2iVaU=
+github.com/ipfs-force-community/lotus v0.8.1-0.20220628065045-dc4ed86783ea h1:hDP9o+HVpuTsAn6dkwEQeTlMNVzhx/14ui5CGN1xrCs=
+github.com/ipfs-force-community/lotus v0.8.1-0.20220628065045-dc4ed86783ea/go.mod h1:vAJDKYVc6zdy2gkDtr83CV0FGqws8es6dRFJrCsMohg=
 github.com/ipfs-force-community/metrics v1.0.0 h1:9YTmQCVcguY+hqWq5lwpSK41dhizk5IntBFvQ6YnYNI=
 github.com/ipfs-force-community/metrics v1.0.0/go.mod h1:mn40SioMuKtjmRumHFy/fJ26Pn028XuDjUJE9dorjyw=
 github.com/ipfs-force-community/venus-auth v0.0.0-20210409095239-6767c8e7ac9f/go.mod h1:1jzX/6nT1UiBC0p2BuA1ujKFnZwPndZhmOB89Nemd+w=
