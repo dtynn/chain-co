@@ -34,7 +34,7 @@ type Proxy struct {
 func (p *Proxy) StateGetBeaconEntry(in0 context.Context, in1 abi.ChainEpoch) (out0 *types.BeaconEntry, err error) {
 	cli, err := p.Select()
 	if err != nil {
-		err = fmt.Errorf("api BeaconGetEntry %v", err)
+		err = fmt.Errorf("api StateGetBeaconEntry %v", err)
 		return
 	}
 	return cli.StateGetBeaconEntry(in0, in1)
