@@ -9,37 +9,7 @@ on:
       - master
 
 jobs:
-
-  build:
-    runs-on: ubuntu-18.04
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.17
-
-    - name: Install GCC
-      uses: egor-tensin/setup-gcc@v1
-      with:
-        version: latest
-        platform: x64
-
-    - name: Setup Rust
-      run: (sudo apt-get update && sudo apt-get install -y clang libssl-dev && which cargo && which rustc) || (curl https://sh.rustup.rs -sSf | sh -s -- -y)
-
-    - name: install deps
-      run: sudo apt-get install make ftp mesa-opencl-icd ocl-icd-opencl-dev gcc git bzr jq pkg-config curl clang build-essential hwloc libhwloc-dev wget -y && sudo apt upgrade -y
-
-    - name: Build
-      env:
-        GOPROXY: "https://proxy.golang.org,direct"
-        GO111MODULE: "on"
-      run: |
-        git submodule update --init --recursive
-        cd extern/filecoin-ffi && ./install-filcrypto && cd ../../
-        go build ./...
-
-    - name: Test
-      run: go test -v ./...
+  check:
+    uses: filecoin-project/venus/.github/workflows/common_go.yml@master
+    with:
+      has_ffi: true
