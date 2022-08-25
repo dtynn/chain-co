@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
+
 	"github.com/filecoin-project/go-jsonrpc/auth"
 	"github.com/filecoin-project/lotus/api/v1api"
-	"github.com/filecoin-project/venus-auth/cmd/jwtclient"
+	"github.com/filecoin-project/venus-auth/jwtclient"
 )
 
 var _ jwtclient.IJwtAuthClient = (*WrapClient)(nil)
