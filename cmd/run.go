@@ -18,7 +18,7 @@ import (
 
 var runCmd = &cli.Command{
 	Name:  "run",
-	Usage: "start the chain-ro daemon",
+	Usage: "start the chain-co daemon",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:  "listen",
