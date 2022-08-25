@@ -8,7 +8,7 @@ import (
 	"github.com/ipfs-force-community/chain-co/proxy"
 )
 
-var log = logging.Logger("chain-ro-srv")
+var log = logging.Logger("chain-co-srv")
 
 // LocalChainService impls proxy.Local
 type LocalChainService struct {

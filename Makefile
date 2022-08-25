@@ -53,5 +53,5 @@ dist-clean:
 	git submodule deinit --all -f
 
 build: $(BUILD_DEPS)
-	rm -f chain-ro
-	go build -o ./chain-ro $(GOFLAGS) ./cmd
+	rm -f chain-co
+	go build -o ./chain-co $(GOFLAGS) ./cmd

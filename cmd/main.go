@@ -14,7 +14,7 @@ import (
 	"github.com/filecoin-project/lotus/lib/tracing"
 )
 
-const cliName = "chain-ro"
+const cliName = "chain-co"
 
 var log = logging.Logger(cliName)
 

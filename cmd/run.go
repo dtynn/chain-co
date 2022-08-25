@@ -11,14 +11,14 @@ import (
 
 	"github.com/filecoin-project/lotus/api/v1api"
 
+	"github.com/filecoin-project/venus-auth/jwtclient"
 	"github.com/ipfs-force-community/chain-co/dep"
-	"github.com/ipfs-force-community/chain-co/localwt"
 	"github.com/ipfs-force-community/chain-co/service"
 )
 
 var runCmd = &cli.Command{
 	Name:  "run",
-	Usage: "start the chain-ro daemon",
+	Usage: "start the chain-co daemon",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:  "listen",
@@ -66,15 +66,13 @@ var runCmd = &cli.Command{
 		defer appCancel()
 
 		var full v1api.FullNode
-		localJwt, err := localwt.NewLocalJwt()
-		if err != nil {
-			return err
-		}
-		token, err := localJwt.Token()
+
+		localJwt, token, err := jwtclient.NewLocalAuthClient()
 		if err != nil {
 			return err
 		}
 		err = ioutil.WriteFile("./token", token, 0666)
+
 		if err != nil {
 			return err
 		}
