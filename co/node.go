@@ -39,49 +39,17 @@ type NodeOption struct {
 }
 
 // NodeInfo is a type alias for cliutil.APIInfo
-type NodeInfo = apiinfo.APIInfo
+type NodeInfo struct {
+	apiinfo.APIInfo
+	Version string
+}
 
 // ParseNodeInfo is an alias to the cliutil.ParseApiInfo function
-var ParseNodeInfo = apiinfo.ParseApiInfo
-
-// NewConnector constructs a Connector instance
-func NewConnector(ctx *Ctx) (*Connector, error) {
-	return &Connector{
-		Ctx: ctx,
-	}, nil
-}
-
-// Connector is a helper for connecting upstream nodes
-type Connector struct {
-	*Ctx
-}
-
-// Connect connects to the specified node with given info
-func (c *Connector) Connect(info NodeInfo, version string) (*Node, error) {
-	addr, err := info.DialArgs(version)
-	if err != nil {
-		return nil, err
+func ParseNodeInfo(addr string, version string) NodeInfo {
+	return NodeInfo{
+		APIInfo: apiinfo.ParseApiInfo(addr),
+		Version: version,
 	}
-
-	full, closer, err := client.NewFullNodeRPCV1(c.Ctx.lc, addr, info.AuthHeader())
-	if err != nil {
-		return nil, err
-	}
-
-	ctx, cancel := context.WithCancel(c.Ctx.lc)
-	node := &Node{
-		opt:    c.Ctx.nodeOpt,
-		info:   info,
-		ctx:    ctx,
-		cancel: cancel,
-		sctx:   c.Ctx,
-		log:    log.With("remote", addr),
-	}
-
-	node.upstream.full = full
-	node.upstream.closer = closer
-
-	return node, nil
 }
 
 // Node is a FullNode client
@@ -102,6 +70,40 @@ type Node struct {
 	}
 
 	log *zap.SugaredLogger
+}
+
+func NewNode(cctx *Ctx, info NodeInfo) (*Node, error) {
+	addr, err := info.DialArgs(info.Version)
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithCancel(cctx.lc)
+	return &Node{
+		reListenInterval: cctx.nodeOpt.ReListenMinInterval,
+		opt:              cctx.nodeOpt,
+		info:             info,
+		ctx:              ctx,
+		cancel:           cancel,
+		sctx:             cctx,
+		log:              log.With("remote", addr),
+	}, nil
+}
+
+func (n *Node) Connect() error {
+	info := n.info
+	addr, err := info.DialArgs(info.Version)
+	if err != nil {
+		return err
+	}
+
+	full, closer, err := client.NewFullNodeRPCV1(n.ctx, addr, info.AuthHeader())
+	if err != nil {
+		return err
+	}
+
+	n.upstream.full = full
+	n.upstream.closer = closer
+	return nil
 }
 
 // Start starts a head change loop
@@ -143,7 +145,9 @@ func (n *Node) Start() {
 // Stop closes current node
 func (n *Node) Stop() error {
 	n.cancel()
-	n.upstream.closer()
+	if n.upstream.closer != nil {
+		n.upstream.closer()
+	}
 	return nil
 }
 
@@ -154,10 +158,27 @@ func (n *Node) FullNode() v1api.FullNode {
 
 func (n *Node) reListen() (<-chan []*api.HeadChange, error) {
 	for {
-		ch, err := n.upstream.full.ChainNotify(n.ctx)
+		var err error
+		var ch <-chan []*api.HeadChange
+		// if full node client is nil,try reconnect
+		if n.upstream.full == nil {
+			err = n.Connect()
+			if err != nil {
+				n.log.Errorf("failed to connect to upstream node: %s", err)
+				goto WAIT_LOOP
+			}
+		}
+
+		ch, err = n.upstream.full.ChainNotify(n.ctx)
 		if err != nil {
-			n.log.Errorf("call CahinNotify: %s, will re-call in %s", err, n.reListenInterval)
+			n.log.Errorf("call CahinNotify fail: %s", err)
+		}
+
+	WAIT_LOOP:
+		if err != nil {
+			n.log.Infof("retry after %s", n.reListenInterval)
 			n.sctx.errNodeCh <- n.info.Addr
+
 			select {
 			case <-n.ctx.Done():
 				return nil, n.ctx.Err()

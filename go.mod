@@ -12,7 +12,6 @@ require (
 	github.com/filecoin-project/go-state-types v0.1.10
 	github.com/filecoin-project/lotus v1.14.0-rc1
 	github.com/filecoin-project/venus-auth v1.6.1-0.20220818060206-3313af6a9ba1
-	github.com/gbrlsnchs/jwt/v3 v3.0.1
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v0.5.4
