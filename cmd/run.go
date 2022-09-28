@@ -86,7 +86,7 @@ var runCmd = &cli.Command{
 			service.FullNode(&full),
 		)
 		if err != nil {
-			return nil
+			return err
 		}
 
 		defer stop(context.Background()) // nolint:errcheck
