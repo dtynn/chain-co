@@ -38,14 +38,13 @@ type NodeOption struct {
 	APITimeout time.Duration
 }
 
-// NodeInfo is a type alias for cliutil.APIInfo
+// NodeInfo is a type combine cliutil.APIInfo and protocol version
 type NodeInfo struct {
 	apiinfo.APIInfo
 	Version string
 }
 
-// ParseNodeInfo is an alias to the cliutil.ParseApiInfo function
-func ParseNodeInfo(addr string, version string) NodeInfo {
+func NewNodeInfo(addr string, version string) NodeInfo {
 	return NodeInfo{
 		APIInfo: apiinfo.ParseApiInfo(addr),
 		Version: version,
@@ -163,18 +162,16 @@ func (n *Node) reListen() (<-chan []*api.HeadChange, error) {
 		// if full node client is nil,try reconnect
 		if n.upstream.full == nil {
 			err = n.Connect()
+		}
+		if err == nil {
+			ch, err = n.upstream.full.ChainNotify(n.ctx)
 			if err != nil {
-				n.log.Errorf("failed to connect to upstream node: %s", err)
-				goto WAIT_LOOP
+				n.log.Errorf("call CahinNotify fail: %s", err)
 			}
+		} else {
+			n.log.Errorf("failed to connect to upstream node: %s", err)
 		}
 
-		ch, err = n.upstream.full.ChainNotify(n.ctx)
-		if err != nil {
-			n.log.Errorf("call CahinNotify fail: %s", err)
-		}
-
-	WAIT_LOOP:
 		if err != nil {
 			n.log.Infof("retry after %s", n.reListenInterval)
 			n.sctx.errNodeCh <- n.info.Addr

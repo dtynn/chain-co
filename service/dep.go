@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ipfs-force-community/chain-co/dep"
-
 	"github.com/dtynn/dix"
 	"go.uber.org/fx"
 
@@ -47,7 +45,7 @@ func ParseNodeInfoList(raws []string, version string) dix.Option {
 	return dix.Override(new(co.NodeInfoList), func() (co.NodeInfoList, error) {
 		list := make(co.NodeInfoList, 0, len(raws))
 		for _, str := range raws {
-			info := co.ParseNodeInfo(str, version)
+			info := co.NewNodeInfo(str, version)
 			list = append(list, info)
 		}
 
@@ -55,7 +53,7 @@ func ParseNodeInfoList(raws []string, version string) dix.Option {
 	})
 }
 
-func buildCoordinator(lc fx.Lifecycle, ctx *co.Ctx, infos co.NodeInfoList, version dep.APIVersion, sel *co.Selector) (*co.Coordinator, error) {
+func buildCoordinator(lc fx.Lifecycle, ctx *co.Ctx, infos co.NodeInfoList, sel *co.Selector) (*co.Coordinator, error) {
 	nodes := make([]*co.Node, 0, len(infos))
 	allDone := false
 	defer func() {
@@ -94,6 +92,8 @@ func buildCoordinator(lc fx.Lifecycle, ctx *co.Ctx, infos co.NodeInfoList, versi
 					weight = w
 				}
 			}
+		} else {
+			nlog.Errorf("connect to node failed: %s", err)
 		}
 	}
 
