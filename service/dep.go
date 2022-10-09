@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/ipfs-force-community/chain-co/dep"
 	"time"
 
 	"github.com/dtynn/dix"
@@ -23,7 +22,6 @@ func Build(ctx context.Context, overrides ...dix.Option) (dix.StopFunc, error) {
 	opts := []dix.Option{
 		dix.Override(new(co.NodeOption), co.DefaultNodeOption),
 		dix.Override(new(*co.Ctx), co.NewCtx),
-		dix.Override(new(*co.Connector), co.NewConnector),
 		dix.Override(new(*co.Coordinator), buildCoordinator),
 		dix.Override(new(*co.Selector), co.NewSelector),
 		dix.Override(new(*proxy.Proxy), buildProxyAPI),
@@ -47,11 +45,7 @@ func ParseNodeInfoList(raws []string, version string) dix.Option {
 	return dix.Override(new(co.NodeInfoList), func() (co.NodeInfoList, error) {
 		list := make(co.NodeInfoList, 0, len(raws))
 		for _, str := range raws {
-			info := co.ParseNodeInfo(str)
-			if _, err := info.DialArgs(version); err != nil {
-				return nil, fmt.Errorf("invalid node info: %s", str)
-			}
-
+			info := co.NewNodeInfo(str, version)
 			list = append(list, info)
 		}
 
@@ -59,7 +53,7 @@ func ParseNodeInfoList(raws []string, version string) dix.Option {
 	})
 }
 
-func buildCoordinator(lc fx.Lifecycle, ctx *co.Ctx, connector *co.Connector, infos co.NodeInfoList, version dep.APIVersion, sel *co.Selector) (*co.Coordinator, error) {
+func buildCoordinator(lc fx.Lifecycle, ctx *co.Ctx, infos co.NodeInfoList, sel *co.Selector) (*co.Coordinator, error) {
 	nodes := make([]*co.Node, 0, len(infos))
 	allDone := false
 	defer func() {
@@ -77,30 +71,33 @@ func buildCoordinator(lc fx.Lifecycle, ctx *co.Ctx, connector *co.Connector, inf
 		info := infos[i]
 		nlog := log.With("host", info.Addr)
 
-		node, err := connector.Connect(info, string(version))
+		node, err := co.NewNode(ctx, info)
 		if err != nil {
-			nlog.Errorf("connect failed: %s", err)
+			nlog.Errorf("create node failed: %s", err)
 			continue
-		}
-
-		full := node.FullNode()
-		h, w, err := getHeadCandidate(full)
-		if err != nil {
-			node.Stop() // nolint:errcheck
-			nlog.Errorf("failed to get head: %s", err)
-			continue
-		}
-
-		if head == nil || w.GreaterThan(weight) {
-			head = h
-			weight = w
 		}
 
 		nlog.Infof("add new node %s", info.Addr)
 		nodes = append(nodes, node)
+
+		if err := node.Connect(); err == nil {
+			full := node.FullNode()
+			h, w, err := getHeadCandidate(full)
+			if err != nil {
+				node.Stop() // nolint:errcheck
+				nlog.Errorf("failed to get head: %s", err)
+			} else {
+				if head == nil || w.GreaterThan(weight) {
+					head = h
+					weight = w
+				}
+			}
+		} else {
+			nlog.Errorf("connect to node failed: %s", err)
+		}
 	}
 
-	if len(nodes) == 0 {
+	if head == nil {
 		return nil, fmt.Errorf("no available node")
 	}
 
