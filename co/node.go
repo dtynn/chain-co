@@ -156,6 +156,10 @@ func (n *Node) FullNode() v1api.FullNode {
 	return n.upstream.full
 }
 
+func (n *Node) Host() (string, error) {
+	return n.info.Host()
+}
+
 func (n *Node) reListen() (<-chan []*api.HeadChange, error) {
 	for {
 		var err error
