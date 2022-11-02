@@ -285,6 +285,11 @@ func (n *Node) loadBlockHeader(ctx context.Context, c cid.Cid) (*types.BlockHead
 	return blk, err
 }
 
+const (
+	ADD    = true
+	REMOVE = false
+)
+
 type INodeProvider interface {
 	GetNode(host string) *Node
 	GetHosts() []string
