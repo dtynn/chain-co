@@ -86,7 +86,7 @@ func NewNode(cctx *Ctx, info NodeInfo) (*Node, error) {
 		ctx:              ctx,
 		cancel:           cancel,
 		sctx:             cctx,
-		Addr:             addr,
+		Addr:             info.Addr,
 		log:              log.With("remote", addr),
 	}, nil
 }
