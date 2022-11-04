@@ -32,15 +32,6 @@ type Proxy struct {
 }
 
 // impl api.Proxy
-func (p *Proxy) BeaconGetEntry(in0 context.Context, in1 abi.ChainEpoch) (out0 *types.BeaconEntry, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = fmt.Errorf("api BeaconGetEntry %v", err)
-		return
-	}
-	return cli.BeaconGetEntry(in0, in1)
-}
-
 func (p *Proxy) ChainGetBlock(in0 context.Context, in1 cid.Cid) (out0 *types.BlockHeader, err error) {
 	cli, err := p.Select()
 	if err != nil {
@@ -111,24 +102,6 @@ func (p *Proxy) ChainGetPath(in0 context.Context, in1 types.TipSetKey, in2 types
 		return
 	}
 	return cli.ChainGetPath(in0, in1, in2)
-}
-
-func (p *Proxy) ChainGetRandomnessFromBeacon(in0 context.Context, in1 types.TipSetKey, in2 crypto.DomainSeparationTag, in3 abi.ChainEpoch, in4 []uint8) (out0 abi.Randomness, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = fmt.Errorf("api ChainGetRandomnessFromBeacon %v", err)
-		return
-	}
-	return cli.ChainGetRandomnessFromBeacon(in0, in1, in2, in3, in4)
-}
-
-func (p *Proxy) ChainGetRandomnessFromTickets(in0 context.Context, in1 types.TipSetKey, in2 crypto.DomainSeparationTag, in3 abi.ChainEpoch, in4 []uint8) (out0 abi.Randomness, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = fmt.Errorf("api ChainGetRandomnessFromTickets %v", err)
-		return
-	}
-	return cli.ChainGetRandomnessFromTickets(in0, in1, in2, in3, in4)
 }
 
 func (p *Proxy) ChainGetTipSet(in0 context.Context, in1 types.TipSetKey) (out0 *types.TipSet, err error) {
