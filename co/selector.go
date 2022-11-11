@@ -2,6 +2,7 @@ package co
 
 import (
 	"fmt"
+	"github.com/filecoin-project/lotus/chain/types"
 	"sync"
 )
 
@@ -138,7 +139,7 @@ func (s *Selector) ListWeight() map[string]int {
 }
 
 // Select tries to choose a node from the candidates
-func (s *Selector) Select() (*Node, error) {
+func (s *Selector) Select(tsk types.TipSetKey) (*Node, error) {
 	s.lk.RLock()
 	defer s.lk.RUnlock()
 
@@ -147,6 +148,11 @@ func (s *Selector) Select() (*Node, error) {
 	catchUpQue := make(map[string]int)
 
 	for addr, p := range s.priority {
+		node := s.nodeProvider.GetNode(addr)
+		if !node.hasKey(tsk) {
+			log.Warnf("node %s not contains key %s", addr, tsk)
+			continue
+		}
 		if p == CatchUpPriority {
 			catchUpQue[addr] = s.weight[addr]
 		} else if p == DelayPriority {
