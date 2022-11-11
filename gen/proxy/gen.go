@@ -3,11 +3,11 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/filecoin-project/lotus/chain/types"
 	"go/build"
 	"reflect"
 	"strings"
 
+	"github.com/filecoin-project/lotus/chain/types"
 	"golang.org/x/tools/imports"
 )
 
