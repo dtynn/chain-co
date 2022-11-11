@@ -3,30 +3,29 @@ package proxy
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"time"
-
+	fmt "fmt"
 	"github.com/filecoin-project/go-address"
-	datatransfer "github.com/filecoin-project/go-data-transfer"
+	"github.com/filecoin-project/go-data-transfer"
 	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/go-state-types/big"
 	"github.com/filecoin-project/go-state-types/builtin/v8/paych"
 	"github.com/filecoin-project/go-state-types/crypto"
 	api1 "github.com/filecoin-project/lotus/api"
-	apitypes "github.com/filecoin-project/lotus/api/types"
+	"github.com/filecoin-project/lotus/api/types"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/lotus/journal/alerting"
-	marketevents "github.com/filecoin-project/lotus/markets/loggers"
+	"github.com/filecoin-project/lotus/markets/loggers"
 	"github.com/filecoin-project/lotus/node/repo/imports"
 	"github.com/google/uuid"
 	"github.com/ipfs-force-community/chain-co/api"
-	blocks "github.com/ipfs/go-block-format"
+	"github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p-core/metrics"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
+	"time"
 )
 
 var _ UnSupportAPI = (*UnSupport)(nil)
@@ -36,12 +35,12 @@ type UnSupportAPI interface {
 }
 
 type UnSupport struct {
-	Select func() (UnSupportAPI, error)
+	Select func(types.TipSetKey) (UnSupportAPI, error)
 }
 
 // impl api.UnSupport
 func (p *UnSupport) AuthNew(in0 context.Context, in1 []string) (out0 []uint8, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api AuthNew %v", err)
 		return
@@ -50,7 +49,7 @@ func (p *UnSupport) AuthNew(in0 context.Context, in1 []string) (out0 []uint8, er
 }
 
 func (p *UnSupport) AuthVerify(in0 context.Context, in1 string) (out0 []string, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api AuthVerify %v", err)
 		return
@@ -59,7 +58,7 @@ func (p *UnSupport) AuthVerify(in0 context.Context, in1 string) (out0 []string, 
 }
 
 func (p *UnSupport) ChainBlockstoreInfo(in0 context.Context) (out0 map[string]interface{}, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ChainBlockstoreInfo %v", err)
 		return
@@ -68,7 +67,7 @@ func (p *UnSupport) ChainBlockstoreInfo(in0 context.Context) (out0 map[string]in
 }
 
 func (p *UnSupport) ChainCheckBlockstore(in0 context.Context) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ChainCheckBlockstore %v", err)
 		return
@@ -77,7 +76,7 @@ func (p *UnSupport) ChainCheckBlockstore(in0 context.Context) (err error) {
 }
 
 func (p *UnSupport) ChainDeleteObj(in0 context.Context, in1 cid.Cid) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ChainDeleteObj %v", err)
 		return
@@ -85,16 +84,8 @@ func (p *UnSupport) ChainDeleteObj(in0 context.Context, in1 cid.Cid) (err error)
 	return cli.ChainDeleteObj(in0, in1)
 }
 
-func (p *UnSupport) ChainPutObj(in0 context.Context, in1 blocks.Block) error {
-	cli, err := p.Select()
-	if err != nil {
-		return fmt.Errorf("api ChainPutObj %v", err)
-	}
-	return cli.ChainPutObj(in0, in1)
-}
-
 func (p *UnSupport) ChainExport(in0 context.Context, in1 abi.ChainEpoch, in2 bool, in3 types.TipSetKey) (out0 <-chan []uint8, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api ChainExport %v", err)
 		return
@@ -103,7 +94,7 @@ func (p *UnSupport) ChainExport(in0 context.Context, in1 abi.ChainEpoch, in2 boo
 }
 
 func (p *UnSupport) ChainGetNode(in0 context.Context, in1 string) (out0 *api1.IpldObject, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ChainGetNode %v", err)
 		return
@@ -111,8 +102,17 @@ func (p *UnSupport) ChainGetNode(in0 context.Context, in1 string) (out0 *api1.Ip
 	return cli.ChainGetNode(in0, in1)
 }
 
+func (p *UnSupport) ChainPutObj(in0 context.Context, in1 blocks.Block) (err error) {
+	cli, err := p.Select(types.EmptyTSK)
+	if err != nil {
+		err = fmt.Errorf("api ChainPutObj %v", err)
+		return
+	}
+	return cli.ChainPutObj(in0, in1)
+}
+
 func (p *UnSupport) ChainSetHead(in0 context.Context, in1 types.TipSetKey) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in1)
 	if err != nil {
 		err = fmt.Errorf("api ChainSetHead %v", err)
 		return
@@ -121,7 +121,7 @@ func (p *UnSupport) ChainSetHead(in0 context.Context, in1 types.TipSetKey) (err 
 }
 
 func (p *UnSupport) ClientCalcCommP(in0 context.Context, in1 string) (out0 *api1.CommPRet, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientCalcCommP %v", err)
 		return
@@ -130,7 +130,7 @@ func (p *UnSupport) ClientCalcCommP(in0 context.Context, in1 string) (out0 *api1
 }
 
 func (p *UnSupport) ClientCancelDataTransfer(in0 context.Context, in1 datatransfer.TransferID, in2 peer.ID, in3 bool) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientCancelDataTransfer %v", err)
 		return
@@ -139,7 +139,7 @@ func (p *UnSupport) ClientCancelDataTransfer(in0 context.Context, in1 datatransf
 }
 
 func (p *UnSupport) ClientCancelRetrievalDeal(in0 context.Context, in1 retrievalmarket.DealID) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientCancelRetrievalDeal %v", err)
 		return
@@ -148,7 +148,7 @@ func (p *UnSupport) ClientCancelRetrievalDeal(in0 context.Context, in1 retrieval
 }
 
 func (p *UnSupport) ClientDataTransferUpdates(in0 context.Context) (out0 <-chan api1.DataTransferChannel, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientDataTransferUpdates %v", err)
 		return
@@ -157,7 +157,7 @@ func (p *UnSupport) ClientDataTransferUpdates(in0 context.Context) (out0 <-chan 
 }
 
 func (p *UnSupport) ClientDealPieceCID(in0 context.Context, in1 cid.Cid) (out0 api1.DataCIDSize, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientDealPieceCID %v", err)
 		return
@@ -166,7 +166,7 @@ func (p *UnSupport) ClientDealPieceCID(in0 context.Context, in1 cid.Cid) (out0 a
 }
 
 func (p *UnSupport) ClientDealSize(in0 context.Context, in1 cid.Cid) (out0 api1.DataSize, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientDealSize %v", err)
 		return
@@ -175,7 +175,7 @@ func (p *UnSupport) ClientDealSize(in0 context.Context, in1 cid.Cid) (out0 api1.
 }
 
 func (p *UnSupport) ClientExport(in0 context.Context, in1 api1.ExportRef, in2 api1.FileRef) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientExport %v", err)
 		return
@@ -184,7 +184,7 @@ func (p *UnSupport) ClientExport(in0 context.Context, in1 api1.ExportRef, in2 ap
 }
 
 func (p *UnSupport) ClientFindData(in0 context.Context, in1 cid.Cid, in2 *cid.Cid) (out0 []api1.QueryOffer, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientFindData %v", err)
 		return
@@ -193,7 +193,7 @@ func (p *UnSupport) ClientFindData(in0 context.Context, in1 cid.Cid, in2 *cid.Ci
 }
 
 func (p *UnSupport) ClientGenCar(in0 context.Context, in1 api1.FileRef, in2 string) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientGenCar %v", err)
 		return
@@ -202,7 +202,7 @@ func (p *UnSupport) ClientGenCar(in0 context.Context, in1 api1.FileRef, in2 stri
 }
 
 func (p *UnSupport) ClientGetDealInfo(in0 context.Context, in1 cid.Cid) (out0 *api1.DealInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientGetDealInfo %v", err)
 		return
@@ -211,7 +211,7 @@ func (p *UnSupport) ClientGetDealInfo(in0 context.Context, in1 cid.Cid) (out0 *a
 }
 
 func (p *UnSupport) ClientGetDealStatus(in0 context.Context, in1 uint64) (out0 string, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientGetDealStatus %v", err)
 		return
@@ -220,7 +220,7 @@ func (p *UnSupport) ClientGetDealStatus(in0 context.Context, in1 uint64) (out0 s
 }
 
 func (p *UnSupport) ClientGetDealUpdates(in0 context.Context) (out0 <-chan api1.DealInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientGetDealUpdates %v", err)
 		return
@@ -229,7 +229,7 @@ func (p *UnSupport) ClientGetDealUpdates(in0 context.Context) (out0 <-chan api1.
 }
 
 func (p *UnSupport) ClientGetRetrievalUpdates(in0 context.Context) (out0 <-chan api1.RetrievalInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientGetRetrievalUpdates %v", err)
 		return
@@ -238,7 +238,7 @@ func (p *UnSupport) ClientGetRetrievalUpdates(in0 context.Context) (out0 <-chan 
 }
 
 func (p *UnSupport) ClientHasLocal(in0 context.Context, in1 cid.Cid) (out0 bool, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientHasLocal %v", err)
 		return
@@ -247,7 +247,7 @@ func (p *UnSupport) ClientHasLocal(in0 context.Context, in1 cid.Cid) (out0 bool,
 }
 
 func (p *UnSupport) ClientImport(in0 context.Context, in1 api1.FileRef) (out0 *api1.ImportRes, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientImport %v", err)
 		return
@@ -256,7 +256,7 @@ func (p *UnSupport) ClientImport(in0 context.Context, in1 api1.FileRef) (out0 *a
 }
 
 func (p *UnSupport) ClientListDataTransfers(in0 context.Context) (out0 []api1.DataTransferChannel, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientListDataTransfers %v", err)
 		return
@@ -265,7 +265,7 @@ func (p *UnSupport) ClientListDataTransfers(in0 context.Context) (out0 []api1.Da
 }
 
 func (p *UnSupport) ClientListDeals(in0 context.Context) (out0 []api1.DealInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientListDeals %v", err)
 		return
@@ -274,7 +274,7 @@ func (p *UnSupport) ClientListDeals(in0 context.Context) (out0 []api1.DealInfo, 
 }
 
 func (p *UnSupport) ClientListImports(in0 context.Context) (out0 []api1.Import, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientListImports %v", err)
 		return
@@ -283,7 +283,7 @@ func (p *UnSupport) ClientListImports(in0 context.Context) (out0 []api1.Import, 
 }
 
 func (p *UnSupport) ClientListRetrievals(in0 context.Context) (out0 []api1.RetrievalInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientListRetrievals %v", err)
 		return
@@ -292,7 +292,7 @@ func (p *UnSupport) ClientListRetrievals(in0 context.Context) (out0 []api1.Retri
 }
 
 func (p *UnSupport) ClientMinerQueryOffer(in0 context.Context, in1 address.Address, in2 cid.Cid, in3 *cid.Cid) (out0 api1.QueryOffer, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientMinerQueryOffer %v", err)
 		return
@@ -301,7 +301,7 @@ func (p *UnSupport) ClientMinerQueryOffer(in0 context.Context, in1 address.Addre
 }
 
 func (p *UnSupport) ClientQueryAsk(in0 context.Context, in1 peer.ID, in2 address.Address) (out0 *api1.StorageAsk, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientQueryAsk %v", err)
 		return
@@ -310,7 +310,7 @@ func (p *UnSupport) ClientQueryAsk(in0 context.Context, in1 peer.ID, in2 address
 }
 
 func (p *UnSupport) ClientRemoveImport(in0 context.Context, in1 imports.ID) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientRemoveImport %v", err)
 		return
@@ -319,7 +319,7 @@ func (p *UnSupport) ClientRemoveImport(in0 context.Context, in1 imports.ID) (err
 }
 
 func (p *UnSupport) ClientRestartDataTransfer(in0 context.Context, in1 datatransfer.TransferID, in2 peer.ID, in3 bool) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientRestartDataTransfer %v", err)
 		return
@@ -328,7 +328,7 @@ func (p *UnSupport) ClientRestartDataTransfer(in0 context.Context, in1 datatrans
 }
 
 func (p *UnSupport) ClientRetrieve(in0 context.Context, in1 api1.RetrievalOrder) (out0 *api1.RestrievalRes, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientRetrieve %v", err)
 		return
@@ -337,7 +337,7 @@ func (p *UnSupport) ClientRetrieve(in0 context.Context, in1 api1.RetrievalOrder)
 }
 
 func (p *UnSupport) ClientRetrieveTryRestartInsufficientFunds(in0 context.Context, in1 address.Address) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientRetrieveTryRestartInsufficientFunds %v", err)
 		return
@@ -346,7 +346,7 @@ func (p *UnSupport) ClientRetrieveTryRestartInsufficientFunds(in0 context.Contex
 }
 
 func (p *UnSupport) ClientRetrieveWait(in0 context.Context, in1 retrievalmarket.DealID) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientRetrieveWait %v", err)
 		return
@@ -355,7 +355,7 @@ func (p *UnSupport) ClientRetrieveWait(in0 context.Context, in1 retrievalmarket.
 }
 
 func (p *UnSupport) ClientRetrieveWithEvents(in0 context.Context, in1 api1.RetrievalOrder, in2 *api1.FileRef) (out0 <-chan marketevents.RetrievalEvent, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientRetrieveWithEvents %v", err)
 		return
@@ -364,7 +364,7 @@ func (p *UnSupport) ClientRetrieveWithEvents(in0 context.Context, in1 api1.Retri
 }
 
 func (p *UnSupport) ClientStartDeal(in0 context.Context, in1 *api1.StartDealParams) (out0 *cid.Cid, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientStartDeal %v", err)
 		return
@@ -373,7 +373,7 @@ func (p *UnSupport) ClientStartDeal(in0 context.Context, in1 *api1.StartDealPara
 }
 
 func (p *UnSupport) ClientStatelessDeal(in0 context.Context, in1 *api1.StartDealParams) (out0 *cid.Cid, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ClientStatelessDeal %v", err)
 		return
@@ -382,7 +382,7 @@ func (p *UnSupport) ClientStatelessDeal(in0 context.Context, in1 *api1.StartDeal
 }
 
 func (p *UnSupport) Closing(in0 context.Context) (out0 <-chan struct{}, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api Closing %v", err)
 		return
@@ -391,7 +391,7 @@ func (p *UnSupport) Closing(in0 context.Context) (out0 <-chan struct{}, err erro
 }
 
 func (p *UnSupport) CreateBackup(in0 context.Context, in1 string) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api CreateBackup %v", err)
 		return
@@ -400,7 +400,7 @@ func (p *UnSupport) CreateBackup(in0 context.Context, in1 string) (err error) {
 }
 
 func (p *UnSupport) Discover(in0 context.Context) (out0 apitypes.OpenRPCDocument, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api Discover %v", err)
 		return
@@ -409,7 +409,7 @@ func (p *UnSupport) Discover(in0 context.Context) (out0 apitypes.OpenRPCDocument
 }
 
 func (p *UnSupport) ID(in0 context.Context) (out0 peer.ID, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ID %v", err)
 		return
@@ -418,7 +418,7 @@ func (p *UnSupport) ID(in0 context.Context) (out0 peer.ID, err error) {
 }
 
 func (p *UnSupport) LogAlerts(in0 context.Context) (out0 []alerting.Alert, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api LogAlerts %v", err)
 		return
@@ -427,7 +427,7 @@ func (p *UnSupport) LogAlerts(in0 context.Context) (out0 []alerting.Alert, err e
 }
 
 func (p *UnSupport) LogList(in0 context.Context) (out0 []string, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api LogList %v", err)
 		return
@@ -436,7 +436,7 @@ func (p *UnSupport) LogList(in0 context.Context) (out0 []string, err error) {
 }
 
 func (p *UnSupport) LogSetLevel(in0 context.Context, in1 string, in2 string) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api LogSetLevel %v", err)
 		return
@@ -445,7 +445,7 @@ func (p *UnSupport) LogSetLevel(in0 context.Context, in1 string, in2 string) (er
 }
 
 func (p *UnSupport) MarketAddBalance(in0 context.Context, in1 address.Address, in2 address.Address, in3 big.Int) (out0 cid.Cid, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MarketAddBalance %v", err)
 		return
@@ -454,7 +454,7 @@ func (p *UnSupport) MarketAddBalance(in0 context.Context, in1 address.Address, i
 }
 
 func (p *UnSupport) MarketGetReserved(in0 context.Context, in1 address.Address) (out0 big.Int, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MarketGetReserved %v", err)
 		return
@@ -463,7 +463,7 @@ func (p *UnSupport) MarketGetReserved(in0 context.Context, in1 address.Address) 
 }
 
 func (p *UnSupport) MarketReleaseFunds(in0 context.Context, in1 address.Address, in2 big.Int) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MarketReleaseFunds %v", err)
 		return
@@ -472,7 +472,7 @@ func (p *UnSupport) MarketReleaseFunds(in0 context.Context, in1 address.Address,
 }
 
 func (p *UnSupport) MarketReserveFunds(in0 context.Context, in1 address.Address, in2 address.Address, in3 big.Int) (out0 cid.Cid, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MarketReserveFunds %v", err)
 		return
@@ -481,7 +481,7 @@ func (p *UnSupport) MarketReserveFunds(in0 context.Context, in1 address.Address,
 }
 
 func (p *UnSupport) MarketWithdraw(in0 context.Context, in1 address.Address, in2 address.Address, in3 big.Int) (out0 cid.Cid, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MarketWithdraw %v", err)
 		return
@@ -490,7 +490,7 @@ func (p *UnSupport) MarketWithdraw(in0 context.Context, in1 address.Address, in2
 }
 
 func (p *UnSupport) MpoolBatchPushMessage(in0 context.Context, in1 []*types.Message, in2 *api1.MessageSendSpec) (out0 []*types.SignedMessage, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MpoolBatchPushMessage %v", err)
 		return
@@ -499,7 +499,7 @@ func (p *UnSupport) MpoolBatchPushMessage(in0 context.Context, in1 []*types.Mess
 }
 
 func (p *UnSupport) MpoolBatchPushUntrusted(in0 context.Context, in1 []*types.SignedMessage) (out0 []cid.Cid, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MpoolBatchPushUntrusted %v", err)
 		return
@@ -508,7 +508,7 @@ func (p *UnSupport) MpoolBatchPushUntrusted(in0 context.Context, in1 []*types.Si
 }
 
 func (p *UnSupport) MpoolCheckMessages(in0 context.Context, in1 []*api1.MessagePrototype) (out0 [][]api1.MessageCheckStatus, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MpoolCheckMessages %v", err)
 		return
@@ -517,7 +517,7 @@ func (p *UnSupport) MpoolCheckMessages(in0 context.Context, in1 []*api1.MessageP
 }
 
 func (p *UnSupport) MpoolCheckPendingMessages(in0 context.Context, in1 address.Address) (out0 [][]api1.MessageCheckStatus, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MpoolCheckPendingMessages %v", err)
 		return
@@ -526,7 +526,7 @@ func (p *UnSupport) MpoolCheckPendingMessages(in0 context.Context, in1 address.A
 }
 
 func (p *UnSupport) MpoolCheckReplaceMessages(in0 context.Context, in1 []*types.Message) (out0 [][]api1.MessageCheckStatus, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MpoolCheckReplaceMessages %v", err)
 		return
@@ -535,7 +535,7 @@ func (p *UnSupport) MpoolCheckReplaceMessages(in0 context.Context, in1 []*types.
 }
 
 func (p *UnSupport) MpoolClear(in0 context.Context, in1 bool) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MpoolClear %v", err)
 		return
@@ -544,7 +544,7 @@ func (p *UnSupport) MpoolClear(in0 context.Context, in1 bool) (err error) {
 }
 
 func (p *UnSupport) MpoolGetConfig(in0 context.Context) (out0 *types.MpoolConfig, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MpoolGetConfig %v", err)
 		return
@@ -553,7 +553,7 @@ func (p *UnSupport) MpoolGetConfig(in0 context.Context) (out0 *types.MpoolConfig
 }
 
 func (p *UnSupport) MpoolPushUntrusted(in0 context.Context, in1 *types.SignedMessage) (out0 cid.Cid, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MpoolPushUntrusted %v", err)
 		return
@@ -562,7 +562,7 @@ func (p *UnSupport) MpoolPushUntrusted(in0 context.Context, in1 *types.SignedMes
 }
 
 func (p *UnSupport) MpoolSetConfig(in0 context.Context, in1 *types.MpoolConfig) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MpoolSetConfig %v", err)
 		return
@@ -571,7 +571,7 @@ func (p *UnSupport) MpoolSetConfig(in0 context.Context, in1 *types.MpoolConfig) 
 }
 
 func (p *UnSupport) MpoolSub(in0 context.Context) (out0 <-chan api1.MpoolUpdate, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MpoolSub %v", err)
 		return
@@ -580,7 +580,7 @@ func (p *UnSupport) MpoolSub(in0 context.Context) (out0 <-chan api1.MpoolUpdate,
 }
 
 func (p *UnSupport) MsigAddApprove(in0 context.Context, in1 address.Address, in2 address.Address, in3 uint64, in4 address.Address, in5 address.Address, in6 bool) (out0 *api1.MessagePrototype, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MsigAddApprove %v", err)
 		return
@@ -589,7 +589,7 @@ func (p *UnSupport) MsigAddApprove(in0 context.Context, in1 address.Address, in2
 }
 
 func (p *UnSupport) MsigAddCancel(in0 context.Context, in1 address.Address, in2 address.Address, in3 uint64, in4 address.Address, in5 bool) (out0 *api1.MessagePrototype, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MsigAddCancel %v", err)
 		return
@@ -598,7 +598,7 @@ func (p *UnSupport) MsigAddCancel(in0 context.Context, in1 address.Address, in2 
 }
 
 func (p *UnSupport) MsigAddPropose(in0 context.Context, in1 address.Address, in2 address.Address, in3 address.Address, in4 bool) (out0 *api1.MessagePrototype, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MsigAddPropose %v", err)
 		return
@@ -607,7 +607,7 @@ func (p *UnSupport) MsigAddPropose(in0 context.Context, in1 address.Address, in2
 }
 
 func (p *UnSupport) MsigApprove(in0 context.Context, in1 address.Address, in2 uint64, in3 address.Address) (out0 *api1.MessagePrototype, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MsigApprove %v", err)
 		return
@@ -616,7 +616,7 @@ func (p *UnSupport) MsigApprove(in0 context.Context, in1 address.Address, in2 ui
 }
 
 func (p *UnSupport) MsigApproveTxnHash(in0 context.Context, in1 address.Address, in2 uint64, in3 address.Address, in4 address.Address, in5 big.Int, in6 address.Address, in7 uint64, in8 []uint8) (out0 *api1.MessagePrototype, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MsigApproveTxnHash %v", err)
 		return
@@ -625,7 +625,7 @@ func (p *UnSupport) MsigApproveTxnHash(in0 context.Context, in1 address.Address,
 }
 
 func (p *UnSupport) MsigCancel(in0 context.Context, in1 address.Address, in2 uint64, in3 address.Address) (out0 *api1.MessagePrototype, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MsigCancel %v", err)
 		return
@@ -634,7 +634,7 @@ func (p *UnSupport) MsigCancel(in0 context.Context, in1 address.Address, in2 uin
 }
 
 func (p *UnSupport) MsigCancelTxnHash(in0 context.Context, in1 address.Address, in2 uint64, in3 address.Address, in4 big.Int, in5 address.Address, in6 uint64, in7 []uint8) (out0 *api1.MessagePrototype, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MsigCancelTxnHash %v", err)
 		return
@@ -643,7 +643,7 @@ func (p *UnSupport) MsigCancelTxnHash(in0 context.Context, in1 address.Address, 
 }
 
 func (p *UnSupport) MsigCreate(in0 context.Context, in1 uint64, in2 []address.Address, in3 abi.ChainEpoch, in4 big.Int, in5 address.Address, in6 big.Int) (out0 *api1.MessagePrototype, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MsigCreate %v", err)
 		return
@@ -652,7 +652,7 @@ func (p *UnSupport) MsigCreate(in0 context.Context, in1 uint64, in2 []address.Ad
 }
 
 func (p *UnSupport) MsigGetAvailableBalance(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 big.Int, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api MsigGetAvailableBalance %v", err)
 		return
@@ -661,7 +661,7 @@ func (p *UnSupport) MsigGetAvailableBalance(in0 context.Context, in1 address.Add
 }
 
 func (p *UnSupport) MsigGetPending(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 []*api1.MsigTransaction, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api MsigGetPending %v", err)
 		return
@@ -670,7 +670,7 @@ func (p *UnSupport) MsigGetPending(in0 context.Context, in1 address.Address, in2
 }
 
 func (p *UnSupport) MsigGetVested(in0 context.Context, in1 address.Address, in2 types.TipSetKey, in3 types.TipSetKey) (out0 big.Int, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api MsigGetVested %v", err)
 		return
@@ -679,7 +679,7 @@ func (p *UnSupport) MsigGetVested(in0 context.Context, in1 address.Address, in2 
 }
 
 func (p *UnSupport) MsigGetVestingSchedule(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 api1.MsigVesting, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api MsigGetVestingSchedule %v", err)
 		return
@@ -688,7 +688,7 @@ func (p *UnSupport) MsigGetVestingSchedule(in0 context.Context, in1 address.Addr
 }
 
 func (p *UnSupport) MsigPropose(in0 context.Context, in1 address.Address, in2 address.Address, in3 big.Int, in4 address.Address, in5 uint64, in6 []uint8) (out0 *api1.MessagePrototype, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MsigPropose %v", err)
 		return
@@ -697,7 +697,7 @@ func (p *UnSupport) MsigPropose(in0 context.Context, in1 address.Address, in2 ad
 }
 
 func (p *UnSupport) MsigRemoveSigner(in0 context.Context, in1 address.Address, in2 address.Address, in3 address.Address, in4 bool) (out0 *api1.MessagePrototype, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MsigRemoveSigner %v", err)
 		return
@@ -706,7 +706,7 @@ func (p *UnSupport) MsigRemoveSigner(in0 context.Context, in1 address.Address, i
 }
 
 func (p *UnSupport) MsigSwapApprove(in0 context.Context, in1 address.Address, in2 address.Address, in3 uint64, in4 address.Address, in5 address.Address, in6 address.Address) (out0 *api1.MessagePrototype, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MsigSwapApprove %v", err)
 		return
@@ -715,7 +715,7 @@ func (p *UnSupport) MsigSwapApprove(in0 context.Context, in1 address.Address, in
 }
 
 func (p *UnSupport) MsigSwapCancel(in0 context.Context, in1 address.Address, in2 address.Address, in3 uint64, in4 address.Address, in5 address.Address) (out0 *api1.MessagePrototype, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MsigSwapCancel %v", err)
 		return
@@ -724,7 +724,7 @@ func (p *UnSupport) MsigSwapCancel(in0 context.Context, in1 address.Address, in2
 }
 
 func (p *UnSupport) MsigSwapPropose(in0 context.Context, in1 address.Address, in2 address.Address, in3 address.Address, in4 address.Address) (out0 *api1.MessagePrototype, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MsigSwapPropose %v", err)
 		return
@@ -733,7 +733,7 @@ func (p *UnSupport) MsigSwapPropose(in0 context.Context, in1 address.Address, in
 }
 
 func (p *UnSupport) NetAddrsListen(in0 context.Context) (out0 peer.AddrInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NetAddrsListen %v", err)
 		return
@@ -742,7 +742,7 @@ func (p *UnSupport) NetAddrsListen(in0 context.Context) (out0 peer.AddrInfo, err
 }
 
 func (p *UnSupport) NetAgentVersion(in0 context.Context, in1 peer.ID) (out0 string, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NetAgentVersion %v", err)
 		return
@@ -751,7 +751,7 @@ func (p *UnSupport) NetAgentVersion(in0 context.Context, in1 peer.ID) (out0 stri
 }
 
 func (p *UnSupport) NetAutoNatStatus(in0 context.Context) (out0 api1.NatInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NetAutoNatStatus %v", err)
 		return
@@ -760,7 +760,7 @@ func (p *UnSupport) NetAutoNatStatus(in0 context.Context) (out0 api1.NatInfo, er
 }
 
 func (p *UnSupport) NetBandwidthStats(in0 context.Context) (out0 metrics.Stats, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NetBandwidthStats %v", err)
 		return
@@ -769,7 +769,7 @@ func (p *UnSupport) NetBandwidthStats(in0 context.Context) (out0 metrics.Stats, 
 }
 
 func (p *UnSupport) NetBandwidthStatsByPeer(in0 context.Context) (out0 map[string]metrics.Stats, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NetBandwidthStatsByPeer %v", err)
 		return
@@ -778,7 +778,7 @@ func (p *UnSupport) NetBandwidthStatsByPeer(in0 context.Context) (out0 map[strin
 }
 
 func (p *UnSupport) NetBandwidthStatsByProtocol(in0 context.Context) (out0 map[protocol.ID]metrics.Stats, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NetBandwidthStatsByProtocol %v", err)
 		return
@@ -787,7 +787,7 @@ func (p *UnSupport) NetBandwidthStatsByProtocol(in0 context.Context) (out0 map[p
 }
 
 func (p *UnSupport) NetBlockAdd(in0 context.Context, in1 api1.NetBlockList) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NetBlockAdd %v", err)
 		return
@@ -796,7 +796,7 @@ func (p *UnSupport) NetBlockAdd(in0 context.Context, in1 api1.NetBlockList) (err
 }
 
 func (p *UnSupport) NetBlockList(in0 context.Context) (out0 api1.NetBlockList, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NetBlockList %v", err)
 		return
@@ -805,7 +805,7 @@ func (p *UnSupport) NetBlockList(in0 context.Context) (out0 api1.NetBlockList, e
 }
 
 func (p *UnSupport) NetBlockRemove(in0 context.Context, in1 api1.NetBlockList) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NetBlockRemove %v", err)
 		return
@@ -814,7 +814,7 @@ func (p *UnSupport) NetBlockRemove(in0 context.Context, in1 api1.NetBlockList) (
 }
 
 func (p *UnSupport) NetConnect(in0 context.Context, in1 peer.AddrInfo) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NetConnect %v", err)
 		return
@@ -823,7 +823,7 @@ func (p *UnSupport) NetConnect(in0 context.Context, in1 peer.AddrInfo) (err erro
 }
 
 func (p *UnSupport) NetConnectedness(in0 context.Context, in1 peer.ID) (out0 network.Connectedness, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NetConnectedness %v", err)
 		return
@@ -832,7 +832,7 @@ func (p *UnSupport) NetConnectedness(in0 context.Context, in1 peer.ID) (out0 net
 }
 
 func (p *UnSupport) NetDisconnect(in0 context.Context, in1 peer.ID) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NetDisconnect %v", err)
 		return
@@ -841,7 +841,7 @@ func (p *UnSupport) NetDisconnect(in0 context.Context, in1 peer.ID) (err error) 
 }
 
 func (p *UnSupport) NetFindPeer(in0 context.Context, in1 peer.ID) (out0 peer.AddrInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NetFindPeer %v", err)
 		return
@@ -849,8 +849,17 @@ func (p *UnSupport) NetFindPeer(in0 context.Context, in1 peer.ID) (out0 peer.Add
 	return cli.NetFindPeer(in0, in1)
 }
 
+func (p *UnSupport) NetLimit(in0 context.Context, in1 string) (out0 api1.NetLimit, err error) {
+	cli, err := p.Select(types.EmptyTSK)
+	if err != nil {
+		err = fmt.Errorf("api NetLimit %v", err)
+		return
+	}
+	return cli.NetLimit(in0, in1)
+}
+
 func (p *UnSupport) NetPeerInfo(in0 context.Context, in1 peer.ID) (out0 *api1.ExtendedPeerInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NetPeerInfo %v", err)
 		return
@@ -859,7 +868,7 @@ func (p *UnSupport) NetPeerInfo(in0 context.Context, in1 peer.ID) (out0 *api1.Ex
 }
 
 func (p *UnSupport) NetPeers(in0 context.Context) (out0 []peer.AddrInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NetPeers %v", err)
 		return
@@ -867,17 +876,8 @@ func (p *UnSupport) NetPeers(in0 context.Context) (out0 []peer.AddrInfo, err err
 	return cli.NetPeers(in0)
 }
 
-func (p *UnSupport) NetPubsubScores(in0 context.Context) (out0 []api1.PubsubScore, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = fmt.Errorf("api NetPubsubScores %v", err)
-		return
-	}
-	return cli.NetPubsubScores(in0)
-}
-
 func (p *UnSupport) NetPing(in0 context.Context, in1 peer.ID) (out0 time.Duration, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NetPing %v", err)
 		return
@@ -885,24 +885,17 @@ func (p *UnSupport) NetPing(in0 context.Context, in1 peer.ID) (out0 time.Duratio
 	return cli.NetPing(in0, in1)
 }
 
-func (p *UnSupport) NetProtectAdd(in0 context.Context, in1 []peer.ID) error {
-	cli, err := p.Select()
+func (p *UnSupport) NetProtectAdd(in0 context.Context, in1 []peer.ID) (err error) {
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
-		return fmt.Errorf("api NetProtectAdd %v", err)
+		err = fmt.Errorf("api NetProtectAdd %v", err)
+		return
 	}
 	return cli.NetProtectAdd(in0, in1)
 }
 
-func (p *UnSupport) NetProtectRemove(in0 context.Context, in1 []peer.ID) error {
-	cli, err := p.Select()
-	if err != nil {
-		return fmt.Errorf("api NetProtectRemove %v", err)
-	}
-	return cli.NetProtectRemove(in0, in1)
-}
-
 func (p *UnSupport) NetProtectList(in0 context.Context) (out0 []peer.ID, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NetProtectList %v", err)
 		return
@@ -910,8 +903,35 @@ func (p *UnSupport) NetProtectList(in0 context.Context) (out0 []peer.ID, err err
 	return cli.NetProtectList(in0)
 }
 
+func (p *UnSupport) NetProtectRemove(in0 context.Context, in1 []peer.ID) (err error) {
+	cli, err := p.Select(types.EmptyTSK)
+	if err != nil {
+		err = fmt.Errorf("api NetProtectRemove %v", err)
+		return
+	}
+	return cli.NetProtectRemove(in0, in1)
+}
+
+func (p *UnSupport) NetPubsubScores(in0 context.Context) (out0 []api1.PubsubScore, err error) {
+	cli, err := p.Select(types.EmptyTSK)
+	if err != nil {
+		err = fmt.Errorf("api NetPubsubScores %v", err)
+		return
+	}
+	return cli.NetPubsubScores(in0)
+}
+
+func (p *UnSupport) NetSetLimit(in0 context.Context, in1 string, in2 api1.NetLimit) (err error) {
+	cli, err := p.Select(types.EmptyTSK)
+	if err != nil {
+		err = fmt.Errorf("api NetSetLimit %v", err)
+		return
+	}
+	return cli.NetSetLimit(in0, in1, in2)
+}
+
 func (p *UnSupport) NetStat(in0 context.Context, in1 string) (out0 api1.NetStat, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NetStat %v", err)
 		return
@@ -919,25 +939,8 @@ func (p *UnSupport) NetStat(in0 context.Context, in1 string) (out0 api1.NetStat,
 	return cli.NetStat(in0, in1)
 }
 
-func (p *UnSupport) NetLimit(in0 context.Context, in1 string) (out0 api1.NetLimit, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = fmt.Errorf("api NetLimit %v", err)
-		return
-	}
-	return cli.NetLimit(in0, in1)
-}
-
-func (p *UnSupport) NetSetLimit(in0 context.Context, in1 string, in2 api1.NetLimit) error {
-	cli, err := p.Select()
-	if err != nil {
-		return fmt.Errorf("api NetSetLimit %v", err)
-	}
-	return cli.NetSetLimit(in0, in1, in2)
-}
-
 func (p *UnSupport) NodeStatus(in0 context.Context, in1 bool) (out0 api1.NodeStatus, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api NodeStatus %v", err)
 		return
@@ -946,7 +949,7 @@ func (p *UnSupport) NodeStatus(in0 context.Context, in1 bool) (out0 api1.NodeSta
 }
 
 func (p *UnSupport) PaychAllocateLane(in0 context.Context, in1 address.Address) (out0 uint64, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api PaychAllocateLane %v", err)
 		return
@@ -955,7 +958,7 @@ func (p *UnSupport) PaychAllocateLane(in0 context.Context, in1 address.Address) 
 }
 
 func (p *UnSupport) PaychAvailableFunds(in0 context.Context, in1 address.Address) (out0 *api1.ChannelAvailableFunds, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api PaychAvailableFunds %v", err)
 		return
@@ -964,7 +967,7 @@ func (p *UnSupport) PaychAvailableFunds(in0 context.Context, in1 address.Address
 }
 
 func (p *UnSupport) PaychAvailableFundsByFromTo(in0 context.Context, in1 address.Address, in2 address.Address) (out0 *api1.ChannelAvailableFunds, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api PaychAvailableFundsByFromTo %v", err)
 		return
@@ -973,7 +976,7 @@ func (p *UnSupport) PaychAvailableFundsByFromTo(in0 context.Context, in1 address
 }
 
 func (p *UnSupport) PaychCollect(in0 context.Context, in1 address.Address) (out0 cid.Cid, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api PaychCollect %v", err)
 		return
@@ -981,8 +984,17 @@ func (p *UnSupport) PaychCollect(in0 context.Context, in1 address.Address) (out0
 	return cli.PaychCollect(in0, in1)
 }
 
+func (p *UnSupport) PaychFund(in0 context.Context, in1 address.Address, in2 address.Address, in3 big.Int) (out0 *api1.ChannelInfo, err error) {
+	cli, err := p.Select(types.EmptyTSK)
+	if err != nil {
+		err = fmt.Errorf("api PaychFund %v", err)
+		return
+	}
+	return cli.PaychFund(in0, in1, in2, in3)
+}
+
 func (p *UnSupport) PaychGet(in0 context.Context, in1 address.Address, in2 address.Address, in3 big.Int, in4 api1.PaychGetOpts) (out0 *api1.ChannelInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api PaychGet %v", err)
 		return
@@ -991,7 +1003,7 @@ func (p *UnSupport) PaychGet(in0 context.Context, in1 address.Address, in2 addre
 }
 
 func (p *UnSupport) PaychGetWaitReady(in0 context.Context, in1 cid.Cid) (out0 address.Address, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api PaychGetWaitReady %v", err)
 		return
@@ -1000,7 +1012,7 @@ func (p *UnSupport) PaychGetWaitReady(in0 context.Context, in1 cid.Cid) (out0 ad
 }
 
 func (p *UnSupport) PaychList(in0 context.Context) (out0 []address.Address, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api PaychList %v", err)
 		return
@@ -1009,7 +1021,7 @@ func (p *UnSupport) PaychList(in0 context.Context) (out0 []address.Address, err 
 }
 
 func (p *UnSupport) PaychNewPayment(in0 context.Context, in1 address.Address, in2 address.Address, in3 []api1.VoucherSpec) (out0 *api1.PaymentInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api PaychNewPayment %v", err)
 		return
@@ -1018,7 +1030,7 @@ func (p *UnSupport) PaychNewPayment(in0 context.Context, in1 address.Address, in
 }
 
 func (p *UnSupport) PaychSettle(in0 context.Context, in1 address.Address) (out0 cid.Cid, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api PaychSettle %v", err)
 		return
@@ -1027,7 +1039,7 @@ func (p *UnSupport) PaychSettle(in0 context.Context, in1 address.Address) (out0 
 }
 
 func (p *UnSupport) PaychStatus(in0 context.Context, in1 address.Address) (out0 *api1.PaychStatus, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api PaychStatus %v", err)
 		return
@@ -1036,7 +1048,7 @@ func (p *UnSupport) PaychStatus(in0 context.Context, in1 address.Address) (out0 
 }
 
 func (p *UnSupport) PaychVoucherAdd(in0 context.Context, in1 address.Address, in2 *paych.SignedVoucher, in3 []uint8, in4 big.Int) (out0 big.Int, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api PaychVoucherAdd %v", err)
 		return
@@ -1045,7 +1057,7 @@ func (p *UnSupport) PaychVoucherAdd(in0 context.Context, in1 address.Address, in
 }
 
 func (p *UnSupport) PaychVoucherCheckSpendable(in0 context.Context, in1 address.Address, in2 *paych.SignedVoucher, in3 []uint8, in4 []uint8) (out0 bool, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api PaychVoucherCheckSpendable %v", err)
 		return
@@ -1054,7 +1066,7 @@ func (p *UnSupport) PaychVoucherCheckSpendable(in0 context.Context, in1 address.
 }
 
 func (p *UnSupport) PaychVoucherCheckValid(in0 context.Context, in1 address.Address, in2 *paych.SignedVoucher) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api PaychVoucherCheckValid %v", err)
 		return
@@ -1063,7 +1075,7 @@ func (p *UnSupport) PaychVoucherCheckValid(in0 context.Context, in1 address.Addr
 }
 
 func (p *UnSupport) PaychVoucherCreate(in0 context.Context, in1 address.Address, in2 big.Int, in3 uint64) (out0 *api1.VoucherCreateResult, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api PaychVoucherCreate %v", err)
 		return
@@ -1072,7 +1084,7 @@ func (p *UnSupport) PaychVoucherCreate(in0 context.Context, in1 address.Address,
 }
 
 func (p *UnSupport) PaychVoucherList(in0 context.Context, in1 address.Address) (out0 []*paych.SignedVoucher, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api PaychVoucherList %v", err)
 		return
@@ -1081,7 +1093,7 @@ func (p *UnSupport) PaychVoucherList(in0 context.Context, in1 address.Address) (
 }
 
 func (p *UnSupport) PaychVoucherSubmit(in0 context.Context, in1 address.Address, in2 *paych.SignedVoucher, in3 []uint8, in4 []uint8) (out0 cid.Cid, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api PaychVoucherSubmit %v", err)
 		return
@@ -1089,17 +1101,8 @@ func (p *UnSupport) PaychVoucherSubmit(in0 context.Context, in1 address.Address,
 	return cli.PaychVoucherSubmit(in0, in1, in2, in3, in4)
 }
 
-func (p *UnSupport) PaychFund(in0 context.Context, in1, in2 address.Address, in3 types.BigInt) (out0 *api1.ChannelInfo, err error) {
-	cli, err := p.Select()
-	if err != nil {
-		err = fmt.Errorf("api PaychFund %v", err)
-		return
-	}
-	return cli.PaychFund(in0, in1, in2, in3)
-}
-
 func (p *UnSupport) Session(in0 context.Context) (out0 uuid.UUID, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api Session %v", err)
 		return
@@ -1108,7 +1111,7 @@ func (p *UnSupport) Session(in0 context.Context) (out0 uuid.UUID, err error) {
 }
 
 func (p *UnSupport) Shutdown(in0 context.Context) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api Shutdown %v", err)
 		return
@@ -1117,7 +1120,7 @@ func (p *UnSupport) Shutdown(in0 context.Context) (err error) {
 }
 
 func (p *UnSupport) StateCompute(in0 context.Context, in1 abi.ChainEpoch, in2 []*types.Message, in3 types.TipSetKey) (out0 *api1.ComputeStateOutput, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api StateCompute %v", err)
 		return
@@ -1126,7 +1129,7 @@ func (p *UnSupport) StateCompute(in0 context.Context, in1 abi.ChainEpoch, in2 []
 }
 
 func (p *UnSupport) StateDecodeParams(in0 context.Context, in1 address.Address, in2 abi.MethodNum, in3 []uint8, in4 types.TipSetKey) (out0 interface{}, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in4)
 	if err != nil {
 		err = fmt.Errorf("api StateDecodeParams %v", err)
 		return
@@ -1135,7 +1138,7 @@ func (p *UnSupport) StateDecodeParams(in0 context.Context, in1 address.Address, 
 }
 
 func (p *UnSupport) StateEncodeParams(in0 context.Context, in1 cid.Cid, in2 abi.MethodNum, in3 json.RawMessage) (out0 []uint8, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api StateEncodeParams %v", err)
 		return
@@ -1144,7 +1147,7 @@ func (p *UnSupport) StateEncodeParams(in0 context.Context, in1 cid.Cid, in2 abi.
 }
 
 func (p *UnSupport) StateListMessages(in0 context.Context, in1 *api1.MessageMatch, in2 types.TipSetKey, in3 abi.ChainEpoch) (out0 []cid.Cid, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api StateListMessages %v", err)
 		return
@@ -1153,7 +1156,7 @@ func (p *UnSupport) StateListMessages(in0 context.Context, in1 *api1.MessageMatc
 }
 
 func (p *UnSupport) StateReplay(in0 context.Context, in1 types.TipSetKey, in2 cid.Cid) (out0 *api1.InvocResult, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api StateReplay %v", err)
 		return
@@ -1162,7 +1165,7 @@ func (p *UnSupport) StateReplay(in0 context.Context, in1 types.TipSetKey, in2 ci
 }
 
 func (p *UnSupport) StateSearchMsgLimited(in0 context.Context, in1 cid.Cid, in2 abi.ChainEpoch) (out0 *api1.MsgLookup, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api StateSearchMsgLimited %v", err)
 		return
@@ -1171,7 +1174,7 @@ func (p *UnSupport) StateSearchMsgLimited(in0 context.Context, in1 cid.Cid, in2 
 }
 
 func (p *UnSupport) StateWaitMsgLimited(in0 context.Context, in1 cid.Cid, in2 uint64, in3 abi.ChainEpoch) (out0 *api1.MsgLookup, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api StateWaitMsgLimited %v", err)
 		return
@@ -1180,7 +1183,7 @@ func (p *UnSupport) StateWaitMsgLimited(in0 context.Context, in1 cid.Cid, in2 ui
 }
 
 func (p *UnSupport) SyncCheckBad(in0 context.Context, in1 cid.Cid) (out0 string, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api SyncCheckBad %v", err)
 		return
@@ -1189,7 +1192,7 @@ func (p *UnSupport) SyncCheckBad(in0 context.Context, in1 cid.Cid) (out0 string,
 }
 
 func (p *UnSupport) SyncCheckpoint(in0 context.Context, in1 types.TipSetKey) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in1)
 	if err != nil {
 		err = fmt.Errorf("api SyncCheckpoint %v", err)
 		return
@@ -1198,7 +1201,7 @@ func (p *UnSupport) SyncCheckpoint(in0 context.Context, in1 types.TipSetKey) (er
 }
 
 func (p *UnSupport) SyncIncomingBlocks(in0 context.Context) (out0 <-chan *types.BlockHeader, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api SyncIncomingBlocks %v", err)
 		return
@@ -1207,7 +1210,7 @@ func (p *UnSupport) SyncIncomingBlocks(in0 context.Context) (out0 <-chan *types.
 }
 
 func (p *UnSupport) SyncMarkBad(in0 context.Context, in1 cid.Cid) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api SyncMarkBad %v", err)
 		return
@@ -1216,7 +1219,7 @@ func (p *UnSupport) SyncMarkBad(in0 context.Context, in1 cid.Cid) (err error) {
 }
 
 func (p *UnSupport) SyncUnmarkAllBad(in0 context.Context) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api SyncUnmarkAllBad %v", err)
 		return
@@ -1225,7 +1228,7 @@ func (p *UnSupport) SyncUnmarkAllBad(in0 context.Context) (err error) {
 }
 
 func (p *UnSupport) SyncUnmarkBad(in0 context.Context, in1 cid.Cid) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api SyncUnmarkBad %v", err)
 		return
@@ -1234,7 +1237,7 @@ func (p *UnSupport) SyncUnmarkBad(in0 context.Context, in1 cid.Cid) (err error) 
 }
 
 func (p *UnSupport) SyncValidateTipset(in0 context.Context, in1 types.TipSetKey) (out0 bool, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in1)
 	if err != nil {
 		err = fmt.Errorf("api SyncValidateTipset %v", err)
 		return
@@ -1243,7 +1246,7 @@ func (p *UnSupport) SyncValidateTipset(in0 context.Context, in1 types.TipSetKey)
 }
 
 func (p *UnSupport) WalletDefaultAddress(in0 context.Context) (out0 address.Address, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api WalletDefaultAddress %v", err)
 		return
@@ -1252,7 +1255,7 @@ func (p *UnSupport) WalletDefaultAddress(in0 context.Context) (out0 address.Addr
 }
 
 func (p *UnSupport) WalletDelete(in0 context.Context, in1 address.Address) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api WalletDelete %v", err)
 		return
@@ -1261,7 +1264,7 @@ func (p *UnSupport) WalletDelete(in0 context.Context, in1 address.Address) (err 
 }
 
 func (p *UnSupport) WalletExport(in0 context.Context, in1 address.Address) (out0 *types.KeyInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api WalletExport %v", err)
 		return
@@ -1270,7 +1273,7 @@ func (p *UnSupport) WalletExport(in0 context.Context, in1 address.Address) (out0
 }
 
 func (p *UnSupport) WalletImport(in0 context.Context, in1 *types.KeyInfo) (out0 address.Address, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api WalletImport %v", err)
 		return
@@ -1279,7 +1282,7 @@ func (p *UnSupport) WalletImport(in0 context.Context, in1 *types.KeyInfo) (out0 
 }
 
 func (p *UnSupport) WalletList(in0 context.Context) (out0 []address.Address, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api WalletList %v", err)
 		return
@@ -1288,7 +1291,7 @@ func (p *UnSupport) WalletList(in0 context.Context) (out0 []address.Address, err
 }
 
 func (p *UnSupport) WalletNew(in0 context.Context, in1 types.KeyType) (out0 address.Address, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api WalletNew %v", err)
 		return
@@ -1297,7 +1300,7 @@ func (p *UnSupport) WalletNew(in0 context.Context, in1 types.KeyType) (out0 addr
 }
 
 func (p *UnSupport) WalletSetDefault(in0 context.Context, in1 address.Address) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api WalletSetDefault %v", err)
 		return
@@ -1306,7 +1309,7 @@ func (p *UnSupport) WalletSetDefault(in0 context.Context, in1 address.Address) (
 }
 
 func (p *UnSupport) WalletSignMessage(in0 context.Context, in1 address.Address, in2 *types.Message) (out0 *types.SignedMessage, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api WalletSignMessage %v", err)
 		return
@@ -1315,7 +1318,7 @@ func (p *UnSupport) WalletSignMessage(in0 context.Context, in1 address.Address, 
 }
 
 func (p *UnSupport) WalletValidateAddress(in0 context.Context, in1 string) (out0 address.Address, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api WalletValidateAddress %v", err)
 		return
@@ -1324,7 +1327,7 @@ func (p *UnSupport) WalletValidateAddress(in0 context.Context, in1 string) (out0
 }
 
 func (p *UnSupport) WalletVerify(in0 context.Context, in1 address.Address, in2 []uint8, in3 *crypto.Signature) (out0 bool, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api WalletVerify %v", err)
 		return
