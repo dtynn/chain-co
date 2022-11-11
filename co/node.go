@@ -2,6 +2,7 @@ package co
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/filecoin-project/lotus/api/v1api"
@@ -55,6 +56,7 @@ func NewNodeInfo(addr string, version string) NodeInfo {
 type Node struct {
 	opt  NodeOption
 	info NodeInfo
+	Addr string
 
 	reListenInterval time.Duration
 
@@ -84,6 +86,7 @@ func NewNode(cctx *Ctx, info NodeInfo) (*Node, error) {
 		ctx:              ctx,
 		cancel:           cancel,
 		sctx:             cctx,
+		Addr:             info.Addr,
 		log:              log.With("remote", addr),
 	}, nil
 }
@@ -282,4 +285,63 @@ func (n *Node) loadBlockHeader(ctx context.Context, c cid.Cid) (*types.BlockHead
 
 	blk, err := n.upstream.full.ChainGetBlock(ctx, c)
 	return blk, err
+}
+
+const (
+	ADD    = true
+	REMOVE = false
+)
+
+//go:generate mockgen -destination=./node_store_mock.go -package=co github.com/ipfs-force-community/chain-co/co INodeStore
+type INodeStore interface {
+	GetNode(host string) *Node
+	GetHosts() []string
+	AddNodes([]*Node)
+}
+
+var _ INodeStore = (*NodeStore)(nil)
+
+type NodeStore struct {
+	nodes map[string]*Node
+	lk    sync.RWMutex
+}
+
+func NewNodeStore() *NodeStore {
+	return &NodeStore{
+		nodes: make(map[string]*Node),
+	}
+}
+
+func (p *NodeStore) GetNode(host string) *Node {
+	p.lk.RLock()
+	defer p.lk.RUnlock()
+	return p.nodes[host]
+}
+
+func (p *NodeStore) GetHosts() []string {
+	p.lk.RLock()
+	defer p.lk.RUnlock()
+	hosts := make([]string, 0, len(p.nodes))
+	for host := range p.nodes {
+		hosts = append(hosts, host)
+	}
+	return hosts
+}
+
+func (p *NodeStore) AddNodes(add []*Node) {
+	p.lk.Lock()
+	defer p.lk.Unlock()
+	alt := make(map[string]bool)
+	for _, node := range add {
+		if _, exist := p.nodes[node.info.Addr]; !exist {
+			p.nodes[node.info.Addr] = node
+		} else {
+			pre := p.nodes[node.info.Addr]
+			pre.Stop() // nolint:errcheck
+			p.nodes[node.info.Addr] = node
+
+			alt[node.info.Addr] = ADD
+		}
+		go node.Start()
+	}
 }
