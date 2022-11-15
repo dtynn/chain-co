@@ -42,7 +42,6 @@ build-dep/.update-modules: build-dep;
 ## build
 
 test:
-	rm -rf models/test_sqlite_db*
 	go test -race ./...
 
 lint: $(BUILD_DEPS)
