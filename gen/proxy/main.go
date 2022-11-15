@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/ipfs-force-community/chain-co/api"
-	"github.com/ipfs-force-community/chain-co/gen/node-proxy/gen"
 )
 
 func main() {
@@ -39,7 +38,7 @@ func main() {
 	}
 
 	for _, t := range targets {
-		code, err := gen.Gen(pkgName, t.structName, t.def)
+		code, err := Gen(pkgName, t.structName, t.def)
 		if err != nil {
 			fmt.Println("ERR:", err)
 			os.Exit(1)
