@@ -42,7 +42,6 @@ build-dep/.update-modules: build-dep;
 ## build
 
 test:
-	rm -rf models/test_sqlite_db*
 	go test -race ./...
 
 lint: $(BUILD_DEPS)
@@ -56,8 +55,14 @@ build: $(BUILD_DEPS)
 	rm -f chain-co
 	go build -o ./chain-co $(GOFLAGS) ./cmd
 
-gen:
-	go run ./gen/perm-proxy
-	goimports -w cli
+proxy-gen:
+	go run ./gen/proxy
+.PHONY: proxy-gen
+
+perm-gen:
+	go run ./gen/perm
+.PHONY: perm-gen
+
+gen-all: proxy-gen perm-gen
 	go generate ./...
-.PHONY: gen
+.PHONY: gen-all
