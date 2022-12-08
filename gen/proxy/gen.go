@@ -20,6 +20,9 @@ func Gen(pkgName, structName string, api interface{}) ([]byte, error) {
 	if err := gen.register(reflect.TypeOf(api)); err != nil {
 		return nil, err
 	}
+	if structName == "Local" {
+		gen.deps["github.com/filecoin-project/lotus/chain/types"] = &depDef{}
+	}
 
 	var buf bytes.Buffer
 	gen.write(&buf)
@@ -94,12 +97,8 @@ func newGenerator(pname string, sname string) *generator {
 		apis:       make([]apiInfo, 0),
 
 		depCounter: map[string]int{},
-		deps: map[string]*depDef{"fmt": &depDef{
-			path:   "fmt",
-			origin: "fmt",
-			name:   "fmt",
-		}},
-		types: map[reflect.Type]*genType{},
+		deps:       map[string]*depDef{},
+		types:      map[reflect.Type]*genType{},
 	}
 }
 

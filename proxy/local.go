@@ -2,7 +2,8 @@ package proxy
 
 import (
 	"context"
-	fmt "fmt"
+	"fmt"
+
 	api1 "github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs-force-community/chain-co/api"

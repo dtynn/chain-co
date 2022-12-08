@@ -23,10 +23,10 @@ import (
 	"github.com/ipfs-force-community/chain-co/api"
 	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
-	"github.com/libp2p/go-libp2p-core/metrics"
-	"github.com/libp2p/go-libp2p-core/network"
-	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-libp2p-core/protocol"
+	"github.com/libp2p/go-libp2p/core/metrics"
+	"github.com/libp2p/go-libp2p/core/network"
+	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/core/protocol"
 )
 
 var _ UnSupportAPI = (*UnSupport)(nil)
@@ -866,6 +866,15 @@ func (p *UnSupport) NetLimit(in0 context.Context, in1 string) (out0 api1.NetLimi
 		return
 	}
 	return cli.NetLimit(in0, in1)
+}
+
+func (p *UnSupport) NetPeerInfo(in0 context.Context, in1 peer.ID) (out0 *api1.ExtendedPeerInfo, err error) {
+	cli, err := p.Select(types.EmptyTSK)
+	if err != nil {
+		err = fmt.Errorf("api NetPeerInfo %v", err)
+		return
+	}
+	return cli.NetPeerInfo(in0, in1)
 }
 
 func (p *UnSupport) NetPeers(in0 context.Context) (out0 []peer.AddrInfo, err error) {
