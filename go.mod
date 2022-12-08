@@ -222,6 +222,6 @@ require (
 
 replace github.com/filecoin-project/filecoin-ffi => ./extern/filecoin-ffi
 
-replace github.com/filecoin-project/go-jsonrpc => github.com/ipfs-force-community/go-jsonrpc v0.1.4-0.20211201033628-fc1430d095f6
+replace github.com/filecoin-project/go-jsonrpc => github.com/ipfs-force-community/go-jsonrpc v0.1.7-0.20221207080815-d9c131d12612
 
 replace github.com/filecoin-project/lotus => github.com/ipfs-force-community/lotus v0.8.1-0.20221116083217-1895e223b580
