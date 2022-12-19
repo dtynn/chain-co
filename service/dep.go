@@ -152,8 +152,8 @@ func getHeadCandidate(full api.FullNode) (*types.TipSet, types.BigInt, error) {
 
 func buildProxyAPI(sel *co.Selector) *proxy.Proxy {
 	return &proxy.Proxy{
-		Select: func() (proxy.ProxyAPI, error) {
-			node, err := sel.Select()
+		Select: func(tsk types.TipSetKey) (proxy.ProxyAPI, error) {
+			node, err := sel.Select(tsk)
 			if err != nil {
 				return nil, err
 			}
@@ -165,7 +165,7 @@ func buildProxyAPI(sel *co.Selector) *proxy.Proxy {
 
 func buildLocalAPI(lsrv LocalChainService) *proxy.Local {
 	return &proxy.Local{
-		Select: func() (proxy.LocalAPI, error) {
+		Select: func(_ types.TipSetKey) (proxy.LocalAPI, error) {
 			return &lsrv, nil
 		},
 	}
@@ -173,7 +173,7 @@ func buildLocalAPI(lsrv LocalChainService) *proxy.Local {
 
 func buildUnSupportAPI() *proxy.UnSupport {
 	return &proxy.UnSupport{
-		Select: func() (proxy.UnSupportAPI, error) {
+		Select: func(_ types.TipSetKey) (proxy.UnSupportAPI, error) {
 			return nil, fmt.Errorf("api not supported")
 		},
 	}

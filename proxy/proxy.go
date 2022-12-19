@@ -28,12 +28,12 @@ type ProxyAPI interface {
 }
 
 type Proxy struct {
-	Select func() (ProxyAPI, error)
+	Select func(types.TipSetKey) (ProxyAPI, error)
 }
 
 // impl api.Proxy
 func (p *Proxy) ChainGetBlock(in0 context.Context, in1 cid.Cid) (out0 *types.BlockHeader, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ChainGetBlock %v", err)
 		return
@@ -42,7 +42,7 @@ func (p *Proxy) ChainGetBlock(in0 context.Context, in1 cid.Cid) (out0 *types.Blo
 }
 
 func (p *Proxy) ChainGetBlockMessages(in0 context.Context, in1 cid.Cid) (out0 *api1.BlockMessages, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ChainGetBlockMessages %v", err)
 		return
@@ -51,7 +51,7 @@ func (p *Proxy) ChainGetBlockMessages(in0 context.Context, in1 cid.Cid) (out0 *a
 }
 
 func (p *Proxy) ChainGetGenesis(in0 context.Context) (out0 *types.TipSet, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ChainGetGenesis %v", err)
 		return
@@ -60,7 +60,7 @@ func (p *Proxy) ChainGetGenesis(in0 context.Context) (out0 *types.TipSet, err er
 }
 
 func (p *Proxy) ChainGetMessage(in0 context.Context, in1 cid.Cid) (out0 *types.Message, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ChainGetMessage %v", err)
 		return
@@ -69,7 +69,7 @@ func (p *Proxy) ChainGetMessage(in0 context.Context, in1 cid.Cid) (out0 *types.M
 }
 
 func (p *Proxy) ChainGetMessagesInTipset(in0 context.Context, in1 types.TipSetKey) (out0 []api1.Message, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in1)
 	if err != nil {
 		err = fmt.Errorf("api ChainGetMessagesInTipset %v", err)
 		return
@@ -78,7 +78,7 @@ func (p *Proxy) ChainGetMessagesInTipset(in0 context.Context, in1 types.TipSetKe
 }
 
 func (p *Proxy) ChainGetParentMessages(in0 context.Context, in1 cid.Cid) (out0 []api1.Message, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ChainGetParentMessages %v", err)
 		return
@@ -87,7 +87,7 @@ func (p *Proxy) ChainGetParentMessages(in0 context.Context, in1 cid.Cid) (out0 [
 }
 
 func (p *Proxy) ChainGetParentReceipts(in0 context.Context, in1 cid.Cid) (out0 []*types.MessageReceipt, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ChainGetParentReceipts %v", err)
 		return
@@ -96,7 +96,7 @@ func (p *Proxy) ChainGetParentReceipts(in0 context.Context, in1 cid.Cid) (out0 [
 }
 
 func (p *Proxy) ChainGetPath(in0 context.Context, in1 types.TipSetKey, in2 types.TipSetKey) (out0 []*api1.HeadChange, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api ChainGetPath %v", err)
 		return
@@ -105,7 +105,7 @@ func (p *Proxy) ChainGetPath(in0 context.Context, in1 types.TipSetKey, in2 types
 }
 
 func (p *Proxy) ChainGetTipSet(in0 context.Context, in1 types.TipSetKey) (out0 *types.TipSet, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in1)
 	if err != nil {
 		err = fmt.Errorf("api ChainGetTipSet %v", err)
 		return
@@ -114,7 +114,7 @@ func (p *Proxy) ChainGetTipSet(in0 context.Context, in1 types.TipSetKey) (out0 *
 }
 
 func (p *Proxy) ChainGetTipSetAfterHeight(in0 context.Context, in1 abi.ChainEpoch, in2 types.TipSetKey) (out0 *types.TipSet, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api ChainGetTipSetAfterHeight %v", err)
 		return
@@ -123,7 +123,7 @@ func (p *Proxy) ChainGetTipSetAfterHeight(in0 context.Context, in1 abi.ChainEpoc
 }
 
 func (p *Proxy) ChainGetTipSetByHeight(in0 context.Context, in1 abi.ChainEpoch, in2 types.TipSetKey) (out0 *types.TipSet, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api ChainGetTipSetByHeight %v", err)
 		return
@@ -132,7 +132,7 @@ func (p *Proxy) ChainGetTipSetByHeight(in0 context.Context, in1 abi.ChainEpoch, 
 }
 
 func (p *Proxy) ChainHasObj(in0 context.Context, in1 cid.Cid) (out0 bool, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ChainHasObj %v", err)
 		return
@@ -141,7 +141,7 @@ func (p *Proxy) ChainHasObj(in0 context.Context, in1 cid.Cid) (out0 bool, err er
 }
 
 func (p *Proxy) ChainHead(in0 context.Context) (out0 *types.TipSet, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ChainHead %v", err)
 		return
@@ -150,7 +150,7 @@ func (p *Proxy) ChainHead(in0 context.Context) (out0 *types.TipSet, err error) {
 }
 
 func (p *Proxy) ChainReadObj(in0 context.Context, in1 cid.Cid) (out0 []uint8, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ChainReadObj %v", err)
 		return
@@ -159,7 +159,7 @@ func (p *Proxy) ChainReadObj(in0 context.Context, in1 cid.Cid) (out0 []uint8, er
 }
 
 func (p *Proxy) ChainStatObj(in0 context.Context, in1 cid.Cid, in2 cid.Cid) (out0 api1.ObjStat, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api ChainStatObj %v", err)
 		return
@@ -168,7 +168,7 @@ func (p *Proxy) ChainStatObj(in0 context.Context, in1 cid.Cid, in2 cid.Cid) (out
 }
 
 func (p *Proxy) ChainTipSetWeight(in0 context.Context, in1 types.TipSetKey) (out0 big.Int, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in1)
 	if err != nil {
 		err = fmt.Errorf("api ChainTipSetWeight %v", err)
 		return
@@ -177,7 +177,7 @@ func (p *Proxy) ChainTipSetWeight(in0 context.Context, in1 types.TipSetKey) (out
 }
 
 func (p *Proxy) GasBatchEstimateMessageGas(in0 context.Context, in1 []*api1.EstimateMessage, in2 uint64, in3 types.TipSetKey) (out0 []*api1.EstimateResult, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api GasBatchEstimateMessageGas %v", err)
 		return
@@ -186,7 +186,7 @@ func (p *Proxy) GasBatchEstimateMessageGas(in0 context.Context, in1 []*api1.Esti
 }
 
 func (p *Proxy) GasEstimateFeeCap(in0 context.Context, in1 *types.Message, in2 int64, in3 types.TipSetKey) (out0 big.Int, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api GasEstimateFeeCap %v", err)
 		return
@@ -195,7 +195,7 @@ func (p *Proxy) GasEstimateFeeCap(in0 context.Context, in1 *types.Message, in2 i
 }
 
 func (p *Proxy) GasEstimateGasLimit(in0 context.Context, in1 *types.Message, in2 types.TipSetKey) (out0 int64, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api GasEstimateGasLimit %v", err)
 		return
@@ -204,7 +204,7 @@ func (p *Proxy) GasEstimateGasLimit(in0 context.Context, in1 *types.Message, in2
 }
 
 func (p *Proxy) GasEstimateGasPremium(in0 context.Context, in1 uint64, in2 address.Address, in3 int64, in4 types.TipSetKey) (out0 big.Int, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in4)
 	if err != nil {
 		err = fmt.Errorf("api GasEstimateGasPremium %v", err)
 		return
@@ -213,7 +213,7 @@ func (p *Proxy) GasEstimateGasPremium(in0 context.Context, in1 uint64, in2 addre
 }
 
 func (p *Proxy) GasEstimateMessageGas(in0 context.Context, in1 *types.Message, in2 *api1.MessageSendSpec, in3 types.TipSetKey) (out0 *types.Message, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api GasEstimateMessageGas %v", err)
 		return
@@ -222,7 +222,7 @@ func (p *Proxy) GasEstimateMessageGas(in0 context.Context, in1 *types.Message, i
 }
 
 func (p *Proxy) MinerCreateBlock(in0 context.Context, in1 *api1.BlockTemplate) (out0 *types.BlockMsg, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MinerCreateBlock %v", err)
 		return
@@ -231,7 +231,7 @@ func (p *Proxy) MinerCreateBlock(in0 context.Context, in1 *api1.BlockTemplate) (
 }
 
 func (p *Proxy) MinerGetBaseInfo(in0 context.Context, in1 address.Address, in2 abi.ChainEpoch, in3 types.TipSetKey) (out0 *api1.MiningBaseInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api MinerGetBaseInfo %v", err)
 		return
@@ -240,7 +240,7 @@ func (p *Proxy) MinerGetBaseInfo(in0 context.Context, in1 address.Address, in2 a
 }
 
 func (p *Proxy) MpoolBatchPush(in0 context.Context, in1 []*types.SignedMessage) (out0 []cid.Cid, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MpoolBatchPush %v", err)
 		return
@@ -249,7 +249,7 @@ func (p *Proxy) MpoolBatchPush(in0 context.Context, in1 []*types.SignedMessage) 
 }
 
 func (p *Proxy) MpoolGetNonce(in0 context.Context, in1 address.Address) (out0 uint64, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MpoolGetNonce %v", err)
 		return
@@ -258,7 +258,7 @@ func (p *Proxy) MpoolGetNonce(in0 context.Context, in1 address.Address) (out0 ui
 }
 
 func (p *Proxy) MpoolPending(in0 context.Context, in1 types.TipSetKey) (out0 []*types.SignedMessage, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in1)
 	if err != nil {
 		err = fmt.Errorf("api MpoolPending %v", err)
 		return
@@ -267,7 +267,7 @@ func (p *Proxy) MpoolPending(in0 context.Context, in1 types.TipSetKey) (out0 []*
 }
 
 func (p *Proxy) MpoolPublishByAddr(in0 context.Context, in1 address.Address) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MpoolPublishByAddr %v", err)
 		return
@@ -276,7 +276,7 @@ func (p *Proxy) MpoolPublishByAddr(in0 context.Context, in1 address.Address) (er
 }
 
 func (p *Proxy) MpoolPublishMessage(in0 context.Context, in1 *types.SignedMessage) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MpoolPublishMessage %v", err)
 		return
@@ -285,7 +285,7 @@ func (p *Proxy) MpoolPublishMessage(in0 context.Context, in1 *types.SignedMessag
 }
 
 func (p *Proxy) MpoolPush(in0 context.Context, in1 *types.SignedMessage) (out0 cid.Cid, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MpoolPush %v", err)
 		return
@@ -294,7 +294,7 @@ func (p *Proxy) MpoolPush(in0 context.Context, in1 *types.SignedMessage) (out0 c
 }
 
 func (p *Proxy) MpoolPushMessage(in0 context.Context, in1 *types.Message, in2 *api1.MessageSendSpec) (out0 *types.SignedMessage, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MpoolPushMessage %v", err)
 		return
@@ -303,7 +303,7 @@ func (p *Proxy) MpoolPushMessage(in0 context.Context, in1 *types.Message, in2 *a
 }
 
 func (p *Proxy) MpoolSelect(in0 context.Context, in1 types.TipSetKey, in2 float64) (out0 []*types.SignedMessage, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MpoolSelect %v", err)
 		return
@@ -312,7 +312,7 @@ func (p *Proxy) MpoolSelect(in0 context.Context, in1 types.TipSetKey, in2 float6
 }
 
 func (p *Proxy) MpoolSelects(in0 context.Context, in1 types.TipSetKey, in2 []float64) (out0 [][]*types.SignedMessage, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api MpoolSelects %v", err)
 		return
@@ -321,7 +321,7 @@ func (p *Proxy) MpoolSelects(in0 context.Context, in1 types.TipSetKey, in2 []flo
 }
 
 func (p *Proxy) StateAccountKey(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 address.Address, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateAccountKey %v", err)
 		return
@@ -330,7 +330,7 @@ func (p *Proxy) StateAccountKey(in0 context.Context, in1 address.Address, in2 ty
 }
 
 func (p *Proxy) StateActorCodeCIDs(in0 context.Context, in1 network.Version) (out0 map[string]cid.Cid, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api StateActorCodeCIDs %v", err)
 		return
@@ -339,7 +339,7 @@ func (p *Proxy) StateActorCodeCIDs(in0 context.Context, in1 network.Version) (ou
 }
 
 func (p *Proxy) StateActorManifestCID(in0 context.Context, in1 network.Version) (out0 cid.Cid, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api StateActorManifestCID %v", err)
 		return
@@ -348,7 +348,7 @@ func (p *Proxy) StateActorManifestCID(in0 context.Context, in1 network.Version) 
 }
 
 func (p *Proxy) StateAllMinerFaults(in0 context.Context, in1 abi.ChainEpoch, in2 types.TipSetKey) (out0 []*api1.Fault, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateAllMinerFaults %v", err)
 		return
@@ -357,7 +357,7 @@ func (p *Proxy) StateAllMinerFaults(in0 context.Context, in1 abi.ChainEpoch, in2
 }
 
 func (p *Proxy) StateCall(in0 context.Context, in1 *types.Message, in2 types.TipSetKey) (out0 *api1.InvocResult, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateCall %v", err)
 		return
@@ -366,7 +366,7 @@ func (p *Proxy) StateCall(in0 context.Context, in1 *types.Message, in2 types.Tip
 }
 
 func (p *Proxy) StateChangedActors(in0 context.Context, in1 cid.Cid, in2 cid.Cid) (out0 map[string]types.Actor, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api StateChangedActors %v", err)
 		return
@@ -375,7 +375,7 @@ func (p *Proxy) StateChangedActors(in0 context.Context, in1 cid.Cid, in2 cid.Cid
 }
 
 func (p *Proxy) StateCirculatingSupply(in0 context.Context, in1 types.TipSetKey) (out0 big.Int, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in1)
 	if err != nil {
 		err = fmt.Errorf("api StateCirculatingSupply %v", err)
 		return
@@ -384,7 +384,7 @@ func (p *Proxy) StateCirculatingSupply(in0 context.Context, in1 types.TipSetKey)
 }
 
 func (p *Proxy) StateComputeDataCID(in0 context.Context, in1 address.Address, in2 abi.RegisteredSealProof, in3 []abi.DealID, in4 types.TipSetKey) (out0 cid.Cid, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in4)
 	if err != nil {
 		err = fmt.Errorf("api StateComputeDataCID %v", err)
 		return
@@ -393,7 +393,7 @@ func (p *Proxy) StateComputeDataCID(in0 context.Context, in1 address.Address, in
 }
 
 func (p *Proxy) StateDealProviderCollateralBounds(in0 context.Context, in1 abi.PaddedPieceSize, in2 bool, in3 types.TipSetKey) (out0 api1.DealCollateralBounds, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api StateDealProviderCollateralBounds %v", err)
 		return
@@ -402,7 +402,7 @@ func (p *Proxy) StateDealProviderCollateralBounds(in0 context.Context, in1 abi.P
 }
 
 func (p *Proxy) StateGetActor(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *types.Actor, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateGetActor %v", err)
 		return
@@ -411,7 +411,7 @@ func (p *Proxy) StateGetActor(in0 context.Context, in1 address.Address, in2 type
 }
 
 func (p *Proxy) StateGetAllocation(in0 context.Context, in1 address.Address, in2 verifreg.AllocationId, in3 types.TipSetKey) (out0 *verifreg.Allocation, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api StateGetAllocation %v", err)
 		return
@@ -420,7 +420,7 @@ func (p *Proxy) StateGetAllocation(in0 context.Context, in1 address.Address, in2
 }
 
 func (p *Proxy) StateGetAllocationForPendingDeal(in0 context.Context, in1 abi.DealID, in2 types.TipSetKey) (out0 *verifreg.Allocation, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateGetAllocationForPendingDeal %v", err)
 		return
@@ -429,7 +429,7 @@ func (p *Proxy) StateGetAllocationForPendingDeal(in0 context.Context, in1 abi.De
 }
 
 func (p *Proxy) StateGetAllocations(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 map[verifreg.AllocationId]verifreg.Allocation, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateGetAllocations %v", err)
 		return
@@ -438,7 +438,7 @@ func (p *Proxy) StateGetAllocations(in0 context.Context, in1 address.Address, in
 }
 
 func (p *Proxy) StateGetBeaconEntry(in0 context.Context, in1 abi.ChainEpoch) (out0 *types.BeaconEntry, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api StateGetBeaconEntry %v", err)
 		return
@@ -447,7 +447,7 @@ func (p *Proxy) StateGetBeaconEntry(in0 context.Context, in1 abi.ChainEpoch) (ou
 }
 
 func (p *Proxy) StateGetClaim(in0 context.Context, in1 address.Address, in2 verifreg.ClaimId, in3 types.TipSetKey) (out0 *verifreg.Claim, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api StateGetClaim %v", err)
 		return
@@ -456,7 +456,7 @@ func (p *Proxy) StateGetClaim(in0 context.Context, in1 address.Address, in2 veri
 }
 
 func (p *Proxy) StateGetClaims(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 map[verifreg.ClaimId]verifreg.Claim, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateGetClaims %v", err)
 		return
@@ -465,7 +465,7 @@ func (p *Proxy) StateGetClaims(in0 context.Context, in1 address.Address, in2 typ
 }
 
 func (p *Proxy) StateGetNetworkParams(in0 context.Context) (out0 *api1.NetworkParams, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api StateGetNetworkParams %v", err)
 		return
@@ -474,7 +474,7 @@ func (p *Proxy) StateGetNetworkParams(in0 context.Context) (out0 *api1.NetworkPa
 }
 
 func (p *Proxy) StateGetRandomnessFromBeacon(in0 context.Context, in1 crypto.DomainSeparationTag, in2 abi.ChainEpoch, in3 []uint8, in4 types.TipSetKey) (out0 abi.Randomness, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in4)
 	if err != nil {
 		err = fmt.Errorf("api StateGetRandomnessFromBeacon %v", err)
 		return
@@ -483,7 +483,7 @@ func (p *Proxy) StateGetRandomnessFromBeacon(in0 context.Context, in1 crypto.Dom
 }
 
 func (p *Proxy) StateGetRandomnessFromTickets(in0 context.Context, in1 crypto.DomainSeparationTag, in2 abi.ChainEpoch, in3 []uint8, in4 types.TipSetKey) (out0 abi.Randomness, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in4)
 	if err != nil {
 		err = fmt.Errorf("api StateGetRandomnessFromTickets %v", err)
 		return
@@ -492,7 +492,7 @@ func (p *Proxy) StateGetRandomnessFromTickets(in0 context.Context, in1 crypto.Do
 }
 
 func (p *Proxy) StateListActors(in0 context.Context, in1 types.TipSetKey) (out0 []address.Address, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in1)
 	if err != nil {
 		err = fmt.Errorf("api StateListActors %v", err)
 		return
@@ -501,7 +501,7 @@ func (p *Proxy) StateListActors(in0 context.Context, in1 types.TipSetKey) (out0 
 }
 
 func (p *Proxy) StateListMiners(in0 context.Context, in1 types.TipSetKey) (out0 []address.Address, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in1)
 	if err != nil {
 		err = fmt.Errorf("api StateListMiners %v", err)
 		return
@@ -510,7 +510,7 @@ func (p *Proxy) StateListMiners(in0 context.Context, in1 types.TipSetKey) (out0 
 }
 
 func (p *Proxy) StateLookupID(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 address.Address, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateLookupID %v", err)
 		return
@@ -519,7 +519,7 @@ func (p *Proxy) StateLookupID(in0 context.Context, in1 address.Address, in2 type
 }
 
 func (p *Proxy) StateLookupRobustAddress(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 address.Address, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateLookupRobustAddress %v", err)
 		return
@@ -528,7 +528,7 @@ func (p *Proxy) StateLookupRobustAddress(in0 context.Context, in1 address.Addres
 }
 
 func (p *Proxy) StateMarketBalance(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 api1.MarketBalance, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateMarketBalance %v", err)
 		return
@@ -537,7 +537,7 @@ func (p *Proxy) StateMarketBalance(in0 context.Context, in1 address.Address, in2
 }
 
 func (p *Proxy) StateMarketDeals(in0 context.Context, in1 types.TipSetKey) (out0 map[string]*api1.MarketDeal, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in1)
 	if err != nil {
 		err = fmt.Errorf("api StateMarketDeals %v", err)
 		return
@@ -546,7 +546,7 @@ func (p *Proxy) StateMarketDeals(in0 context.Context, in1 types.TipSetKey) (out0
 }
 
 func (p *Proxy) StateMarketParticipants(in0 context.Context, in1 types.TipSetKey) (out0 map[string]api1.MarketBalance, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in1)
 	if err != nil {
 		err = fmt.Errorf("api StateMarketParticipants %v", err)
 		return
@@ -555,7 +555,7 @@ func (p *Proxy) StateMarketParticipants(in0 context.Context, in1 types.TipSetKey
 }
 
 func (p *Proxy) StateMarketStorageDeal(in0 context.Context, in1 abi.DealID, in2 types.TipSetKey) (out0 *api1.MarketDeal, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateMarketStorageDeal %v", err)
 		return
@@ -564,7 +564,7 @@ func (p *Proxy) StateMarketStorageDeal(in0 context.Context, in1 abi.DealID, in2 
 }
 
 func (p *Proxy) StateMinerActiveSectors(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 []*miner.SectorOnChainInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateMinerActiveSectors %v", err)
 		return
@@ -573,7 +573,7 @@ func (p *Proxy) StateMinerActiveSectors(in0 context.Context, in1 address.Address
 }
 
 func (p *Proxy) StateMinerAllocated(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *bitfield.BitField, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateMinerAllocated %v", err)
 		return
@@ -582,7 +582,7 @@ func (p *Proxy) StateMinerAllocated(in0 context.Context, in1 address.Address, in
 }
 
 func (p *Proxy) StateMinerAvailableBalance(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 big.Int, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateMinerAvailableBalance %v", err)
 		return
@@ -591,7 +591,7 @@ func (p *Proxy) StateMinerAvailableBalance(in0 context.Context, in1 address.Addr
 }
 
 func (p *Proxy) StateMinerDeadlines(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 []api1.Deadline, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateMinerDeadlines %v", err)
 		return
@@ -600,7 +600,7 @@ func (p *Proxy) StateMinerDeadlines(in0 context.Context, in1 address.Address, in
 }
 
 func (p *Proxy) StateMinerFaults(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 bitfield.BitField, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateMinerFaults %v", err)
 		return
@@ -609,7 +609,7 @@ func (p *Proxy) StateMinerFaults(in0 context.Context, in1 address.Address, in2 t
 }
 
 func (p *Proxy) StateMinerInfo(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 api1.MinerInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateMinerInfo %v", err)
 		return
@@ -618,7 +618,7 @@ func (p *Proxy) StateMinerInfo(in0 context.Context, in1 address.Address, in2 typ
 }
 
 func (p *Proxy) StateMinerInitialPledgeCollateral(in0 context.Context, in1 address.Address, in2 miner.SectorPreCommitInfo, in3 types.TipSetKey) (out0 big.Int, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api StateMinerInitialPledgeCollateral %v", err)
 		return
@@ -627,7 +627,7 @@ func (p *Proxy) StateMinerInitialPledgeCollateral(in0 context.Context, in1 addre
 }
 
 func (p *Proxy) StateMinerPartitions(in0 context.Context, in1 address.Address, in2 uint64, in3 types.TipSetKey) (out0 []api1.Partition, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api StateMinerPartitions %v", err)
 		return
@@ -636,7 +636,7 @@ func (p *Proxy) StateMinerPartitions(in0 context.Context, in1 address.Address, i
 }
 
 func (p *Proxy) StateMinerPower(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *api1.MinerPower, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateMinerPower %v", err)
 		return
@@ -645,7 +645,7 @@ func (p *Proxy) StateMinerPower(in0 context.Context, in1 address.Address, in2 ty
 }
 
 func (p *Proxy) StateMinerPreCommitDepositForPower(in0 context.Context, in1 address.Address, in2 miner.SectorPreCommitInfo, in3 types.TipSetKey) (out0 big.Int, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api StateMinerPreCommitDepositForPower %v", err)
 		return
@@ -654,7 +654,7 @@ func (p *Proxy) StateMinerPreCommitDepositForPower(in0 context.Context, in1 addr
 }
 
 func (p *Proxy) StateMinerProvingDeadline(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *dline.Info, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateMinerProvingDeadline %v", err)
 		return
@@ -663,7 +663,7 @@ func (p *Proxy) StateMinerProvingDeadline(in0 context.Context, in1 address.Addre
 }
 
 func (p *Proxy) StateMinerRecoveries(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 bitfield.BitField, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateMinerRecoveries %v", err)
 		return
@@ -672,7 +672,7 @@ func (p *Proxy) StateMinerRecoveries(in0 context.Context, in1 address.Address, i
 }
 
 func (p *Proxy) StateMinerSectorAllocated(in0 context.Context, in1 address.Address, in2 abi.SectorNumber, in3 types.TipSetKey) (out0 bool, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api StateMinerSectorAllocated %v", err)
 		return
@@ -681,7 +681,7 @@ func (p *Proxy) StateMinerSectorAllocated(in0 context.Context, in1 address.Addre
 }
 
 func (p *Proxy) StateMinerSectorCount(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 api1.MinerSectors, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateMinerSectorCount %v", err)
 		return
@@ -690,7 +690,7 @@ func (p *Proxy) StateMinerSectorCount(in0 context.Context, in1 address.Address, 
 }
 
 func (p *Proxy) StateMinerSectors(in0 context.Context, in1 address.Address, in2 *bitfield.BitField, in3 types.TipSetKey) (out0 []*miner.SectorOnChainInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api StateMinerSectors %v", err)
 		return
@@ -699,7 +699,7 @@ func (p *Proxy) StateMinerSectors(in0 context.Context, in1 address.Address, in2 
 }
 
 func (p *Proxy) StateNetworkName(in0 context.Context) (out0 dtypes.NetworkName, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api StateNetworkName %v", err)
 		return
@@ -708,7 +708,7 @@ func (p *Proxy) StateNetworkName(in0 context.Context) (out0 dtypes.NetworkName, 
 }
 
 func (p *Proxy) StateNetworkVersion(in0 context.Context, in1 types.TipSetKey) (out0 network.Version, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in1)
 	if err != nil {
 		err = fmt.Errorf("api StateNetworkVersion %v", err)
 		return
@@ -717,7 +717,7 @@ func (p *Proxy) StateNetworkVersion(in0 context.Context, in1 types.TipSetKey) (o
 }
 
 func (p *Proxy) StateReadState(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *api1.ActorState, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateReadState %v", err)
 		return
@@ -726,7 +726,7 @@ func (p *Proxy) StateReadState(in0 context.Context, in1 address.Address, in2 typ
 }
 
 func (p *Proxy) StateSearchMsg(in0 context.Context, in1 types.TipSetKey, in2 cid.Cid, in3 abi.ChainEpoch, in4 bool) (out0 *api1.MsgLookup, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api StateSearchMsg %v", err)
 		return
@@ -735,7 +735,7 @@ func (p *Proxy) StateSearchMsg(in0 context.Context, in1 types.TipSetKey, in2 cid
 }
 
 func (p *Proxy) StateSectorExpiration(in0 context.Context, in1 address.Address, in2 abi.SectorNumber, in3 types.TipSetKey) (out0 *miner1.SectorExpiration, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api StateSectorExpiration %v", err)
 		return
@@ -744,7 +744,7 @@ func (p *Proxy) StateSectorExpiration(in0 context.Context, in1 address.Address, 
 }
 
 func (p *Proxy) StateSectorGetInfo(in0 context.Context, in1 address.Address, in2 abi.SectorNumber, in3 types.TipSetKey) (out0 *miner.SectorOnChainInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api StateSectorGetInfo %v", err)
 		return
@@ -753,7 +753,7 @@ func (p *Proxy) StateSectorGetInfo(in0 context.Context, in1 address.Address, in2
 }
 
 func (p *Proxy) StateSectorPartition(in0 context.Context, in1 address.Address, in2 abi.SectorNumber, in3 types.TipSetKey) (out0 *miner1.SectorLocation, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api StateSectorPartition %v", err)
 		return
@@ -762,7 +762,7 @@ func (p *Proxy) StateSectorPartition(in0 context.Context, in1 address.Address, i
 }
 
 func (p *Proxy) StateSectorPreCommitInfo(in0 context.Context, in1 address.Address, in2 abi.SectorNumber, in3 types.TipSetKey) (out0 *miner.SectorPreCommitOnChainInfo, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in3)
 	if err != nil {
 		err = fmt.Errorf("api StateSectorPreCommitInfo %v", err)
 		return
@@ -771,7 +771,7 @@ func (p *Proxy) StateSectorPreCommitInfo(in0 context.Context, in1 address.Addres
 }
 
 func (p *Proxy) StateVMCirculatingSupplyInternal(in0 context.Context, in1 types.TipSetKey) (out0 api1.CirculatingSupply, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in1)
 	if err != nil {
 		err = fmt.Errorf("api StateVMCirculatingSupplyInternal %v", err)
 		return
@@ -780,7 +780,7 @@ func (p *Proxy) StateVMCirculatingSupplyInternal(in0 context.Context, in1 types.
 }
 
 func (p *Proxy) StateVerifiedClientStatus(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *big.Int, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateVerifiedClientStatus %v", err)
 		return
@@ -789,7 +789,7 @@ func (p *Proxy) StateVerifiedClientStatus(in0 context.Context, in1 address.Addre
 }
 
 func (p *Proxy) StateVerifiedRegistryRootKey(in0 context.Context, in1 types.TipSetKey) (out0 address.Address, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in1)
 	if err != nil {
 		err = fmt.Errorf("api StateVerifiedRegistryRootKey %v", err)
 		return
@@ -798,7 +798,7 @@ func (p *Proxy) StateVerifiedRegistryRootKey(in0 context.Context, in1 types.TipS
 }
 
 func (p *Proxy) StateVerifierStatus(in0 context.Context, in1 address.Address, in2 types.TipSetKey) (out0 *big.Int, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(in2)
 	if err != nil {
 		err = fmt.Errorf("api StateVerifierStatus %v", err)
 		return
@@ -807,7 +807,7 @@ func (p *Proxy) StateVerifierStatus(in0 context.Context, in1 address.Address, in
 }
 
 func (p *Proxy) StateWaitMsg(in0 context.Context, in1 cid.Cid, in2 uint64, in3 abi.ChainEpoch, in4 bool) (out0 *api1.MsgLookup, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api StateWaitMsg %v", err)
 		return
@@ -816,7 +816,7 @@ func (p *Proxy) StateWaitMsg(in0 context.Context, in1 cid.Cid, in2 uint64, in3 a
 }
 
 func (p *Proxy) SyncState(in0 context.Context) (out0 *api1.SyncState, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api SyncState %v", err)
 		return
@@ -825,7 +825,7 @@ func (p *Proxy) SyncState(in0 context.Context) (out0 *api1.SyncState, err error)
 }
 
 func (p *Proxy) SyncSubmitBlock(in0 context.Context, in1 *types.BlockMsg) (err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api SyncSubmitBlock %v", err)
 		return
@@ -834,7 +834,7 @@ func (p *Proxy) SyncSubmitBlock(in0 context.Context, in1 *types.BlockMsg) (err e
 }
 
 func (p *Proxy) Version(in0 context.Context) (out0 api1.APIVersion, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api Version %v", err)
 		return
@@ -843,7 +843,7 @@ func (p *Proxy) Version(in0 context.Context) (out0 api1.APIVersion, err error) {
 }
 
 func (p *Proxy) WalletBalance(in0 context.Context, in1 address.Address) (out0 big.Int, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api WalletBalance %v", err)
 		return
@@ -852,7 +852,7 @@ func (p *Proxy) WalletBalance(in0 context.Context, in1 address.Address) (out0 bi
 }
 
 func (p *Proxy) WalletHas(in0 context.Context, in1 address.Address) (out0 bool, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api WalletHas %v", err)
 		return
@@ -861,7 +861,7 @@ func (p *Proxy) WalletHas(in0 context.Context, in1 address.Address) (out0 bool, 
 }
 
 func (p *Proxy) WalletSign(in0 context.Context, in1 address.Address, in2 []uint8) (out0 *crypto.Signature, err error) {
-	cli, err := p.Select()
+	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
 		err = fmt.Errorf("api WalletSign %v", err)
 		return

@@ -7,16 +7,21 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/filecoin-project/lotus/chain/types"
 	"golang.org/x/tools/imports"
 )
 
 var errType = reflect.TypeOf((*error)(nil)).Elem()
+var tskType = reflect.TypeOf(types.EmptyTSK)
 
 // Gen generates the impl code for given api interface
 func Gen(pkgName, structName string, api interface{}) ([]byte, error) {
 	gen := newGenerator(pkgName, structName)
 	if err := gen.register(reflect.TypeOf(api)); err != nil {
 		return nil, err
+	}
+	if structName == "Local" {
+		gen.deps["github.com/filecoin-project/lotus/chain/types"] = &depDef{}
 	}
 
 	var buf bytes.Buffer
@@ -58,6 +63,11 @@ func (m method) writeMethodDef(structName string, buf *bytes.Buffer) {
 		inDefs = append(inDefs, def)
 	}
 
+	tskName := "types.EmptyTSK"
+	if m.in[len(m.in)-1].raw == tskType {
+		tskName = inNames[len(inNames)-1]
+	}
+
 	for i := range m.out {
 		def := fmt.Sprintf("out%d %s", i, m.out[i])
 		outDefs = append(outDefs, def)
@@ -68,12 +78,14 @@ func (m method) writeMethodDef(structName string, buf *bytes.Buffer) {
 	}
 
 	buf.WriteString(fmt.Sprintf("func (p *%s) %s(%s) (%s) {\n", structName, m.name, strings.Join(inDefs, ", "), strings.Join(outDefs, ", ")))
-	buf.WriteString(fmt.Sprintf(`cli, err := p.Select()
+
+	buf.WriteString(fmt.Sprintf(`cli, err := p.Select(%s)
 	if err != nil {
 		err = fmt.Errorf("api %s %%v", err)
 		return
 	}
-	`, m.name))
+	`, tskName, m.name))
+
 	buf.WriteString(fmt.Sprintf("return cli.%s(%s)", m.name, strings.Join(inNames, ", ")))
 	buf.WriteString("}\n\n")
 }
@@ -137,7 +149,7 @@ func (g *generator) writeTypeAssertion(buf *bytes.Buffer) {
 
 func (g *generator) writeStructDef(buf *bytes.Buffer) {
 	buf.WriteString(fmt.Sprintf("type %s struct {\n", g.structName))
-	buf.WriteString(fmt.Sprintf("Select func() (%sAPI, error)\n", g.structName))
+	buf.WriteString(fmt.Sprintf("Select func(types.TipSetKey) (%sAPI, error)\n", g.structName))
 	buf.WriteString("}\n\n")
 }
 

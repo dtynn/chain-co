@@ -5,11 +5,14 @@ import (
 	"sync"
 	"time"
 
+	lru "github.com/hashicorp/golang-lru"
+
 	"github.com/filecoin-project/lotus/api/v1api"
 	"github.com/ipfs-force-community/venus-common-utils/apiinfo"
 
 	"github.com/filecoin-project/go-jsonrpc"
 	"github.com/hashicorp/go-multierror"
+
 	"github.com/ipfs/go-cid"
 	"go.uber.org/zap"
 
@@ -70,7 +73,8 @@ type Node struct {
 		closer jsonrpc.ClientCloser
 	}
 
-	log *zap.SugaredLogger
+	blkCache *lru.ARCCache
+	log      *zap.SugaredLogger
 }
 
 func NewNode(cctx *Ctx, info NodeInfo) (*Node, error) {
@@ -79,6 +83,11 @@ func NewNode(cctx *Ctx, info NodeInfo) (*Node, error) {
 		return nil, err
 	}
 	ctx, cancel := context.WithCancel(cctx.lc)
+	blkCache, err := lru.NewARC(100)
+	if err != nil {
+		cancel()
+		return nil, err
+	}
 	return &Node{
 		reListenInterval: cctx.nodeOpt.ReListenMinInterval,
 		opt:              cctx.nodeOpt,
@@ -87,6 +96,7 @@ func NewNode(cctx *Ctx, info NodeInfo) (*Node, error) {
 		cancel:           cancel,
 		sctx:             cctx,
 		Addr:             info.Addr,
+		blkCache:         blkCache,
 		log:              log.With("remote", addr),
 	}, nil
 }
@@ -206,8 +216,11 @@ func (n *Node) applyChanges(lifeCtx context.Context, changes []*api.HeadChange) 
 	idx := -1
 	for i := range changes {
 		switch changes[i].Type {
-		case store.HCCurrent, store.HCApply:
+		case store.HCCurrent:
 			idx = i
+		case store.HCApply:
+			idx = i
+			n.storeKey(changes[i].Val.Key())
 		}
 	}
 
@@ -285,6 +298,25 @@ func (n *Node) loadBlockHeader(ctx context.Context, c cid.Cid) (*types.BlockHead
 
 	blk, err := n.upstream.full.ChainGetBlock(ctx, c)
 	return blk, err
+}
+
+func (n *Node) hasKey(key types.TipSetKey) bool {
+	for _, blkCid := range key.Cids() {
+		_, has := n.blkCache.Peek(blkCid.String())
+		if !has {
+			return false
+		}
+	}
+	return true
+}
+
+func (n *Node) storeKey(key types.TipSetKey) {
+	for _, blkCid := range key.Cids() {
+		_, has := n.blkCache.Peek(blkCid.String())
+		if !has {
+			n.blkCache.Add(blkCid.String(), nil)
+		}
+	}
 }
 
 const (
