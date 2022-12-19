@@ -11,7 +11,7 @@ require (
 	github.com/filecoin-project/go-jsonrpc v0.1.8
 	github.com/filecoin-project/go-state-types v0.9.8
 	github.com/filecoin-project/lotus v1.18.0
-	github.com/filecoin-project/venus-auth v1.8.0
+	github.com/filecoin-project/venus-auth v1.9.0-rc1
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-multierror v1.1.1
