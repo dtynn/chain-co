@@ -20,6 +20,15 @@ type Local struct {
 }
 
 // impl api.Local
+func (p *Local) ChainHead(in0 context.Context) (out0 *types.TipSet, err error) {
+	cli, err := p.Select(types.EmptyTSK)
+	if err != nil {
+		err = fmt.Errorf("api ChainHead %v", err)
+		return
+	}
+	return cli.ChainHead(in0)
+}
+
 func (p *Local) ChainNotify(in0 context.Context) (out0 <-chan []*api1.HeadChange, err error) {
 	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {

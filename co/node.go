@@ -5,8 +5,6 @@ import (
 	"sync"
 	"time"
 
-	lru "github.com/hashicorp/golang-lru"
-
 	"github.com/filecoin-project/lotus/api/v1api"
 	"github.com/ipfs-force-community/venus-common-utils/apiinfo"
 
@@ -73,8 +71,9 @@ type Node struct {
 		closer jsonrpc.ClientCloser
 	}
 
-	blkCache *lru.ARCCache
-	log      *zap.SugaredLogger
+	blkCache *blockHeaderCache
+
+	log *zap.SugaredLogger
 }
 
 func NewNode(cctx *Ctx, info NodeInfo) (*Node, error) {
@@ -83,11 +82,12 @@ func NewNode(cctx *Ctx, info NodeInfo) (*Node, error) {
 		return nil, err
 	}
 	ctx, cancel := context.WithCancel(cctx.lc)
-	blkCache, err := lru.NewARC(100)
+	blkCache, err := newBlockHeaderCache(1 << 20)
 	if err != nil {
 		cancel()
 		return nil, err
 	}
+
 	return &Node{
 		reListenInterval: cctx.nodeOpt.ReListenMinInterval,
 		opt:              cctx.nodeOpt,
@@ -211,7 +211,7 @@ func (n *Node) reListen() (<-chan []*api.HeadChange, error) {
 }
 
 func (n *Node) applyChanges(lifeCtx context.Context, changes []*api.HeadChange) {
-	n.sctx.bcache.add(changes)
+	n.blkCache.add(changes)
 
 	idx := -1
 	for i := range changes {
@@ -220,7 +220,6 @@ func (n *Node) applyChanges(lifeCtx context.Context, changes []*api.HeadChange) 
 			idx = i
 		case store.HCApply:
 			idx = i
-			n.storeKey(changes[i].Val.Key())
 		}
 	}
 
@@ -292,7 +291,7 @@ func (n *Node) loadTipSet(ctx context.Context, tsk types.TipSetKey) (*types.TipS
 }
 
 func (n *Node) loadBlockHeader(ctx context.Context, c cid.Cid) (*types.BlockHeader, error) {
-	if blk, ok := n.sctx.bcache.load(c); ok {
+	if blk, ok := n.blkCache.load(c); ok {
 		return blk, nil
 	}
 
@@ -300,23 +299,8 @@ func (n *Node) loadBlockHeader(ctx context.Context, c cid.Cid) (*types.BlockHead
 	return blk, err
 }
 
-func (n *Node) hasKey(key types.TipSetKey) bool {
-	for _, blkCid := range key.Cids() {
-		_, has := n.blkCache.Peek(blkCid.String())
-		if !has {
-			return false
-		}
-	}
-	return true
-}
-
-func (n *Node) storeKey(key types.TipSetKey) {
-	for _, blkCid := range key.Cids() {
-		_, has := n.blkCache.Peek(blkCid.String())
-		if !has {
-			n.blkCache.Add(blkCid.String(), nil)
-		}
-	}
+func (n *Node) hasTipset(key types.TipSetKey) bool {
+	return n.blkCache.hasKey(key)
 }
 
 const (

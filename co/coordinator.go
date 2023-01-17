@@ -111,9 +111,7 @@ func (c *Coordinator) handleCandidate(hc *headCandidate) {
 		preAddrs := c.sel.getAddrOfPriority(CatchUpPriority)
 		c.sel.setPriority(DelayPriority, preAddrs...)
 		c.sel.setPriority(CatchUpPriority, addr)
-
 		c.tspub.Pub(headChanges, tipsetChangeTopic)
-
 		return
 	}
 
