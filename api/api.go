@@ -56,9 +56,6 @@ type Proxy interface {
 	// between the two objects.
 	ChainStatObj(ctx context.Context, obj cid.Cid, base cid.Cid) (api.ObjStat, error) //perm:read
 
-	// ChainHead returns the current head of the chain.
-	ChainHead(context.Context) (*types.TipSet, error) //perm:read
-
 	// ChainGetBlock returns the block specified by the given CID.
 	ChainGetBlock(context.Context, cid.Cid) (*types.BlockHeader, error) //perm:read
 
@@ -385,6 +382,7 @@ type Local interface {
 	// ChainNotify returns channel with chain head updates.
 	// First message is guaranteed to be of len == 1, and type == 'current'.
 	ChainNotify(context.Context) (<-chan []*api.HeadChange, error)
+	ChainHead(context.Context) (*types.TipSet, error)
 }
 
 // UnSupport is a subset of api.FullNode

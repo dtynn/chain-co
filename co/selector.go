@@ -157,8 +157,9 @@ func (s *Selector) Select(tsk types.TipSetKey) (*Node, error) {
 
 	for addr, p := range s.priority {
 		node := s.nodeProvider.GetNode(addr)
-		if !node.hasKey(tsk) {
-			log.Warnf("node %s not contains key %s", addr, tsk)
+		if !tsk.IsEmpty() && node.hasTipset(tsk) && p != ErrPriority {
+			log.Debugf("node %s has tipset %s, change to catchup node", addr, tsk.Cids())
+			catchUpQue[addr] = s.weight[addr]
 			continue
 		}
 		if p == CatchUpPriority {

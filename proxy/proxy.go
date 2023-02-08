@@ -140,15 +140,6 @@ func (p *Proxy) ChainHasObj(in0 context.Context, in1 cid.Cid) (out0 bool, err er
 	return cli.ChainHasObj(in0, in1)
 }
 
-func (p *Proxy) ChainHead(in0 context.Context) (out0 *types.TipSet, err error) {
-	cli, err := p.Select(types.EmptyTSK)
-	if err != nil {
-		err = fmt.Errorf("api ChainHead %v", err)
-		return
-	}
-	return cli.ChainHead(in0)
-}
-
 func (p *Proxy) ChainReadObj(in0 context.Context, in1 cid.Cid) (out0 []uint8, err error) {
 	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
