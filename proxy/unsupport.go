@@ -1111,6 +1111,24 @@ func (p *UnSupport) PaychVoucherSubmit(in0 context.Context, in1 address.Address,
 	return cli.PaychVoucherSubmit(in0, in1, in2, in3, in4)
 }
 
+func (p *UnSupport) RaftLeader(in0 context.Context) (out0 peer.ID, err error) {
+	cli, err := p.Select(types.EmptyTSK)
+	if err != nil {
+		err = fmt.Errorf("api RaftLeader %v", err)
+		return
+	}
+	return cli.RaftLeader(in0)
+}
+
+func (p *UnSupport) RaftState(in0 context.Context) (out0 *api1.RaftStateData, err error) {
+	cli, err := p.Select(types.EmptyTSK)
+	if err != nil {
+		err = fmt.Errorf("api RaftState %v", err)
+		return
+	}
+	return cli.RaftState(in0)
+}
+
 func (p *UnSupport) Session(in0 context.Context) (out0 uuid.UUID, err error) {
 	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
@@ -1127,6 +1145,15 @@ func (p *UnSupport) Shutdown(in0 context.Context) (err error) {
 		return
 	}
 	return cli.Shutdown(in0)
+}
+
+func (p *UnSupport) StartTime(in0 context.Context) (out0 time.Time, err error) {
+	cli, err := p.Select(types.EmptyTSK)
+	if err != nil {
+		err = fmt.Errorf("api StartTime %v", err)
+		return
+	}
+	return cli.StartTime(in0)
 }
 
 func (p *UnSupport) StateCompute(in0 context.Context, in1 abi.ChainEpoch, in2 []*types.Message, in3 types.TipSetKey) (out0 *api1.ComputeStateOutput, err error) {

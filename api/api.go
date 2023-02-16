@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/filecoin-project/go-jsonrpc"
 	"github.com/filecoin-project/go-jsonrpc/auth"
 	apitypes "github.com/filecoin-project/lotus/api/types"
 	"github.com/filecoin-project/lotus/journal/alerting"
@@ -29,6 +30,7 @@ import (
 	"github.com/filecoin-project/lotus/api"
 	lminer "github.com/filecoin-project/lotus/chain/actors/builtin/miner"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/filecoin-project/lotus/chain/types/ethtypes"
 	marketevents "github.com/filecoin-project/lotus/markets/loggers"
 	"github.com/filecoin-project/lotus/node/modules/dtypes"
 	metrics "github.com/libp2p/go-libp2p/core/metrics"
@@ -108,6 +110,9 @@ type Proxy interface {
 	//```
 	// Would return `[revert(tBA), apply(tAB), apply(tAA)]`
 	ChainGetPath(ctx context.Context, from types.TipSetKey, to types.TipSetKey) ([]*api.HeadChange, error) //perm:read
+
+	// ChainGetEvents returns the events under an event AMT root CID.
+	ChainGetEvents(context.Context, cid.Cid) ([]types.Event, error) //perm:read
 
 	// MethodGroup: Beacon
 	// The Beacon method group contains methods for interacting with the random beacon (DRAND)
@@ -374,6 +379,82 @@ type Proxy interface {
 	ChainGetTipSetAfterHeight(ctx context.Context, epoch abi.ChainEpoch, key types.TipSetKey) (*types.TipSet, error) //perm:read
 	// Version provides information about API provider
 	Version(context.Context) (api.APIVersion, error) //perm:read
+
+	// eth nv18
+	// These methods are used for Ethereum-compatible JSON-RPC calls
+	//
+	// EthAccounts will always return [] since we don't expect Lotus to manage private keys
+	EthAccounts(ctx context.Context) ([]ethtypes.EthAddress, error) //perm:read
+	// EthBlockNumber returns the height of the latest (heaviest) TipSet
+	EthBlockNumber(ctx context.Context) (ethtypes.EthUint64, error) //perm:read
+	// EthGetBlockTransactionCountByNumber returns the number of messages in the TipSet
+	EthGetBlockTransactionCountByNumber(ctx context.Context, blkNum ethtypes.EthUint64) (ethtypes.EthUint64, error) //perm:read
+	// EthGetBlockTransactionCountByHash returns the number of messages in the TipSet
+	EthGetBlockTransactionCountByHash(ctx context.Context, blkHash ethtypes.EthHash) (ethtypes.EthUint64, error) //perm:read
+
+	EthGetBlockByHash(ctx context.Context, blkHash ethtypes.EthHash, fullTxInfo bool) (ethtypes.EthBlock, error)                               //perm:read
+	EthGetBlockByNumber(ctx context.Context, blkNum string, fullTxInfo bool) (ethtypes.EthBlock, error)                                        //perm:read
+	EthGetTransactionByHash(ctx context.Context, txHash *ethtypes.EthHash) (*ethtypes.EthTx, error)                                            //perm:read
+	EthGetTransactionHashByCid(ctx context.Context, cid cid.Cid) (*ethtypes.EthHash, error)                                                    //perm:read
+	EthGetMessageCidByTransactionHash(ctx context.Context, txHash *ethtypes.EthHash) (*cid.Cid, error)                                         //perm:read
+	EthGetTransactionCount(ctx context.Context, sender ethtypes.EthAddress, blkOpt string) (ethtypes.EthUint64, error)                         //perm:read
+	EthGetTransactionReceipt(ctx context.Context, txHash ethtypes.EthHash) (*api.EthTxReceipt, error)                                          //perm:read
+	EthGetTransactionByBlockHashAndIndex(ctx context.Context, blkHash ethtypes.EthHash, txIndex ethtypes.EthUint64) (ethtypes.EthTx, error)    //perm:read
+	EthGetTransactionByBlockNumberAndIndex(ctx context.Context, blkNum ethtypes.EthUint64, txIndex ethtypes.EthUint64) (ethtypes.EthTx, error) //perm:read
+
+	EthGetCode(ctx context.Context, address ethtypes.EthAddress, blkOpt string) (ethtypes.EthBytes, error)                                    //perm:read
+	EthGetStorageAt(ctx context.Context, address ethtypes.EthAddress, position ethtypes.EthBytes, blkParam string) (ethtypes.EthBytes, error) //perm:read
+	EthGetBalance(ctx context.Context, address ethtypes.EthAddress, blkParam string) (ethtypes.EthBigInt, error)                              //perm:read
+	EthChainId(ctx context.Context) (ethtypes.EthUint64, error)                                                                               //perm:read
+	NetVersion(ctx context.Context) (string, error)                                                                                           //perm:read
+	NetListening(ctx context.Context) (bool, error)                                                                                           //perm:read
+	EthProtocolVersion(ctx context.Context) (ethtypes.EthUint64, error)                                                                       //perm:read
+	EthGasPrice(ctx context.Context) (ethtypes.EthBigInt, error)                                                                              //perm:read
+	EthFeeHistory(ctx context.Context, p jsonrpc.RawParams) (ethtypes.EthFeeHistory, error)                                                   //perm:read
+
+	EthMaxPriorityFeePerGas(ctx context.Context) (ethtypes.EthBigInt, error)                      //perm:read
+	EthEstimateGas(ctx context.Context, tx ethtypes.EthCall) (ethtypes.EthUint64, error)          //perm:read
+	EthCall(ctx context.Context, tx ethtypes.EthCall, blkParam string) (ethtypes.EthBytes, error) //perm:read
+
+	EthSendRawTransaction(ctx context.Context, rawTx ethtypes.EthBytes) (ethtypes.EthHash, error) //perm:read
+
+	// Returns the client version
+	Web3ClientVersion(ctx context.Context) (string, error) //perm:read
+
+	// Returns event logs matching given filter spec.
+	EthGetLogs(ctx context.Context, filter *ethtypes.EthFilterSpec) (*ethtypes.EthFilterResult, error) //perm:read
+
+	// Polling method for a filter, returns event logs which occurred since last poll.
+	// (requires write perm since timestamp of last filter execution will be written)
+	EthGetFilterChanges(ctx context.Context, id ethtypes.EthFilterID) (*ethtypes.EthFilterResult, error) //perm:write
+
+	// Returns event logs matching filter with given id.
+	// (requires write perm since timestamp of last filter execution will be written)
+	EthGetFilterLogs(ctx context.Context, id ethtypes.EthFilterID) (*ethtypes.EthFilterResult, error) //perm:write
+
+	// Installs a persistent filter based on given filter spec.
+	EthNewFilter(ctx context.Context, filter *ethtypes.EthFilterSpec) (ethtypes.EthFilterID, error) //perm:write
+
+	// Installs a persistent filter to notify when a new block arrives.
+	EthNewBlockFilter(ctx context.Context) (ethtypes.EthFilterID, error) //perm:write
+
+	// Installs a persistent filter to notify when new messages arrive in the message pool.
+	EthNewPendingTransactionFilter(ctx context.Context) (ethtypes.EthFilterID, error) //perm:write
+
+	// Uninstalls a filter with given id.
+	EthUninstallFilter(ctx context.Context, id ethtypes.EthFilterID) (bool, error) //perm:write
+
+	// Subscribe to different event types using websockets
+	// eventTypes is one or more of:
+	//  - newHeads: notify when new blocks arrive.
+	//  - pendingTransactions: notify when new messages arrive in the message pool.
+	//  - logs: notify new event logs that match a criteria
+	// params contains additional parameters used with the log event type
+	// The client will receive a stream of EthSubscriptionResponse values until EthUnsubscribe is called.
+	EthSubscribe(ctx context.Context, params jsonrpc.RawParams) (ethtypes.EthSubscriptionID, error) //perm:write
+
+	// Unsubscribe from a websocket subscription
+	EthUnsubscribe(ctx context.Context, id ethtypes.EthSubscriptionID) (bool, error) //perm:write
 }
 
 // Local is a subset of api.FullNode.
@@ -449,6 +530,9 @@ type UnSupport interface {
 
 	// Session returns a random UUID of api provider session
 	Session(context.Context) (uuid.UUID, error) //perm:read
+
+	// StartTime returns node start time
+	StartTime(context.Context) (time.Time, error) //perm:read
 
 	Closing(context.Context) (<-chan struct{}, error) //perm:read
 
@@ -832,4 +916,7 @@ type UnSupport interface {
 	// ChainPrune prunes the stored chain state and garbage collects; only supported if you
 	// are using the splitstore
 	ChainPrune(ctx context.Context, opts api.PruneOpts) error //perm:admin
+
+	RaftState(ctx context.Context) (*api.RaftStateData, error) //perm:read
+	RaftLeader(ctx context.Context) (peer.ID, error)           //perm:read
 }

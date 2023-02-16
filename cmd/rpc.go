@@ -57,7 +57,8 @@ func serveRPC(ctx context.Context, authEndpoint, rateLimitRedis, listen string, 
 		handler3 = &ochttp.Handler{Handler: handler3}
 	}
 
-	limitWrapper := full
+	pma := api.PermissionedFullAPI(full)
+
 	if len(rateLimitRedis) > 0 && remoteJwtCli != nil {
 		log.Infof("use rate limit %s", rateLimitRedis)
 		limiter, err := ratelimit.NewRateLimitHandler(
@@ -70,14 +71,10 @@ func serveRPC(ctx context.Context, authEndpoint, rateLimitRedis, listen string, 
 			return err
 		}
 
-		var rateLimitAPI api.FullNodeStruct
-		limiter.WarpFunctions(full, &rateLimitAPI.Internal)
-		limiter.WarpFunctions(full, &rateLimitAPI.VenusAPIStruct.Internal)
-		limiter.WarpFunctions(full, &rateLimitAPI.CommonStruct.Internal)
-		limitWrapper = &rateLimitAPI
+		rateLimitAPI := &api.FullNodeStruct{}
+		limiter.WraperLimiter(pma, rateLimitAPI)
+		pma = rateLimitAPI
 	}
-
-	pma := api.PermissionedFullAPI(limitWrapper)
 
 	serveRpc := func(path string, hnd interface{}, handler http.Handler, rpcSer *jsonrpc.RPCServer) {
 		rpcSer.Register("Filecoin", hnd)
