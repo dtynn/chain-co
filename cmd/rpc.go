@@ -71,9 +71,12 @@ func serveRPC(ctx context.Context, authEndpoint, rateLimitRedis, listen string, 
 			return err
 		}
 
-		rateLimitAPI := &api.FullNodeStruct{}
-		limiter.WraperLimiter(pma, rateLimitAPI)
-		pma = rateLimitAPI
+		var rateLimitAPI api.FullNodeStruct
+		limiter.WrapFunctions(full, &rateLimitAPI.Internal)
+		limiter.WrapFunctions(full, &rateLimitAPI.NetStruct.Internal)
+		limiter.WrapFunctions(full, &rateLimitAPI.VenusAPIStruct.Internal)
+		limiter.WrapFunctions(full, &rateLimitAPI.CommonStruct.Internal)
+		pma = &rateLimitAPI
 	}
 
 	serveRpc := func(path string, hnd interface{}, handler http.Handler, rpcSer *jsonrpc.RPCServer) {
