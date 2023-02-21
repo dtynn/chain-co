@@ -2,7 +2,7 @@ name: build and upload
 
 on:
   push:
-    branches: ['prep/**', 'release/**', 'test/**', master]
+    branches: ['release/**', 'dev/**', master]
     tags: ['**']
 
 jobs:

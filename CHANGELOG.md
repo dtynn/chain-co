@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.4.0-rc2
+
+* 升级 lotus 和 go-jsonrpc 版本
+* 调整 Git workflows
+
 ## v0.4.0-rc1
 
 支持 Filecoin NV18 网络升级
