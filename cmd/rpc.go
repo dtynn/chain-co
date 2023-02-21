@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"github.com/dtynn/dix"
+	"github.com/etherlabsio/healthcheck/v2"
 	"github.com/filecoin-project/go-jsonrpc"
 	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/api/v0api"
@@ -27,38 +28,12 @@ func serveRPC(ctx context.Context, authEndpoint, rateLimitRedis, listen string, 
 		serverOptions = append(serverOptions, jsonrpc.WithMaxRequestSize(maxRequestSize))
 	}
 
-	rpcServer := jsonrpc.NewServer(serverOptions...)
-	rpcServer2 := jsonrpc.NewServer(serverOptions...)
-	rpcServer3 := jsonrpc.NewServer(serverOptions...)
-
 	var remoteJwtCli *jwtclient.AuthClient
 	if len(authEndpoint) > 0 {
 		remoteJwtCli, _ = jwtclient.NewAuthClient(authEndpoint)
 	}
 
-	// register hander to verify token in venus-auth
-	var handler, handler2 http.Handler
-	if remoteJwtCli != nil {
-		handler = (http.Handler)(jwtclient.NewAuthMux(jwt, jwtclient.WarpIJwtAuthClient(remoteJwtCli), rpcServer))
-		handler2 = (http.Handler)(jwtclient.NewAuthMux(jwt, jwtclient.WarpIJwtAuthClient(remoteJwtCli), rpcServer2))
-	} else {
-		handler = (http.Handler)(jwtclient.NewAuthMux(jwt, nil, rpcServer))
-		handler2 = (http.Handler)(jwtclient.NewAuthMux(jwt, nil, rpcServer2))
-	}
-	handler3 := (http.Handler)(jwtclient.NewAuthMux(jwt, nil, rpcServer3))
-
-	if repoter, err := metrics.RegisterJaeger(mCnf.ServerName, mCnf); err != nil {
-		log.Fatalf("register %s JaegerRepoter to %s failed:%s", mCnf.ServerName, mCnf.JaegerEndpoint, err)
-	} else if repoter != nil {
-		log.Infof("register jaeger-tracing exporter to %s, with node-name:%s", mCnf.JaegerEndpoint, mCnf.ServerName)
-		defer metrics.UnregisterJaeger(repoter)
-		handler = &ochttp.Handler{Handler: handler}
-		handler2 = &ochttp.Handler{Handler: handler2}
-		handler3 = &ochttp.Handler{Handler: handler3}
-	}
-
 	pma := api.PermissionedFullAPI(full)
-
 	if len(rateLimitRedis) > 0 && remoteJwtCli != nil {
 		log.Infof("use rate limit %s", rateLimitRedis)
 		limiter, err := ratelimit.NewRateLimitHandler(
@@ -76,18 +51,37 @@ func serveRPC(ctx context.Context, authEndpoint, rateLimitRedis, listen string, 
 		pma = rateLimitAPI
 	}
 
-	serveRpc := func(path string, hnd interface{}, handler http.Handler, rpcSer *jsonrpc.RPCServer) {
+	mux := http.NewServeMux()
+
+	serveRpc := func(path string, hnd interface{}, rpcSer *jsonrpc.RPCServer) {
 		rpcSer.Register("Filecoin", hnd)
-		http.Handle(path, handler)
+
+		var handler http.Handler
+		if remoteJwtCli != nil {
+			handler = (http.Handler)(jwtclient.NewAuthMux(jwt, jwtclient.WarpIJwtAuthClient(remoteJwtCli), rpcSer))
+		} else {
+			handler = (http.Handler)(jwtclient.NewAuthMux(jwt, nil, rpcSer))
+		}
+		mux.Handle(path, handler)
 	}
 
-	serveRpc("/rpc/v0", &v0api.WrapperV1Full{FullNode: pma}, handler, rpcServer)
-	serveRpc("/rpc/v1", pma, handler2, rpcServer2)
-	serveRpc("/rpc/admin/v0", localApi, handler3, rpcServer3)
+	serveRpc("/rpc/v0", &v0api.WrapperV1Full{FullNode: pma}, jsonrpc.NewServer(serverOptions...))
+	serveRpc("/rpc/v1", pma, jsonrpc.NewServer(serverOptions...))
+	serveRpc("/rpc/admin/v0", localApi, jsonrpc.NewServer(serverOptions...))
+	mux.Handle("/healthcheck", healthcheck.Handler())
+
+	allHandler := (http.Handler)(mux)
+	if reporter, err := metrics.RegisterJaeger(mCnf.ServerName, mCnf); err != nil {
+		log.Fatalf("register %s JaegerRepoter to %s failed:%s", mCnf.ServerName, mCnf.JaegerEndpoint, err)
+	} else if reporter != nil {
+		log.Infof("register jaeger-tracing exporter to %s, with node-name:%s", mCnf.JaegerEndpoint, mCnf.ServerName)
+		defer metrics.UnregisterJaeger(reporter)
+		allHandler = &ochttp.Handler{Handler: allHandler}
+	}
 
 	server := http.Server{
 		Addr:    listen,
-		Handler: http.DefaultServeMux,
+		Handler: allHandler,
 		BaseContext: func(net.Listener) context.Context {
 			return ctx
 		},
