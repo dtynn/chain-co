@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/dtynn/dix v0.1.0
+	github.com/etherlabsio/healthcheck/v2 v2.0.0
 	github.com/filecoin-project/go-address v1.1.0
 	github.com/filecoin-project/go-bitfield v0.2.4
 	github.com/filecoin-project/go-data-transfer v1.15.2
