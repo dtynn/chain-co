@@ -556,6 +556,15 @@ func (p *Proxy) MpoolBatchPush(in0 context.Context, in1 []*types.SignedMessage) 
 	return cli.MpoolBatchPush(in0, in1)
 }
 
+func (p *Proxy) MpoolBatchPushUntrusted(in0 context.Context, in1 []*types.SignedMessage) (out0 []cid.Cid, err error) {
+	cli, err := p.Select(types.EmptyTSK)
+	if err != nil {
+		err = fmt.Errorf("api MpoolBatchPushUntrusted %v", err)
+		return
+	}
+	return cli.MpoolBatchPushUntrusted(in0, in1)
+}
+
 func (p *Proxy) MpoolGetNonce(in0 context.Context, in1 address.Address) (out0 uint64, err error) {
 	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {

@@ -508,15 +508,6 @@ func (p *UnSupport) MpoolBatchPushMessage(in0 context.Context, in1 []*types.Mess
 	return cli.MpoolBatchPushMessage(in0, in1, in2)
 }
 
-func (p *UnSupport) MpoolBatchPushUntrusted(in0 context.Context, in1 []*types.SignedMessage) (out0 []cid.Cid, err error) {
-	cli, err := p.Select(types.EmptyTSK)
-	if err != nil {
-		err = fmt.Errorf("api MpoolBatchPushUntrusted %v", err)
-		return
-	}
-	return cli.MpoolBatchPushUntrusted(in0, in1)
-}
-
 func (p *UnSupport) MpoolCheckMessages(in0 context.Context, in1 []*api1.MessagePrototype) (out0 [][]api1.MessageCheckStatus, err error) {
 	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
