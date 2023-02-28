@@ -18,19 +18,20 @@ import (
 	local_api "github.com/ipfs-force-community/chain-co/cli/api"
 	"github.com/ipfs-force-community/metrics"
 	"github.com/ipfs-force-community/metrics/ratelimit"
+	apiInfo "github.com/ipfs-force-community/venus-common-utils/apiinfo"
 	logging "github.com/ipfs/go-log/v2"
 	"go.opencensus.io/plugin/ochttp"
 )
 
-func serveRPC(ctx context.Context, authEndpoint, rateLimitRedis, listen string, mCnf *metrics.TraceConfig, jwt jwtclient.IJwtAuthClient, full api.FullNode, localApi local_api.LocalAPI, stop dix.StopFunc, maxRequestSize int64) error {
+func serveRPC(ctx context.Context, authApi apiInfo.APIInfo, rateLimitRedis, listen string, mCnf *metrics.TraceConfig, jwt jwtclient.IJwtAuthClient, full api.FullNode, localApi local_api.LocalAPI, stop dix.StopFunc, maxRequestSize int64) error {
 	serverOptions := []jsonrpc.ServerOption{}
 	if maxRequestSize > 0 {
 		serverOptions = append(serverOptions, jsonrpc.WithMaxRequestSize(maxRequestSize))
 	}
 
 	var remoteJwtCli *jwtclient.AuthClient
-	if len(authEndpoint) > 0 {
-		remoteJwtCli, _ = jwtclient.NewAuthClient(authEndpoint)
+	if len(authApi.Addr) > 0 && len(authApi.Token) > 0 {
+		remoteJwtCli, _ = jwtclient.NewAuthClient(authApi.Addr, string(authApi.Token))
 	}
 
 	pma := api.PermissionedFullAPI(full)
