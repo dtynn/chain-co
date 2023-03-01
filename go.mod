@@ -12,7 +12,7 @@ require (
 	github.com/filecoin-project/go-jsonrpc v0.2.1
 	github.com/filecoin-project/go-state-types v0.10.0-rc3
 	github.com/filecoin-project/lotus v1.18.0
-	github.com/filecoin-project/venus-auth v1.10.0-rc1
+	github.com/filecoin-project/venus-auth v1.10.0-rc2.0.20230228093328-51431455b8cd
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-multierror v1.1.1
@@ -164,6 +164,8 @@ require (
 	github.com/multiformats/go-multihash v0.2.1 // indirect
 	github.com/multiformats/go-varint v0.0.6 // indirect
 	github.com/nkovacs/streamquote v1.0.0 // indirect
+	github.com/onsi/gomega v1.17.0 // indirect
+	github.com/opencontainers/runtime-spec v1.0.3-0.20210326190908-1c3f411f0417 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.2 // indirect
