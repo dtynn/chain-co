@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.0
+
+* 升级 venus-auth 版本到 v1.10.0
+* 升级 go-jsonrpc 版本到 v0.1.7
+* 升级 lotus 版本到 v1.20.0
+
 ## v0.4.0-rc3
 
 * 支持 MpoolBatchPushUntrusted [[#37](https://github.com/ipfs-force-community/chain-co/pull/37)]
