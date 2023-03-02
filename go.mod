@@ -9,9 +9,9 @@ require (
 	github.com/filecoin-project/go-data-transfer v1.15.2
 	github.com/filecoin-project/go-fil-markets v1.25.2
 	github.com/filecoin-project/go-jsonrpc v0.2.1
-	github.com/filecoin-project/go-state-types v0.10.0-rc3
-	github.com/filecoin-project/lotus v1.18.0
-	github.com/filecoin-project/venus-auth v1.10.0-rc2
+	github.com/filecoin-project/go-state-types v0.10.0
+	github.com/filecoin-project/lotus v1.20.0
+	github.com/filecoin-project/venus-auth v1.10.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-multierror v1.1.1
@@ -228,6 +228,6 @@ require (
 
 replace github.com/filecoin-project/filecoin-ffi => ./extern/filecoin-ffi
 
-replace github.com/filecoin-project/go-jsonrpc => github.com/ipfs-force-community/go-jsonrpc v0.1.7-0.20230220074347-8db78dbc20d4
+replace github.com/filecoin-project/go-jsonrpc => github.com/ipfs-force-community/go-jsonrpc v0.1.7
 
-replace github.com/filecoin-project/lotus => github.com/ipfs-force-community/lotus v0.8.1-0.20230221011603-a90921ed8a62
+replace github.com/filecoin-project/lotus => github.com/ipfs-force-community/lotus v0.8.1-0.20230302073406-b8eb89bc51bc

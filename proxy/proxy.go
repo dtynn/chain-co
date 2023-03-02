@@ -484,6 +484,15 @@ func (p *Proxy) EthUnsubscribe(in0 context.Context, in1 ethtypes.EthSubscription
 	return cli.EthUnsubscribe(in0, in1)
 }
 
+func (p *Proxy) FilecoinAddressToEthAddress(in0 context.Context, in1 address.Address) (out0 ethtypes.EthAddress, err error) {
+	cli, err := p.Select(types.EmptyTSK)
+	if err != nil {
+		err = fmt.Errorf("api FilecoinAddressToEthAddress %v", err)
+		return
+	}
+	return cli.FilecoinAddressToEthAddress(in0, in1)
+}
+
 func (p *Proxy) GasBatchEstimateMessageGas(in0 context.Context, in1 []*api1.EstimateMessage, in2 uint64, in3 types.TipSetKey) (out0 []*api1.EstimateResult, err error) {
 	cli, err := p.Select(in3)
 	if err != nil {
