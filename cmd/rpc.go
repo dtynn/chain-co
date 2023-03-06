@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	_ "net/http/pprof"
@@ -30,7 +31,10 @@ func serveRPC(ctx context.Context, authApi apiInfo.APIInfo, rateLimitRedis, list
 	}
 
 	var remoteJwtCli *jwtclient.AuthClient
-	if len(authApi.Addr) > 0 && len(authApi.Token) > 0 {
+	if len(authApi.Addr) > 0 {
+		if len(authApi.Token) == 0 {
+			return fmt.Errorf("auth token is need when auth api is set")
+		}
 		remoteJwtCli, _ = jwtclient.NewAuthClient(authApi.Addr, string(authApi.Token))
 	}
 
