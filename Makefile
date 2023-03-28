@@ -72,7 +72,7 @@ TAG:=test
 docker: $(BUILD_DEPS)
 	curl -O https://raw.githubusercontent.com/filecoin-project/venus-docs/master/script/docker/dockerfile
 	docker build --build-arg HTTPS_PROXY=$(BUILD_DOCKER_PROXY) --build-arg BUILD_TARGET=chain-co -t chain-co .
-	docker tag chain-co filvenus/chain-co:$(TAG)
+	docker tag chain-co $(PRIVATE_REGISTRY)/filvenus/chain-co:$(TAG)
 
 docker-push: docker
-	docker push filvenus/chain-co:$(TAG)
+	docker push $(PRIVATE_REGISTRY)/filvenus/chain-co:$(TAG)
