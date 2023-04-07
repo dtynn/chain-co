@@ -187,6 +187,15 @@ func (p *Proxy) EthAccounts(in0 context.Context) (out0 []ethtypes.EthAddress, er
 	return cli.EthAccounts(in0)
 }
 
+func (p *Proxy) EthAddressToFilecoinAddress(in0 context.Context, in1 ethtypes.EthAddress) (out0 address.Address, err error) {
+	cli, err := p.Select(types.EmptyTSK)
+	if err != nil {
+		err = fmt.Errorf("api EthAddressToFilecoinAddress %v", err)
+		return
+	}
+	return cli.EthAddressToFilecoinAddress(in0, in1)
+}
+
 func (p *Proxy) EthBlockNumber(in0 context.Context) (out0 ethtypes.EthUint64, err error) {
 	cli, err := p.Select(types.EmptyTSK)
 	if err != nil {
@@ -475,6 +484,15 @@ func (p *Proxy) EthUnsubscribe(in0 context.Context, in1 ethtypes.EthSubscription
 	return cli.EthUnsubscribe(in0, in1)
 }
 
+func (p *Proxy) FilecoinAddressToEthAddress(in0 context.Context, in1 address.Address) (out0 ethtypes.EthAddress, err error) {
+	cli, err := p.Select(types.EmptyTSK)
+	if err != nil {
+		err = fmt.Errorf("api FilecoinAddressToEthAddress %v", err)
+		return
+	}
+	return cli.FilecoinAddressToEthAddress(in0, in1)
+}
+
 func (p *Proxy) GasBatchEstimateMessageGas(in0 context.Context, in1 []*api1.EstimateMessage, in2 uint64, in3 types.TipSetKey) (out0 []*api1.EstimateResult, err error) {
 	cli, err := p.Select(in3)
 	if err != nil {
@@ -545,6 +563,15 @@ func (p *Proxy) MpoolBatchPush(in0 context.Context, in1 []*types.SignedMessage) 
 		return
 	}
 	return cli.MpoolBatchPush(in0, in1)
+}
+
+func (p *Proxy) MpoolBatchPushUntrusted(in0 context.Context, in1 []*types.SignedMessage) (out0 []cid.Cid, err error) {
+	cli, err := p.Select(types.EmptyTSK)
+	if err != nil {
+		err = fmt.Errorf("api MpoolBatchPushUntrusted %v", err)
+		return
+	}
+	return cli.MpoolBatchPushUntrusted(in0, in1)
 }
 
 func (p *Proxy) MpoolGetNonce(in0 context.Context, in1 address.Address) (out0 uint64, err error) {

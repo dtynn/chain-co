@@ -11,8 +11,8 @@ import (
 	"github.com/filecoin-project/lotus/journal/alerting"
 	"github.com/filecoin-project/lotus/node/repo/imports"
 	"github.com/google/uuid"
-	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
+	"github.com/ipfs/go-libipfs/blocks"
 	"github.com/libp2p/go-libp2p/core/peer"
 
 	"github.com/filecoin-project/go-address"
@@ -324,6 +324,9 @@ type Proxy interface {
 	// MpoolBatchPush batch pushes a signed message to mempool.
 	MpoolBatchPush(in0 context.Context, in1 []*types.SignedMessage) (out0 []cid.Cid, err error) //perm:write
 
+	// MpoolBatchPushUntrusted batch pushes a signed message to mempool from untrusted sources.
+	MpoolBatchPushUntrusted(context.Context, []*types.SignedMessage) ([]cid.Cid, error) //perm:write
+
 	// MpoolPending returns pending mempool messages.
 	MpoolPending(context.Context, types.TipSetKey) ([]*types.SignedMessage, error) //perm:read
 
@@ -385,6 +388,10 @@ type Proxy interface {
 	//
 	// EthAccounts will always return [] since we don't expect Lotus to manage private keys
 	EthAccounts(ctx context.Context) ([]ethtypes.EthAddress, error) //perm:read
+	// EthAddressToFilecoinAddress converts an EthAddress into an f410 Filecoin Address
+	EthAddressToFilecoinAddress(ctx context.Context, ethAddress ethtypes.EthAddress) (address.Address, error) //perm:read
+	// FilecoinAddressToEthAddress converts an f410 or f0 Filecoin Address to an EthAddress
+	FilecoinAddressToEthAddress(ctx context.Context, filecoinAddress address.Address) (ethtypes.EthAddress, error) //perm:read
 	// EthBlockNumber returns the height of the latest (heaviest) TipSet
 	EthBlockNumber(ctx context.Context) (ethtypes.EthUint64, error) //perm:read
 	// EthGetBlockTransactionCountByNumber returns the number of messages in the TipSet
@@ -584,9 +591,6 @@ type UnSupport interface {
 
 	// MpoolPushUntrusted pushes a signed message to mempool from untrusted sources.
 	MpoolPushUntrusted(context.Context, *types.SignedMessage) (cid.Cid, error) //perm:write
-
-	// MpoolBatchPushUntrusted batch pushes a signed message to mempool from untrusted sources.
-	MpoolBatchPushUntrusted(context.Context, []*types.SignedMessage) ([]cid.Cid, error) //perm:write
 
 	// MpoolBatchPushMessage batch pushes a unsigned message to mempool.
 	MpoolBatchPushMessage(context.Context, []*types.Message, *api.MessageSendSpec) ([]*types.SignedMessage, error) //perm:sign

@@ -2,7 +2,7 @@ name: Docker Image CI
 
 on:
   push:
-    branches: ['prep/**', 'release/**', 'test/**', master]
+    branches: ['release/**', 'dev/**', master]
     tags: ['**']
   workflow_dispatch:
 
