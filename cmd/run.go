@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/ipfs-force-community/metrics"
+	apiInfo "github.com/ipfs-force-community/venus-common-utils/apiinfo"
 
 	"github.com/urfave/cli/v2"
 
@@ -28,11 +29,11 @@ var runCmd = &cli.Command{
 		},
 		&cli.StringSliceFlag{
 			Name:  "node",
-			Usage: "node info",
+			Usage: "node info, eg: token:node_url",
 		},
 		&cli.StringFlag{
-			Name:  "auth-url",
-			Usage: "specify url for connect to venus-auth",
+			Name:  "auth",
+			Usage: "venus-auth api info , eg: token:http://xxx:xxx",
 			Value: "",
 		},
 		&cli.StringFlag{
@@ -97,9 +98,11 @@ var runCmd = &cli.Command{
 			mCnf.ProbabilitySampler, mCnf.JaegerEndpoint, mCnf.ServerName = sampler, proxy, serverName
 		}
 
+		authApi := apiInfo.ParseApiInfo(cctx.String("auth"))
+
 		return serveRPC(
 			appCtx,
-			cctx.String("auth-url"),
+			authApi,
 			cctx.String("rate-limit-redis"),
 			cctx.String("listen"),
 			mCnf,
