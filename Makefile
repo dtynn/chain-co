@@ -70,9 +70,17 @@ gen-all: proxy-gen perm-gen
 
 TAG:=test
 docker: $(BUILD_DEPS)
+ifdef DOCKERFILE
+	cp $(DOCKERFILE) ./dockerfile
+else
 	curl -O https://raw.githubusercontent.com/filecoin-project/venus-docs/master/script/docker/dockerfile
+endif
 	docker build --build-arg HTTPS_PROXY=$(BUILD_DOCKER_PROXY) --build-arg BUILD_TARGET=chain-co -t chain-co .
+	docker tag chain-co filvenus/chain-co:$(TAG)
+
+ifdef PRIVATE_REGISTRY
 	docker tag chain-co $(PRIVATE_REGISTRY)/filvenus/chain-co:$(TAG)
+endif
 
 docker-push: docker
 	docker push $(PRIVATE_REGISTRY)/filvenus/chain-co:$(TAG)
