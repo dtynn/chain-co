@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.1
+
+* update ffi
+
 ## v0.5.0
 
 * bump uo version to v0.5.0
