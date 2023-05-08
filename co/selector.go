@@ -56,11 +56,11 @@ func (s *Selector) AddNodes(nodes ...*Node) {
 	defer s.lk.Unlock()
 	for _, node := range nodes {
 		addr := node.Addr
+		s.priority[addr] = DelayPriority
+
+		// If found, inherit weights
 		if _, ok := s.weight[addr]; !ok {
 			s.weight[addr] = DefaultWeight
-			s.priority[addr] = DelayPriority
-		} else {
-			s.priority[addr] = DelayPriority
 		}
 	}
 }
@@ -88,12 +88,9 @@ func (s *Selector) setPriority(priority int, addrs ...string) {
 	}
 
 	for _, addr := range addrs {
-		w := s.priority[addr]
-		before := w
-		w = priority
-
-		s.priority[addr] = w
-		log.Debugf("change priority of %s from %d to %d", addr, before, w)
+		current := s.priority[addr]
+		s.priority[addr] = priority
+		log.Debugf("change priority of %s from %d to %d", addr, current, priority)
 	}
 }
 
@@ -117,15 +114,12 @@ func (s *Selector) SetWeight(addr string, weight int) error {
 		return fmt.Errorf("priority must be less than %d", MaxValidWeight)
 	}
 
-	w, ok := s.weight[addr]
+	current, ok := s.weight[addr]
 	if !ok {
 		return fmt.Errorf("node %s not found", addr)
 	}
-	before := w
-	w = weight
-
-	s.weight[addr] = w
-	log.Debugf("change priority of %s from %d to %d", addr, before, w)
+	s.weight[addr] = weight
+	log.Debugf("change priority of %s from %d to %d", addr, current, weight)
 	return nil
 }
 
@@ -160,16 +154,14 @@ func (s *Selector) Select(tsk types.TipSetKey) (*Node, error) {
 		if !tsk.IsEmpty() && p != ErrPriority {
 			if node.hasTipset(tsk) {
 				log.Debugf("node %s has tipset %s, change to catchup node", addr, tsk.Cids())
-				catchUpQue[addr] = s.weight[addr]
+				p = CatchUpPriority
 			} else {
 				// Ensure that there are nodes available for use
 				log.Debugf("node %s not has tipset %s, change to delay node", addr, tsk.Cids())
-				delayQue[addr] = s.weight[addr]
+				p = DelayPriority
 			}
-			continue
 		}
 
-		// tsk is empty
 		if p == CatchUpPriority {
 			catchUpQue[addr] = s.weight[addr]
 		} else if p == DelayPriority {
