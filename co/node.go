@@ -172,14 +172,14 @@ func (n *Node) reListen() (<-chan []*api.HeadChange, error) {
 	for {
 		var err error
 		var ch <-chan []*api.HeadChange
-		// if full node client is nil,try reconnect
+		// if full node client is nil, try reconnect
 		if n.upstream.full == nil {
 			err = n.Connect()
 		}
 		if err == nil {
 			ch, err = n.upstream.full.ChainNotify(n.ctx)
 			if err != nil {
-				n.log.Errorf("call CahinNotify fail: %s", err)
+				n.log.Errorf("call ChainNotify fail: %s", err)
 			}
 		} else {
 			n.log.Errorf("failed to connect to upstream node: %s", err)
@@ -199,7 +199,6 @@ func (n *Node) reListen() (<-chan []*api.HeadChange, error) {
 				if n.reListenInterval > n.opt.ReListenMaxInterval {
 					n.reListenInterval = n.opt.ReListenMaxInterval
 				}
-
 			}
 
 			continue
@@ -303,11 +302,6 @@ func (n *Node) hasTipset(key types.TipSetKey) bool {
 	return n.blkCache.hasKey(key)
 }
 
-const (
-	ADD    = true
-	REMOVE = false
-)
-
 //go:generate mockgen -destination=./node_store_mock.go -package=co github.com/ipfs-force-community/chain-co/co INodeStore
 type INodeStore interface {
 	GetNode(host string) *Node
@@ -347,7 +341,7 @@ func (p *NodeStore) GetHosts() []string {
 func (p *NodeStore) AddNodes(add []*Node) {
 	p.lk.Lock()
 	defer p.lk.Unlock()
-	alt := make(map[string]bool)
+
 	for _, node := range add {
 		if _, exist := p.nodes[node.info.Addr]; !exist {
 			p.nodes[node.info.Addr] = node
@@ -355,8 +349,6 @@ func (p *NodeStore) AddNodes(add []*Node) {
 			pre := p.nodes[node.info.Addr]
 			pre.Stop() // nolint:errcheck
 			p.nodes[node.info.Addr] = node
-
-			alt[node.info.Addr] = ADD
 		}
 		go node.Start()
 	}
