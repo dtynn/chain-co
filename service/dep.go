@@ -8,9 +8,9 @@ import (
 	"github.com/dtynn/dix"
 	"go.uber.org/fx"
 
-	local_api "github.com/ipfs-force-community/chain-co/cli/api"
-	"github.com/ipfs-force-community/chain-co/co"
-	"github.com/ipfs-force-community/chain-co/proxy"
+	local_api "github.com/ipfs-force-community/sophon-co/cli/api"
+	"github.com/ipfs-force-community/sophon-co/co"
+	"github.com/ipfs-force-community/sophon-co/proxy"
 
 	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/types"

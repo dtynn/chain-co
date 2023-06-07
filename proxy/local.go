@@ -6,7 +6,7 @@ import (
 
 	api1 "github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/types"
-	"github.com/ipfs-force-community/chain-co/api"
+	"github.com/ipfs-force-community/sophon-co/api"
 )
 
 var _ LocalAPI = (*Local)(nil)

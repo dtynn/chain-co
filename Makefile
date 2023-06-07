@@ -6,7 +6,7 @@ all: build
 # git modules that need to be loaded
 MODULES:=
 
-ldflags=-X=github.com/ipfs-force-community/chain-co/version.CurrentCommit=+git.$(subst -,.,$(shell git describe --always --match=NeVeRmAtCh --dirty 2>/dev/null || git rev-parse --short HEAD 2>/dev/null))
+ldflags=-X=github.com/ipfs-force-community/sophon-co/version.CurrentCommit=+git.$(subst -,.,$(shell git describe --always --match=NeVeRmAtCh --dirty 2>/dev/null || git rev-parse --short HEAD 2>/dev/null))
 ifneq ($(strip $(LDFLAGS)),)
 	    ldflags+=-extldflags=$(LDFLAGS)
 	endif
@@ -52,8 +52,8 @@ dist-clean:
 	git submodule deinit --all -f
 
 build: $(BUILD_DEPS)
-	rm -f chain-co
-	go build -o ./chain-co $(GOFLAGS) ./cmd
+	rm -f sophon-co
+	go build -o ./sophon-co $(GOFLAGS) ./cmd
 
 proxy-gen:
 	go run ./gen/proxy
@@ -75,12 +75,12 @@ ifdef DOCKERFILE
 else
 	curl -O https://raw.githubusercontent.com/filecoin-project/venus-docs/master/script/docker/dockerfile
 endif
-	docker build --build-arg HTTPS_PROXY=$(BUILD_DOCKER_PROXY) --build-arg BUILD_TARGET=chain-co -t chain-co .
-	docker tag chain-co filvenus/chain-co:$(TAG)
+	docker build --build-arg HTTPS_PROXY=$(BUILD_DOCKER_PROXY) --build-arg BUILD_TARGET=sophon-co -t sophon-co .
+	docker tag sophon-co filvenus/sophon-co:$(TAG)
 
 ifdef PRIVATE_REGISTRY
-	docker tag chain-co $(PRIVATE_REGISTRY)/filvenus/chain-co:$(TAG)
+	docker tag sophon-co $(PRIVATE_REGISTRY)/filvenus/sophon-co:$(TAG)
 endif
 
 docker-push: docker
-	docker push $(PRIVATE_REGISTRY)/filvenus/chain-co:$(TAG)
+	docker push $(PRIVATE_REGISTRY)/filvenus/sophon-co:$(TAG)

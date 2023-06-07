@@ -11,16 +11,16 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/filecoin-project/lotus/api/v1api"
-	local_api "github.com/ipfs-force-community/chain-co/cli/api"
+	local_api "github.com/ipfs-force-community/sophon-co/cli/api"
 
-	"github.com/filecoin-project/venus-auth/jwtclient"
-	"github.com/ipfs-force-community/chain-co/dep"
-	"github.com/ipfs-force-community/chain-co/service"
+	"github.com/ipfs-force-community/sophon-auth/jwtclient"
+	"github.com/ipfs-force-community/sophon-co/dep"
+	"github.com/ipfs-force-community/sophon-co/service"
 )
 
 var runCmd = &cli.Command{
 	Name:  "run",
-	Usage: "start the chain-co daemon",
+	Usage: "start the sophon-co daemon",
 	Flags: []cli.Flag{
 		&cli.Int64Flag{
 			Name:  "max-req-size",
@@ -33,7 +33,7 @@ var runCmd = &cli.Command{
 		},
 		&cli.StringFlag{
 			Name:  "auth",
-			Usage: "venus-auth api info , eg: token:http://xxx:xxx",
+			Usage: "sophon-auth api info , eg: token:http://xxx:xxx",
 			Value: "",
 		},
 		&cli.StringFlag{

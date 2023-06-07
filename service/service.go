@@ -6,12 +6,12 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"go.uber.org/fx"
 
-	local_api "github.com/ipfs-force-community/chain-co/cli/api"
-	"github.com/ipfs-force-community/chain-co/co"
-	"github.com/ipfs-force-community/chain-co/proxy"
+	local_api "github.com/ipfs-force-community/sophon-co/cli/api"
+	"github.com/ipfs-force-community/sophon-co/co"
+	"github.com/ipfs-force-community/sophon-co/proxy"
 )
 
-var log = logging.Logger("chain-co-srv")
+var log = logging.Logger("sophon-co-srv")
 
 // LocalChainService impls proxy.Local
 type LocalChainService struct {

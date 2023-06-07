@@ -18,7 +18,7 @@ var (
 	ErrNoNodeAvailable = fmt.Errorf("no node available")
 )
 
-var log = logging.Logger("chain-co")
+var log = logging.Logger("sophon-co")
 
 const (
 	tipsetChangeTopic = "tschange"

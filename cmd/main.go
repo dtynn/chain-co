@@ -4,8 +4,8 @@ import (
 	"context"
 	"os"
 
-	lcli "github.com/ipfs-force-community/chain-co/cli"
-	"github.com/ipfs-force-community/chain-co/version"
+	lcli "github.com/ipfs-force-community/sophon-co/cli"
+	"github.com/ipfs-force-community/sophon-co/version"
 
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/urfave/cli/v2"
@@ -15,7 +15,7 @@ import (
 	"github.com/filecoin-project/lotus/lib/tracing"
 )
 
-const cliName = "chain-co"
+const cliName = "sophon-co"
 
 var log = logging.Logger(cliName)
 

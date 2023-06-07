@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/filecoin-project/go-jsonrpc"
-	local_api "github.com/ipfs-force-community/chain-co/cli/api"
+	local_api "github.com/ipfs-force-community/sophon-co/cli/api"
 )
 
 func NewLocalRPCClient(ctx context.Context, addr string, opts ...jsonrpc.Option) (local_api.LocalAPI, jsonrpc.ClientCloser, error) {

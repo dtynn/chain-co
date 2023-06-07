@@ -302,7 +302,7 @@ func (n *Node) hasTipset(key types.TipSetKey) bool {
 	return n.blkCache.hasKey(key)
 }
 
-//go:generate mockgen -destination=./node_store_mock.go -package=co github.com/ipfs-force-community/chain-co/co INodeStore
+//go:generate mockgen -destination=./node_store_mock.go -package=co github.com/ipfs-force-community/sophon-co/co INodeStore
 type INodeStore interface {
 	GetNode(host string) *Node
 	GetHosts() []string

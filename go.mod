@@ -1,4 +1,4 @@
-module github.com/ipfs-force-community/chain-co
+module github.com/ipfs-force-community/sophon-co
 
 go 1.18
 
@@ -12,12 +12,12 @@ require (
 	github.com/filecoin-project/go-jsonrpc v0.2.1
 	github.com/filecoin-project/go-state-types v0.11.1
 	github.com/filecoin-project/lotus v1.22.0
-	github.com/filecoin-project/venus-auth v1.11.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/ipfs-force-community/metrics v1.0.1-0.20211022060227-11142a08b729
+	github.com/ipfs-force-community/sophon-auth v1.11.1-0.20230607031351-bc57c2b78f44
 	github.com/ipfs-force-community/venus-common-utils v0.0.0-20210714031758-ea0e25ff0ec4
 	github.com/ipfs/go-cid v0.3.2
 	github.com/ipfs/go-libipfs v0.4.1

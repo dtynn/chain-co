@@ -19,7 +19,7 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/lotus/chain/types/ethtypes"
 	"github.com/filecoin-project/lotus/node/modules/dtypes"
-	"github.com/ipfs-force-community/chain-co/api"
+	"github.com/ipfs-force-community/sophon-co/api"
 	"github.com/ipfs/go-cid"
 )
 

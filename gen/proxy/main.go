@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ipfs-force-community/chain-co/api"
+	"github.com/ipfs-force-community/sophon-co/api"
 )
 
 func main() {
