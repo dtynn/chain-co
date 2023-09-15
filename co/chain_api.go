@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/filecoin-project/lotus/chain/types"
+
 	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/store"
 )
@@ -22,7 +24,7 @@ func (c *Coordinator) ChainNotify(ctx context.Context) (<-chan []*api.HeadChange
 		Val:  head,
 	}}
 
-	done := make(chan struct{}, 0)
+	done := make(chan struct{})
 	go func() {
 		select {
 		case <-ctx.Done():
@@ -72,4 +74,12 @@ func (c *Coordinator) ChainNotify(ctx context.Context) (<-chan []*api.HeadChange
 	}()
 
 	return out, nil
+}
+
+// ChainHead impls api.FullNode.ChainNotify
+func (c *Coordinator) ChainHead(in0 context.Context) (*types.TipSet, error) {
+	c.headMu.RLock()
+	defer c.headMu.RUnlock()
+
+	return c.head, nil
 }

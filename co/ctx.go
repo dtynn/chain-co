@@ -14,24 +14,20 @@ import (
 
 // NewCtx constructs a Ctx instance
 func NewCtx(mctx helpers.MetricsCtx, lc fx.Lifecycle, nodeOpt NodeOption) (*Ctx, error) {
-	bcache, err := newBlockHeaderCache(1 << 20)
-	if err != nil {
-		return nil, err
-	}
-
 	return &Ctx{
-		lc:      helpers.LifecycleCtx(mctx, lc),
-		bcache:  bcache,
-		headCh:  make(chan *headCandidate, 256),
-		nodeOpt: nodeOpt,
+		lc:        helpers.LifecycleCtx(mctx, lc),
+		headCh:    make(chan *headCandidate, 256),
+		errNodeCh: make(chan string, 256),
+		nodeOpt:   nodeOpt,
 	}, nil
 }
 
 // Ctx contains the shared components between different modules
 type Ctx struct {
-	lc      context.Context
-	bcache  *blockHeaderCache
-	headCh  chan *headCandidate
+	lc        context.Context
+	headCh    chan *headCandidate
+	errNodeCh chan string
+
 	nodeOpt NodeOption
 }
 
@@ -73,4 +69,19 @@ func (bc *blockHeaderCache) load(c cid.Cid) (*types.BlockHeader, bool) {
 
 	blk, ok := val.(*types.BlockHeader)
 	return blk, ok
+}
+
+func (bc *blockHeaderCache) has(c cid.Cid) bool {
+	_, ok := bc.cache.Peek(c)
+	return ok
+}
+
+func (bc *blockHeaderCache) hasKey(key types.TipSetKey) bool {
+	for _, blkCid := range key.Cids() {
+		has := bc.has(blkCid)
+		if !has {
+			return false
+		}
+	}
+	return true
 }

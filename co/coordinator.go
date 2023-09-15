@@ -59,9 +59,10 @@ func (c *Coordinator) Start() {
 		select {
 		case <-c.ctx.lc.Done():
 			return
-
 		case hc := <-c.ctx.headCh:
 			c.handleCandidate(hc)
+		case addr := <-c.ctx.errNodeCh:
+			c.delNodeAddr(addr)
 		}
 	}
 }
@@ -72,59 +73,72 @@ func (c *Coordinator) Stop() error {
 	return nil
 }
 
+func (c *Coordinator) delNodeAddr(addr string) {
+	c.sel.setPriority(ErrPriority, addr)
+}
+
 func (c *Coordinator) handleCandidate(hc *headCandidate) {
-	clog := log.With("node", hc.node.info.Host, "h", hc.ts.Height(), "w", hc.weight, "drift", time.Now().Unix()-int64(hc.ts.MinTimestamp()))
+	addr := hc.node.info.Addr
 
 	c.headMu.Lock()
+	defer c.headMu.Unlock()
 
-	if c.head == nil || hc.weight.GreaterThan(c.weight) {
-		clog.Debug("head replaced")
+	if c.sel.Weight(addr) == 0 {
+		log.Infof("skip zero weight node %s ", addr)
+		return
+	}
+	clog := log.With("node", addr, "h", hc.ts.Height(), "w", hc.weight, "drift", time.Now().Unix()-int64(hc.ts.MinTimestamp()))
+
+	//1. more weight
+	//2. if equal weight. select more blocks
+	if c.head == nil || hc.weight.GreaterThan(c.weight) || (hc.weight.Equals(c.weight) && len(hc.ts.Blocks()) > len(c.head.Blocks())) {
+		clog.Info("head replaced")
 
 		prev := c.head
 		next := hc.ts
+		headChanges, err := c.applyTipSetChange(prev, next, hc.node) // todo if network become slow
+		if err != nil {
+			clog.Errorf("apply tipset change: %s", err)
+		}
+		if headChanges == nil {
+			return
+		}
 
 		c.head = hc.ts
 		c.weight = hc.weight
-		c.nodes = append(c.nodes[:0], hc.node.info.Addr)
-		c.sel.setPriors(hc.node.info.Addr)
+		c.nodes = append(c.nodes[:0], addr)
 
-		c.headMu.Unlock()
-
-		if err := c.applyTipSetChange(prev, next, hc.node); err != nil {
-			clog.Errorf("apply tipset change: %s", err)
-		}
-
+		preAddrs := c.sel.getAddrOfPriority(CatchUpPriority)
+		c.sel.setPriority(DelayPriority, preAddrs...)
+		c.sel.setPriority(CatchUpPriority, addr)
+		c.tspub.Pub(headChanges, tipsetChangeTopic)
 		return
 	}
 
 	if c.head.Equals(hc.ts) {
 		contains := false
 		for ni := range c.nodes {
-			if c.nodes[ni] == hc.node.info.Addr {
+			if c.nodes[ni] == addr {
 				contains = true
 				break
 			}
 		}
 
 		if !contains {
-			c.nodes = append(c.nodes, hc.node.info.Addr)
-			c.sel.setPriors(c.nodes...)
-
-			clog.Debug("another node caught up")
+			c.nodes = append(c.nodes, addr)
+			c.sel.setPriority(CatchUpPriority, addr)
+			clog.Infof("another node %s caught up", addr)
 		}
-
-		c.headMu.Unlock()
 		return
 	}
 
 	clog.Debug("ignored a lighter head")
-	return
 }
 
-func (c *Coordinator) applyTipSetChange(prev, next *types.TipSet, node *Node) error {
-	revert, apply, err := store.ReorgOps(node.loadTipSet, prev, next)
+func (c *Coordinator) applyTipSetChange(prev, next *types.TipSet, node *Node) ([]*api.HeadChange, error) {
+	revert, apply, err := store.ReorgOps(c.ctx.lc, node.loadTipSet, prev, next)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	hc := make([]*api.HeadChange, 0, len(revert)+len(apply))
@@ -143,9 +157,7 @@ func (c *Coordinator) applyTipSetChange(prev, next *types.TipSet, node *Node) er
 	}
 
 	if len(hc) == 0 {
-		return nil
+		return nil, nil
 	}
-
-	c.tspub.Pub(hc, tipsetChangeTopic)
-	return nil
+	return hc, nil
 }

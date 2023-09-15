@@ -6,22 +6,25 @@ import (
 	"time"
 
 	"github.com/dtynn/dix"
-	"github.com/filecoin-project/lotus/api"
-	"github.com/filecoin-project/lotus/chain/types"
 	"go.uber.org/fx"
 
-	"github.com/dtynn/chain-co/co"
-	"github.com/dtynn/chain-co/proxy"
+	local_api "github.com/ipfs-force-community/chain-co/cli/api"
+	"github.com/ipfs-force-community/chain-co/co"
+	"github.com/ipfs-force-community/chain-co/proxy"
+
+	"github.com/filecoin-project/lotus/api"
+	"github.com/filecoin-project/lotus/chain/types"
 )
 
 const extractFullNodeAPIKey dix.Invoke = 1
+const extractLocalAPIKey dix.Invoke = 2
 
 // Build constructs the app with given di options
 func Build(ctx context.Context, overrides ...dix.Option) (dix.StopFunc, error) {
 	opts := []dix.Option{
 		dix.Override(new(co.NodeOption), co.DefaultNodeOption),
 		dix.Override(new(*co.Ctx), co.NewCtx),
-		dix.Override(new(*co.Connector), co.NewConnector),
+		dix.Override(new(co.INodeStore), co.NewNodeStore),
 		dix.Override(new(*co.Coordinator), buildCoordinator),
 		dix.Override(new(*co.Selector), co.NewSelector),
 		dix.Override(new(*proxy.Proxy), buildProxyAPI),
@@ -40,16 +43,20 @@ func FullNode(full *api.FullNode) dix.Option {
 	})
 }
 
+// FullNode extracts api.FullNode from inside di
+func LocalAPI(api *local_api.LocalAPI) dix.Option {
+	return dix.Override(extractLocalAPIKey, func(srv LocalAPIService) error {
+		*api = &srv
+		return nil
+	})
+}
+
 // ParseNodeInfoList is provided to the higer-lvel
-func ParseNodeInfoList(raws []string) dix.Option {
+func ParseNodeInfoList(raws []string, version string) dix.Option {
 	return dix.Override(new(co.NodeInfoList), func() (co.NodeInfoList, error) {
 		list := make(co.NodeInfoList, 0, len(raws))
 		for _, str := range raws {
-			info := co.ParseNodeInfo(str)
-			if _, err := info.DialArgs(); err != nil {
-				return nil, fmt.Errorf("invalid node info: %s", str)
-			}
-
+			info := co.NewNodeInfo(str, version)
 			list = append(list, info)
 		}
 
@@ -57,13 +64,13 @@ func ParseNodeInfoList(raws []string) dix.Option {
 	})
 }
 
-func buildCoordinator(lc fx.Lifecycle, ctx *co.Ctx, connector *co.Connector, infos co.NodeInfoList, sel *co.Selector) (*co.Coordinator, error) {
+func buildCoordinator(lc fx.Lifecycle, ctx *co.Ctx, infos co.NodeInfoList, sel *co.Selector) (*co.Coordinator, error) {
 	nodes := make([]*co.Node, 0, len(infos))
 	allDone := false
 	defer func() {
 		if !allDone {
 			for i := range nodes {
-				nodes[i].Stop()
+				nodes[i].Stop() // nolint:errcheck
 			}
 		}
 	}()
@@ -73,31 +80,35 @@ func buildCoordinator(lc fx.Lifecycle, ctx *co.Ctx, connector *co.Connector, inf
 
 	for i := range infos {
 		info := infos[i]
-		nlog := log.With("host", info.Host)
+		nlog := log.With("host", info.Addr)
 
-		node, err := connector.Connect(info)
+		node, err := co.NewNode(ctx, info)
 		if err != nil {
-			nlog.Errorf("connect failed: %s", err)
+			nlog.Errorf("create node failed: %s", err)
 			continue
 		}
 
-		full := node.FullNode()
-		h, w, err := getHeadCandidate(full)
-		if err != nil {
-			node.Stop()
-			nlog.Errorf("failed to get head: %s", err)
-			continue
-		}
-
-		if head == nil || w.GreaterThan(weight) {
-			head = h
-			weight = w
-		}
-
+		nlog.Infof("add new node %s", info.Addr)
 		nodes = append(nodes, node)
+
+		if err := node.Connect(); err == nil {
+			full := node.FullNode()
+			h, w, err := getHeadCandidate(full)
+			if err != nil {
+				node.Stop() // nolint:errcheck
+				nlog.Errorf("failed to get head: %s", err)
+			} else {
+				if head == nil || w.GreaterThan(weight) {
+					head = h
+					weight = w
+				}
+			}
+		} else {
+			nlog.Errorf("connect to node failed: %s", err)
+		}
 	}
 
-	if len(nodes) == 0 {
+	if head == nil {
 		return nil, fmt.Errorf("no available node")
 	}
 
@@ -109,11 +120,11 @@ func buildCoordinator(lc fx.Lifecycle, ctx *co.Ctx, connector *co.Connector, inf
 	lc.Append(fx.Hook{
 		OnStart: func(context.Context) error {
 			go coordinator.Start()
-			sel.ReplaceNodes(nodes, nil, false)
+			sel.AddNodes(nodes...)
 			return nil
 		},
 		OnStop: func(context.Context) error {
-			coordinator.Stop()
+			coordinator.Stop() // nolint:errcheck
 			return nil
 		},
 	})
@@ -141,12 +152,12 @@ func getHeadCandidate(full api.FullNode) (*types.TipSet, types.BigInt, error) {
 
 func buildProxyAPI(sel *co.Selector) *proxy.Proxy {
 	return &proxy.Proxy{
-		Select: func() (proxy.ProxyAPI, error) {
-			node, err := sel.Select()
+		Select: func(tsk types.TipSetKey) (proxy.ProxyAPI, error) {
+			node, err := sel.Select(tsk)
 			if err != nil {
 				return nil, err
 			}
-
+			log.Debugf("select node %s", node.Addr)
 			return node.FullNode(), nil
 		},
 	}
@@ -154,7 +165,7 @@ func buildProxyAPI(sel *co.Selector) *proxy.Proxy {
 
 func buildLocalAPI(lsrv LocalChainService) *proxy.Local {
 	return &proxy.Local{
-		Select: func() (proxy.LocalAPI, error) {
+		Select: func(_ types.TipSetKey) (proxy.LocalAPI, error) {
 			return &lsrv, nil
 		},
 	}
@@ -162,7 +173,7 @@ func buildLocalAPI(lsrv LocalChainService) *proxy.Local {
 
 func buildUnSupportAPI() *proxy.UnSupport {
 	return &proxy.UnSupport{
-		Select: func() (proxy.UnSupportAPI, error) {
+		Select: func(_ types.TipSetKey) (proxy.UnSupportAPI, error) {
 			return nil, fmt.Errorf("api not supported")
 		},
 	}

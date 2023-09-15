@@ -1,0 +1,15 @@
+name: Go
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  check:
+    uses: filecoin-project/venus/.github/workflows/common_go.yml@master
+    with:
+      has_ffi: true

@@ -1,15 +1,18 @@
-package gen
+package main
 
 import (
 	"bytes"
 	"fmt"
 	"go/build"
-	"go/format"
 	"reflect"
 	"strings"
+
+	"github.com/filecoin-project/lotus/chain/types"
+	"golang.org/x/tools/imports"
 )
 
 var errType = reflect.TypeOf((*error)(nil)).Elem()
+var tskType = reflect.TypeOf(types.EmptyTSK)
 
 // Gen generates the impl code for given api interface
 func Gen(pkgName, structName string, api interface{}) ([]byte, error) {
@@ -17,19 +20,22 @@ func Gen(pkgName, structName string, api interface{}) ([]byte, error) {
 	if err := gen.register(reflect.TypeOf(api)); err != nil {
 		return nil, err
 	}
+	if structName == "Local" {
+		gen.deps["github.com/filecoin-project/lotus/chain/types"] = &depDef{}
+	}
 
 	var buf bytes.Buffer
 	gen.write(&buf)
 
-	return format.Source(buf.Bytes())
+	return imports.Process("", buf.Bytes(), nil)
 }
 
-type api struct {
+type apiInfo struct {
 	typ     reflect.Type
 	methods []*method
 }
 
-func (a *api) writeDef(structName string, buf *bytes.Buffer) {
+func (a *apiInfo) writeDef(structName string, buf *bytes.Buffer) {
 	buf.WriteString(fmt.Sprintf("// impl %s\n", a.typ))
 	for _, meth := range a.methods {
 		meth.writeMethodDef(structName, buf)
@@ -57,6 +63,11 @@ func (m method) writeMethodDef(structName string, buf *bytes.Buffer) {
 		inDefs = append(inDefs, def)
 	}
 
+	tskName := "types.EmptyTSK"
+	if m.in[len(m.in)-1].raw == tskType {
+		tskName = inNames[len(inNames)-1]
+	}
+
 	for i := range m.out {
 		def := fmt.Sprintf("out%d %s", i, m.out[i])
 		outDefs = append(outDefs, def)
@@ -67,11 +78,14 @@ func (m method) writeMethodDef(structName string, buf *bytes.Buffer) {
 	}
 
 	buf.WriteString(fmt.Sprintf("func (p *%s) %s(%s) (%s) {\n", structName, m.name, strings.Join(inDefs, ", "), strings.Join(outDefs, ", ")))
-	buf.WriteString(`cli, err := p.Select()
+
+	buf.WriteString(fmt.Sprintf(`cli, err := p.Select(%s)
 	if err != nil {
+		err = fmt.Errorf("api %s %%v", err)
 		return
 	}
-	`)
+	`, tskName, m.name))
+
 	buf.WriteString(fmt.Sprintf("return cli.%s(%s)", m.name, strings.Join(inNames, ", ")))
 	buf.WriteString("}\n\n")
 }
@@ -80,7 +94,7 @@ func newGenerator(pname string, sname string) *generator {
 	return &generator{
 		pkgName:    pname,
 		structName: sname,
-		apis:       make([]api, 0),
+		apis:       make([]apiInfo, 0),
 
 		depCounter: map[string]int{},
 		deps:       map[string]*depDef{},
@@ -91,7 +105,7 @@ func newGenerator(pname string, sname string) *generator {
 type generator struct {
 	pkgName    string
 	structName string
-	apis       []api
+	apis       []apiInfo
 
 	depCounter map[string]int
 	deps       map[string]*depDef
@@ -135,7 +149,7 @@ func (g *generator) writeTypeAssertion(buf *bytes.Buffer) {
 
 func (g *generator) writeStructDef(buf *bytes.Buffer) {
 	buf.WriteString(fmt.Sprintf("type %s struct {\n", g.structName))
-	buf.WriteString(fmt.Sprintf("Select func() (%sAPI, error)\n", g.structName))
+	buf.WriteString(fmt.Sprintf("Select func(types.TipSetKey) (%sAPI, error)\n", g.structName))
 	buf.WriteString("}\n\n")
 }
 
@@ -156,7 +170,7 @@ func (g *generator) register(raw reflect.Type) error {
 	}
 
 	numMeth := apiTyp.NumMethod()
-	a := api{
+	a := apiInfo{
 		typ:     raw.Elem(),
 		methods: make([]*method, 0, numMeth),
 	}

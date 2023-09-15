@@ -1,65 +1,68 @@
-FFI_PATH:=extern/filecoin-ffi/
-FFI_DEPS:=.install-filcrypto
-FFI_DEPS:=$(addprefix $(FFI_PATH),$(FFI_DEPS))
+all: build
+.PHONY: all
 
-$(FFI_DEPS): build-dep/.filecoin-install ;
+## variables
 
+# git modules that need to be loaded
 MODULES:=
 
-CLEAN:=
-BINS:=
-
-ldflags=-X=github.com/filecoin-project/lotus/build.CurrentCommit=+git.$(subst -,.,$(shell git describe --always --match=NeVeRmAtCh --dirty 2>/dev/null || git rev-parse --short HEAD 2>/dev/null))
+ldflags=-X=github.com/ipfs-force-community/chain-co/version.CurrentCommit=+git.$(subst -,.,$(shell git describe --always --match=NeVeRmAtCh --dirty 2>/dev/null || git rev-parse --short HEAD 2>/dev/null))
 ifneq ($(strip $(LDFLAGS)),)
 	    ldflags+=-extldflags=$(LDFLAGS)
 	endif
 
 GOFLAGS+=-ldflags="$(ldflags)"
 
+## FFI
+
+FFI_PATH:=extern/filecoin-ffi/
+FFI_DEPS:=.install-filcrypto
+FFI_DEPS:=$(addprefix $(FFI_PATH),$(FFI_DEPS))
+
+$(FFI_DEPS): build-dep/.filecoin-install ;
+
 build-dep/.filecoin-install: $(FFI_PATH)
-	    $(MAKE) -C $(FFI_PATH) $(FFI_DEPS:$(FFI_PATH)%=%)
-		    @touch $@
+	$(MAKE) -C $(FFI_PATH) $(FFI_DEPS:$(FFI_PATH)%=%)
+	@touch $@
 
 MODULES+=$(FFI_PATH)
 BUILD_DEPS+=build-dep/.filecoin-install
 CLEAN+=build-dep/.filecoin-install
 
-link-build-dir:
-	./scripts/link-build.sh
-BUILD_DEPS+=link-build-dir
+## modules
+build-dep:
+	mkdir $@
 
-$(MODULES): build-dep/.update-modules ;
-
+$(MODULES): build-dep/.update-modules;
 # dummy file that marks the last time modules were updated
-build-dep/.update-modules:
+build-dep/.update-modules: build-dep;
 	git submodule update --init --recursive
 	touch $@
 
-CLEAN+=build-dep/.update-modules
+## build
 
-test: $(BUILD_DEPS)
-	go test -v -failfast ./...
+test:
+	go test -race ./...
 
 lint: $(BUILD_DEPS)
-	golint --set_exit_status `go list ./... | grep -v /extern/ | grep -v /proxy$$`
-
-deps: $(BUILD_DEPS)
-
-dep-check: build-dep/.update-modules
-	./tool/scripts/submodule-check.sh
+	golangci-lint run
 
 dist-clean:
 	git clean -xdff
 	git submodule deinit --all -f
 
-gen-proxy:
-	go run scripts/proxy-gen.go
+build: $(BUILD_DEPS)
+	rm -f chain-co
+	go build -o ./chain-co $(GOFLAGS) ./cmd
 
-build-ro: $(BUILD_DEPS)
-	mkdir -p ./bin
-	rm -f ./bin/chain-ro
-	go build $(GOFLAGS) -o ./bin/chain-ro ./chain-ro/cmd
-	go run github.com/GeertJohan/go.rice/rice append --exec ./bin/chain-ro -i ./build
+proxy-gen:
+	go run ./gen/proxy
+.PHONY: proxy-gen
 
-.PHONY: lotus
-BINS+=lotus
+perm-gen:
+	go run ./gen/perm
+.PHONY: perm-gen
+
+gen-all: proxy-gen perm-gen
+	go generate ./...
+.PHONY: gen-all
